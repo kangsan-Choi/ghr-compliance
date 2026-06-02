@@ -603,7 +603,7 @@ for key in ["data", "findings", "report_ctx"]:
 
 # ── 사이드바 ①: 국가 선택 + 법령 불러오기 ──
 with st.sidebar:
-    st.header("🌐 컴플라이언스 점검")
+    st.header("🌐 해외사업장 ER 점검")
     st.caption("아래 순서대로 진행하세요.")
     st.markdown("**1단계 · 국가 선택**")
     choice = st.selectbox("대상 국가 — 도시", list(COUNTRY_CITY_FILES.keys()), label_visibility="collapsed")
