@@ -1,7 +1,0 @@
-- [Myanmar Labor Law Sources](reference_myanmar_sources.md) — Authoritative URLs for Myanmar labor law research
-- [Myanmar Labor Law Key Data](reference_myanmar_labor_law_data.md) — Minimum wage history, severance table, SSB rates, political risk snapshot (researched 2026-05)
-- [Indonesia/Dumai Labor Law Key Data](reference_indonesia_dumai_labor_law_data.md) — Dumai UMK IDR 4,431,174/mo, BPJS rates, pesangon structure, MK168 ruling, THR (researched 2026-06)
-- [China/Beijing Labor Law Key Data](reference_china_beijing_labor_law_data.md) — Minimum wage CNY 2,540/mo, social insurance rates, severance N/N+1/2N, recent amendments (researched 2026-06)
-- [Netherlands Labor Law Key Data](reference_netherlands_labor_law_data.md) — WML €14.71/hr, severance cap €102K, social insurance rates, key 2026 amendments (researched 2026-06)
-- [Japan/Tokyo Labor Law Key Data](reference_japan_tokyo_labor_law_data.md) — Tokyo min wage ¥1,226/hr, 36협정 caps, social insurance rates, 2024–2026 amendments (researched 2026-06)
-- [Texas/US Labor Law Key Data](reference_texas_us_labor_law.md) — Min wage $7.25, FICA rates, SUTA, at-will, HB822 sick leave, key 2024-2026 changes (researched 2026-06)
