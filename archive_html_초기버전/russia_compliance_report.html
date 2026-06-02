@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>러시아 법인 노동법 컴플라이언스 갭 분석 리포트</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ===== Header ===== */
+  .report-header {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+    color: #fff;
+    padding: 36px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-header::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+  .report-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+  .report-header .subtitle {
+    font-size: 13px;
+    opacity: 0.82;
+    margin-bottom: 16px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    opacity: 0.75;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 5px; }
+  .flag { font-size: 18px; }
+
+  /* ===== Print Button ===== */
+  .print-btn {
+    position: absolute;
+    top: 28px; right: 40px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: rgba(255,255,255,0.28); }
+
+  /* ===== Container ===== */
+  .container { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ===== Executive Summary ===== */
+  .exec-summary {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .exec-summary h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a237e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e8eaf6;
+  }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: #f8f9ff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-align: center;
+    border: 1px solid #e8eaf6;
+  }
+  .kpi-card .kpi-val {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-card .kpi-label { font-size: 12px; color: #6b7280; }
+  .kpi-compliant .kpi-val { color: #28A745; }
+  .kpi-partial .kpi-val { color: #FFC107; }
+  .kpi-critical .kpi-val { color: #DC3545; }
+  .kpi-total .kpi-val { color: #1a237e; }
+
+  .exec-text {
+    background: #fffbf0;
+    border-left: 4px solid #FFC107;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #374151;
+  }
+
+  /* ===== Risk Bar ===== */
+  .risk-bar-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .risk-bar-section h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a237e;
+    margin-bottom: 16px;
+  }
+  .risk-bar-wrap { display: flex; height: 28px; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+  .risk-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; transition: width 0.5s; }
+  .risk-seg.red { background: #DC3545; }
+  .risk-seg.yellow { background: #FFC107; color: #333; }
+  .risk-seg.green { background: #28A745; }
+  .risk-legend { display: flex; gap: 20px; font-size: 12px; }
+  .risk-legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot-red { background: #DC3545; }
+  .dot-yellow { background: #FFC107; }
+  .dot-green { background: #28A745; }
+
+  /* ===== Section Title ===== */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a237e;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8eaf6;
+  }
+
+  /* ===== Compliance Table ===== */
+  .table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: #e8eaf6;
+  }
+  thead th {
+    padding: 11px 14px;
+    text-align: left;
+    font-weight: 700;
+    color: #1a237e;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f0f2f5; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafbff; }
+  tbody td { padding: 12px 14px; vertical-align: top; }
+  .col-area { min-width: 110px; font-weight: 600; color: #374151; }
+  .col-law { min-width: 160px; font-size: 12px; }
+  .col-current { min-width: 140px; }
+  .col-gap { min-width: 180px; }
+  .col-rec { min-width: 180px; }
+  .col-status { min-width: 90px; }
+  .col-risk { min-width: 70px; }
+  .law-ref { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .law-link { font-size: 11px; }
+
+  /* ===== Status Badges ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge-compliant { background: #d4edda; color: #155724; }
+  .badge-partial   { background: #fff3cd; color: #856404; }
+  .badge-critical  { background: #f8d7da; color: #721c24; }
+  .badge-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .badge-compliant .badge-dot { background: #28A745; }
+  .badge-partial   .badge-dot { background: #FFC107; }
+  .badge-critical  .badge-dot { background: #DC3545; }
+
+  /* ===== Risk Tags ===== */
+  .risk-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .risk-high   { background: #DC3545; color: #fff; }
+  .risk-medium { background: #FFC107; color: #333; }
+  .risk-low    { background: #28A745; color: #fff; }
+
+  /* ===== Action Items ===== */
+  .actions-wrap {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .priority-group { margin-bottom: 22px; }
+  .priority-label {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .priority-label::before {
+    content: '';
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+  .p1 .priority-label::before { background: #DC3545; }
+  .p2 .priority-label::before { background: #FFC107; }
+  .p3 .priority-label::before { background: #28A745; }
+  .action-list { list-style: none; }
+  .action-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .p1 .action-list li { background: #fff5f5; border-left: 3px solid #DC3545; }
+  .p2 .action-list li { background: #fffdf0; border-left: 3px solid #FFC107; }
+  .p3 .action-list li { background: #f0fff4; border-left: 3px solid #28A745; }
+  .action-num {
+    min-width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .p1 .action-num { background: #DC3545; }
+  .p2 .action-num { background: #e6a800; }
+  .p3 .action-num { background: #28A745; }
+  .action-content strong { display: block; margin-bottom: 2px; }
+
+  /* ===== Law Reference Section ===== */
+  .law-ref-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .law-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .law-card {
+    background: #f8f9ff;
+    border: 1px solid #e8eaf6;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .law-card h4 { font-size: 13px; font-weight: 700; color: #1a237e; margin-bottom: 4px; }
+  .law-card .law-ru { font-size: 12px; color: #6b7280; margin-bottom: 6px; font-style: italic; }
+  .law-card p { font-size: 12px; color: #374151; line-height: 1.55; }
+  .law-card a { font-size: 11px; display: block; margin-top: 6px; }
+
+  /* ===== Disclaimer ===== */
+  .disclaimer {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .disclaimer strong { color: #374151; }
+
+  /* ===== Footer ===== */
+  .report-footer {
+    text-align: center;
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  /* ===== Print Styles ===== */
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    .report-header { background: #1a237e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn { display: none; }
+    .table-wrap, .exec-summary, .risk-bar-section, .actions-wrap, .law-ref-section { box-shadow: none; border: 1px solid #e5e7eb; }
+    table { font-size: 11px; }
+    .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    .law-cards { grid-template-columns: repeat(2, 1fr); }
+    a[href]::after { content: " (" attr(href) ")"; font-size: 10px; color: #6b7280; }
+    .print-btn::after { content: none; }
+  }
+
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .law-cards { grid-template-columns: 1fr; }
+    .container { padding: 16px 12px; }
+    .exec-summary, .table-wrap, .actions-wrap, .law-ref-section { padding: 18px 16px; }
+    .print-btn { position: static; display: block; margin-top: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="report-header">
+  <button class="print-btn" onclick="window.print()">PDF 저장 / 인쇄</button>
+  <h1><span class="flag">🇷🇺</span> 러시아 법인 노동법 컴플라이언스 갭 분석 리포트</h1>
+  <p class="subtitle">Russia Labor Law Compliance Gap Analysis Report &mdash; Трудовой кодекс Российской Федерации</p>
+  <div class="header-meta">
+    <span>분석 기준일: 2026년 3월 30일</span>
+    <span>적용 법령: 러시아 연방 노동법전 (ТК РФ)</span>
+    <span>분석 대상: 러시아 소재 외국계 법인 표준 HR 관행</span>
+    <span>보고서 생성: 2026-03-30</span>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+  <!-- ===== EXECUTIVE SUMMARY ===== -->
+  <div class="exec-summary">
+    <h2>전체 요약 대시보드 (Executive Summary)</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-val">8</div>
+        <div class="kpi-label">총 점검 항목</div>
+      </div>
+      <div class="kpi-card kpi-compliant">
+        <div class="kpi-val">2</div>
+        <div class="kpi-label">준수 (Compliant)</div>
+      </div>
+      <div class="kpi-card kpi-partial">
+        <div class="kpi-val">4</div>
+        <div class="kpi-label">부분준수 (Partial)</div>
+      </div>
+      <div class="kpi-card kpi-critical">
+        <div class="kpi-val">2</div>
+        <div class="kpi-label">긴급 (Critical)</div>
+      </div>
+    </div>
+    <div class="exec-text">
+      <strong>종합 평가:</strong> 러시아 법인의 현행 HR 관행을 러시아 연방 노동법전(ТК РФ)과 대조한 결과,
+      총 8개 컴플라이언스 영역 중 <strong>2개 영역(25%)</strong>에서 법 위반 리스크가 있는 긴급(Critical) 갭이 확인되었으며,
+      <strong>4개 영역(50%)</strong>은 부분 준수 상태로 개선이 권고됩니다. 특히 <strong>급여 지급 주기(월 2회 의무)</strong>와
+      <strong>초과근무 수당 산정 기준(2024년 9월 개정 반영 필요)</strong>은 즉각적인 정책 수정이 필요합니다.
+      2025~2026년 최저임금 대폭 인상(16.5% → 20.7%) 및 초과근무 한도 확대 법안 등 최근 개정사항에 대한
+      지속적인 모니터링 체계 구축도 필요합니다.
+    </div>
+  </div>
+
+  <!-- ===== RISK BAR ===== -->
+  <div class="risk-bar-section">
+    <h2>컴플라이언스 현황 분포</h2>
+    <div class="risk-bar-wrap">
+      <div class="risk-seg red"   style="width:25%">긴급 25%</div>
+      <div class="risk-seg yellow" style="width:50%">부분준수 50%</div>
+      <div class="risk-seg green"  style="width:25%">준수 25%</div>
+    </div>
+    <div class="risk-legend">
+      <span><span class="dot dot-red"></span> 긴급/Critical (법 위반 리스크 &mdash; 즉각 조치 필요) : 2개</span>
+      <span><span class="dot dot-yellow"></span> 부분준수/Advisory (개선 권고) : 4개</span>
+      <span><span class="dot dot-green"></span> 준수/Compliant : 2개</span>
+    </div>
+  </div>
+
+  <!-- ===== DETAILED ANALYSIS TABLE ===== -->
+  <div class="table-wrap">
+    <div class="section-title">항목별 상세 컴플라이언스 분석</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-area">영역</th>
+          <th class="col-law">법정 요건 (ТК РФ)</th>
+          <th class="col-current">현행 HR 관행</th>
+          <th class="col-gap">갭 내용</th>
+          <th class="col-rec">개선 권고사항</th>
+          <th class="col-status">준수 상태</th>
+          <th class="col-risk">리스크</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- 1. 급여 지급 주기 -->
+        <tr>
+          <td class="col-area">급여 지급 주기<br><span class="law-ref">Порядок выплаты</span></td>
+          <td class="col-law">
+            <strong>월 2회 이상 지급 의무</strong><br>
+            <span class="law-ref">ТК РФ 제136조 (Ст.136 ТК РФ)</span><br>
+            &bull; 전반기 급여: 매월 16~말일 지급<br>
+            &bull; 후반기 급여: 익월 1~15일 지급<br>
+            &bull; 지급 지연 시 중앙은행 기준금리 1/300 이자 가산 (2024.1.30 개정)<br>
+            <a class="law-link" href="https://www.awaragroup.com/blog/new-periods-for-salaries-payment-in-russia/" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">월 1회 지급 운영</td>
+          <td class="col-gap">
+            <strong>법정 월 2회 지급 의무 미준수.</strong><br>
+            지연 이자 배상 의무 발생 가능. 반복 위반 시 법인 과태료 최대 100,000루블, 임원 자격정지(1~3년) 가능.
+          </td>
+          <td class="col-rec">
+            즉시 급여 지급일을 2회로 분리 운영.<br>
+            예) 선급금(아반스): 매월 20일 / 최종 급여: 익월 5일.<br>
+            취업규칙(Правила внутреннего трудового распорядка) 및 근로계약 개정 필요.
+          </td>
+          <td><span class="badge badge-critical"><span class="badge-dot"></span>긴급</span></td>
+          <td><span class="risk-tag risk-high">높음</span></td>
+        </tr>
+
+        <!-- 2. 초과근무 수당 -->
+        <tr>
+          <td class="col-area">초과근무 수당<br><span class="law-ref">Сверхурочная работа</span></td>
+          <td class="col-law">
+            <strong>가산임금 지급 의무</strong><br>
+            <span class="law-ref">ТК РФ 제152조 (Ст.152 ТК РФ)</span><br>
+            &bull; 초과 1~2시간: 통상임금 1.5배<br>
+            &bull; 초과 2시간 초과분: 2배<br>
+            &bull; <strong>2024.9.1 개정:</strong> 기본급뿐 아니라 각종 수당(보전적·장려적 지급)도 산정 기준에 포함<br>
+            &bull; 연간 한도: 현행 120시간 (240시간 확대 법안 심의 중)<br>
+            <a class="law-link" href="https://statistics.timecamp.com/countries-overtime-law/russia/" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">기본급 기준으로만 초과수당 산정</td>
+          <td class="col-gap">
+            <strong>2024년 9월 개정 미반영.</strong><br>
+            각종 수당(교통비, 직급 보전 수당 등)을 제외하고 기본급만으로 산정하면 과소 지급에 해당하여 법 위반.
+          </td>
+          <td class="col-rec">
+            즉시 초과수당 산정 기준을 총보수(기본급 + 보전적·장려적 수당) 기준으로 재산정.<br>
+            급여 시스템 로직 변경 및 소급 검토 실시.<br>
+            2024.9.1 이후 지급분 소급 정산 여부 법률 검토 권고.
+          </td>
+          <td><span class="badge badge-critical"><span class="badge-dot"></span>긴급</span></td>
+          <td><span class="risk-tag risk-high">높음</span></td>
+        </tr>
+
+        <!-- 3. 근로시간 -->
+        <tr>
+          <td class="col-area">근로시간<br><span class="law-ref">Рабочее время</span></td>
+          <td class="col-law">
+            <strong>주 40시간 상한</strong><br>
+            <span class="law-ref">ТК РФ 제91조 (Ст.91 ТК РФ)</span><br>
+            &bull; 표준 근무: 주 5일 × 8시간<br>
+            &bull; 초과근무 일 4시간, 연 120시간 한도<br>
+            &bull; 휴식시간: 최소 30분~2시간 (근무시간 미산입)<br>
+            &bull; 초과근무 한도 240시간 확대 법안 심의 중(2024.12 정부 승인)<br>
+            <a class="law-link" href="https://www.playroll.com/working-hours/russia" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">주 40시간, 월~금 운영</td>
+          <td class="col-gap">
+            기본 근로시간 기준은 준수.<br>
+            단, 초과근무 한도(연 120시간) 초과 여부 모니터링 체계 미비 가능성. 법안 변경 모니터링 필요.
+          </td>
+          <td class="col-rec">
+            초과근무 시간 기록 시스템(타임시트) 정비.<br>
+            연간 120시간 초과 시 알림 체계 구축.<br>
+            초과근무 한도 법안 변경 시 취업규칙 즉시 개정.
+          </td>
+          <td><span class="badge badge-partial"><span class="badge-dot"></span>부분준수</span></td>
+          <td><span class="risk-tag risk-medium">중간</span></td>
+        </tr>
+
+        <!-- 4. 연차휴가 -->
+        <tr>
+          <td class="col-area">연차휴가<br><span class="law-ref">Ежегодный отпуск</span></td>
+          <td class="col-law">
+            <strong>최소 28역일 유급휴가</strong><br>
+            <span class="law-ref">ТК РФ 제115조, 제122조, 제124조 (Ст.115,122,124)</span><br>
+            &bull; 최초 사용: 6개월 근속 후 가능<br>
+            &bull; 분할 사용: 최소 1회 14일 이상 연속<br>
+            &bull; <strong>2025.3.1 개정:</strong> 퇴직 시 미사용 휴일 보상 청구권 법제화<br>
+            &bull; 특수직종(유해환경 등) 추가휴가 별도 부여<br>
+            <a class="law-link" href="https://kontur.ru/articles/2601" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">28일 유급휴가 부여</td>
+          <td class="col-gap">
+            기본 일수는 준수.<br>
+            단, 분할 사용 시 14일 연속 요건 내규 명시 여부 및 2025.3.1 개정(미사용 휴일 보상) 반영 여부 불명확.
+          </td>
+          <td class="col-rec">
+            취업규칙에 14일 연속 사용 의무 명기.<br>
+            2025.3.1 이후 발생하는 휴일 대체근무에 대한 미사용 휴일 보상 절차 마련.<br>
+            유해환경 근무자 추가휴가 부여 여부 점검.
+          </td>
+          <td><span class="badge badge-partial"><span class="badge-dot"></span>부분준수</span></td>
+          <td><span class="risk-tag risk-medium">중간</span></td>
+        </tr>
+
+        <!-- 5. 최저임금 -->
+        <tr>
+          <td class="col-area">최저임금<br><span class="law-ref">Минимальная зарплата (МРОТ)</span></td>
+          <td class="col-law">
+            <strong>연방 최저임금 준수 의무</strong><br>
+            <span class="law-ref">연방법 №82-ФЗ</span><br>
+            &bull; 2025.1.1 기준: <strong>22,440루블/월</strong> (+16.5%)<br>
+            &bull; 2026.1.1 기준: <strong>27,093루블/월</strong> (+20.7%, 연방법 №429-ФЗ)<br>
+            &bull; 모스크바: 32,916루블, 상트페테르부르크: 28,750루블 (지역 최저임금 적용)<br>
+            &bull; 지역계수(районный коэффициент)는 МРОТ에 별도 가산<br>
+            <a class="law-link" href="https://konsugroup.com/en/news/changes-minimal-wage-regional-practice-2026/" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">기본 급여 지급 (수준 미확인)</td>
+          <td class="col-gap">
+            2026년 최저임금 20.7% 대폭 인상 대비 여부 불명확.<br>
+            지역별 최저임금(모스크바 등) 적용 여부 및 지역계수 반영 여부 점검 필요.
+          </td>
+          <td class="col-rec">
+            2026.1.1 전까지 전 임직원 급여가 지역 최저임금 이상인지 검토.<br>
+            모스크바, 상트페테르부르크 등 지역별 최저임금 적용 확인.<br>
+            매년 1월 МРОТ 개정 모니터링 프로세스 수립.
+          </td>
+          <td><span class="badge badge-partial"><span class="badge-dot"></span>부분준수</span></td>
+          <td><span class="risk-tag risk-medium">중간</span></td>
+        </tr>
+
+        <!-- 6. 해고/퇴직 -->
+        <tr>
+          <td class="col-area">해고 / 퇴직<br><span class="law-ref">Увольнение / Расторжение</span></td>
+          <td class="col-law">
+            <strong>해고 예고 및 퇴직금</strong><br>
+            <span class="law-ref">ТК РФ 제178조, 제180조, 제261조 (Ст.178,180,261)</span><br>
+            &bull; 감원·청산 시: <strong>2개월 전</strong> 서면 통보<br>
+            &bull; 수습기간 중 해고: 3일 전 통보<br>
+            &bull; 자진퇴사: 2주 전 통보<br>
+            &bull; 감원 시: 평균 월급 1~3개월분 퇴직금<br>
+            &bull; 보호 대상: 육아 중 여성, 14세 미만 자녀 양육 단독부모 해고 원칙 금지<br>
+            <a class="law-link" href="https://gratanet.com/publications/termination-of-employment-in-russia" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">30일 예고 운영</td>
+          <td class="col-gap">
+            현행 30일 예고는 <strong>감원·청산 시 법정 2개월(60일)에 미달</strong>.<br>
+            육아 중 여성 등 보호대상 해고 금지 규정 내규 반영 여부 불명확.
+          </td>
+          <td class="col-rec">
+            취업규칙에 사유별 예고기간 구분 명기 (수습 3일 / 자진퇴사 14일 / 감원·청산 60일).<br>
+            보호대상 근로자(임신, 육아 중 여성, 한부모 등) 목록화 및 해고 제한 절차 내규화.<br>
+            감원 계획 시 반드시 60일 전 서면 통보 절차 준수.
+          </td>
+          <td><span class="badge badge-partial"><span class="badge-dot"></span>부분준수</span></td>
+          <td><span class="risk-tag risk-medium">중간</span></td>
+        </tr>
+
+        <!-- 7. 출산/육아휴직 -->
+        <tr>
+          <td class="col-area">출산·육아휴직<br><span class="law-ref">Декретный отпуск</span></td>
+          <td class="col-law">
+            <strong>출산전후 휴가 및 육아휴직</strong><br>
+            <span class="law-ref">ТК РФ 제255조, 제256조 (Ст.255,256)</span><br>
+            &bull; 출산전후 휴가: <strong>140역일</strong> (100% 평균임금, 단 상한 있음)<br>
+            &bull; 난산 시: 156역일, 다태아: 194역일<br>
+            &bull; 2025년 최대급여: 직전 2년 평균 일급 × 140일 (상한 대폭 인상)<br>
+            &bull; 육아휴직: 자녀 만 3세까지 (СФР 지원 만 1.5세까지)<br>
+            &bull; 부성 휴가: 법정 유급 없음, 5일 무급 청구 가능<br>
+            &bull; <strong>2025.9.1 개정:</strong> 입양아 관련 휴가 규정 개정<br>
+            <a class="law-link" href="https://vacationtracker.io/leave-laws/europe/russia/" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">출산휴가 140일 부여</td>
+          <td class="col-gap">
+            기본 140일은 준수.<br>
+            단, 난산(156일)·다태아(194일) 경우 추가 부여 절차 내규화 여부 불명확.<br>
+            2025.9.1 입양 관련 개정 반영 여부 점검 필요.
+          </td>
+          <td class="col-rec">
+            난산·다태아 추가 휴가 절차를 취업규칙에 명시.<br>
+            2025.9.1 개정(입양아 관련) 내용 HR 정책에 반영.<br>
+            СФР(사회기금) 급여 청구 절차 담당자 교육 실시.
+          </td>
+          <td><span class="badge badge-compliant"><span class="badge-dot"></span>준수</span></td>
+          <td><span class="risk-tag risk-low">낮음</span></td>
+        </tr>
+
+        <!-- 8. 사회보험 기여금 -->
+        <tr>
+          <td class="col-area">사회보험 기여금<br><span class="law-ref">Страховые взносы</span></td>
+          <td class="col-law">
+            <strong>통합 사회보험료 납부</strong><br>
+            <span class="law-ref">НК РФ 제34章, 연방법 №125-ФЗ</span><br>
+            &bull; 표준 세율: <strong>30%</strong> (연금+의료+사회)<br>
+            &bull; 과세표준 상한 2025년: <strong>2,759,000루블</strong>/인/년<br>
+            &bull; 상한 초과분: <strong>15.1%</strong><br>
+            &bull; 산재·직업병 보험: 업종별 0.2%~8.5% 별도<br>
+            &bull; 중소기업(SME): 상한 내 20%, 상한 초과 10% 우대세율<br>
+            <a class="law-link" href="https://acsour.com/en/news-and-articles/tpost/nsziu19uf1-the-maximum-contribution-base-for-2025" target="_blank">법령 참조 링크</a>
+          </td>
+          <td class="col-current">기본 납부 실시</td>
+          <td class="col-gap">
+            기본 납부는 이루어지고 있으나, 2025년 과세표준 상한(2,759,000루블) 변경 반영 여부 및 산재보험 업종 리스크 등급 정확 적용 여부 점검 필요.
+          </td>
+          <td class="col-rec">
+            2025년 과세표준 상한 변경분을 급여 시스템에 즉시 반영.<br>
+            산재보험 업종 등급(опасность производства) 재확인.<br>
+            SME 우대세율 적용 가능 여부 세무 검토.
+          </td>
+          <td><span class="badge badge-compliant"><span class="badge-dot"></span>준수</span></td>
+          <td><span class="risk-tag risk-low">낮음</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 근로계약 요건 별도 참고 ===== -->
+  <div class="table-wrap">
+    <div class="section-title">근로계약 요건 (Трудовой договор) &mdash; 참고</div>
+    <table>
+      <thead>
+        <tr>
+          <th>필수 기재사항 (ТК РФ 제57조)</th>
+          <th>설명</th>
+          <th>점검 포인트</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>당사자 정보</td>
+          <td>근로자·사용자 성명, 여권번호, TIN 등</td>
+          <td>전 직원 계약서 기재 완비 여부 확인</td>
+        </tr>
+        <tr>
+          <td>직무 및 근무지</td>
+          <td>직위명, 근무 장소, 근무 부서</td>
+          <td>재택/원격 근무자 계약서 별도 조항 필요</td>
+        </tr>
+        <tr>
+          <td>보수 조건</td>
+          <td>기본급, 인센티브, 수당 항목 및 금액</td>
+          <td>총보수 구성 요소 명확히 기재 필수</td>
+        </tr>
+        <tr>
+          <td>근무시간 및 휴가</td>
+          <td>소정 근로시간, 연차일수, 특수 휴가</td>
+          <td>일반 취업규칙과 상이할 경우 반드시 계약서 기재</td>
+        </tr>
+        <tr>
+          <td>사회보험 유형</td>
+          <td>의료·연금·산재보험 가입 명시</td>
+          <td>외국인 근로자는 체류 자격별 별도 적용</td>
+        </tr>
+        <tr>
+          <td>서면 2부 원본</td>
+          <td>사용자·근로자 각 1부 원본 보관</td>
+          <td>전자계약 도입 시 전자서명법 요건 충족 필요</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== ACTION ITEMS ===== -->
+  <div class="actions-wrap">
+    <div class="section-title">개선 권고사항 및 우선순위 로드맵</div>
+
+    <div class="priority-group p1">
+      <div class="priority-label" style="color:#DC3545;">긴급 조치 (즉시 &mdash; 30일 이내)</div>
+      <ul class="action-list">
+        <li>
+          <div class="action-num">1</div>
+          <div class="action-content">
+            <strong>급여 지급 주기 월 2회로 전환 (ТК РФ 제136조)</strong>
+            급여 지급일을 2회로 분리하는 취업규칙(내부규정) 개정안을 즉시 작성하고 전 직원에게 서면 통지.
+            급여 시스템에서 선급금(아반스, авансовый платёж)과 최종급여 지급 주기 설정.
+            개정 완료 후 근로계약 부속서 체결.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">2</div>
+          <div class="action-content">
+            <strong>초과근무 수당 산정 기준 개정 (ТК РФ 제152조, 2024.9.1 개정 반영)</strong>
+            기본급뿐 아니라 보전적·장려적 수당(교통비, 직무수당, 성과급 등) 전체를 시간급 산정 기준에 포함.
+            2024년 9월 이후 지급된 초과수당 소급 검토 및 차액 정산 여부 노무 법률 자문 의뢰.
+            급여 계산 시스템 로직 즉시 수정.
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="priority-group p2">
+      <div class="priority-label" style="color:#856404;">단기 개선 (30~90일 이내)</div>
+      <ul class="action-list">
+        <li>
+          <div class="action-num">3</div>
+          <div class="action-content">
+            <strong>해고 예고기간 내규 사유별 세분화</strong>
+            취업규칙에 해고 사유별 예고기간(수습 3일 / 자진퇴사 14일 / 감원·청산 60일)을 명확히 구분 기재.
+            보호대상 근로자(임신, 3세 미만 자녀 양육 여성, 한부모 등) 해고 제한 절차 내부 지침 제정.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">4</div>
+          <div class="action-content">
+            <strong>2026년 최저임금 인상(27,093루블) 사전 대비</strong>
+            2025년 4분기 이전에 전 임직원 급여가 지역 최저임금 이상인지 전수 검토 및 인상 계획 수립.
+            특히 모스크바(32,916루블), 상트페테르부르크(28,750루블) 등 지역 최저임금 상회 여부 점검.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">5</div>
+          <div class="action-content">
+            <strong>연차휴가 분할 사용 규정 내규화 및 2025년 개정 반영</strong>
+            14일 연속 사용 의무를 취업규칙에 명기.
+            2025.3.1 발효된 미사용 휴일(휴무일 근무 대체휴가) 금전 보상 청구권 절차를 HR 정책에 반영.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">6</div>
+          <div class="action-content">
+            <strong>사회보험 과세표준 상한 업데이트 및 산재보험 등급 재확인</strong>
+            2025년 과세표준 상한(2,759,000루블/인/년) 변경분을 급여 시스템에 반영.
+            업종별 산재보험 리스크 등급(класс профессионального риска) 재확인하여 정확한 요율 적용.
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="priority-group p3">
+      <div class="priority-label" style="color:#155724;">중장기 관리 (90일 이후 &mdash; 지속 모니터링)</div>
+      <ul class="action-list">
+        <li>
+          <div class="action-num">7</div>
+          <div class="action-content">
+            <strong>초과근무 한도 법안 모니터링 (연 240시간 확대 심의 중)</strong>
+            2024년 12월 정부 승인된 초과근무 연간 한도 240시간 확대 법안의 국회 통과 여부 모니터링.
+            통과 시 취업규칙 개정 및 초과근무 동의서 양식 업데이트.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">8</div>
+          <div class="action-content">
+            <strong>출산·육아휴직 2025년 9월 개정 반영 및 СФР 청구 절차 정비</strong>
+            2025.9.1 발효되는 입양아 관련 휴가 개정 내용을 HR 정책에 반영.
+            사회기금(СФР) 급여 직접 지급(прямые выплаты) 청구 절차 HR 담당자 교육.
+          </div>
+        </li>
+        <li>
+          <div class="action-num">9</div>
+          <div class="action-content">
+            <strong>노동법 개정 모니터링 체계 구축</strong>
+            КонсультантПлюс 또는 Гарант 구독을 통한 정기 개정 모니터링.
+            분기별 러시아 노동법 컴플라이언스 점검 사이클 도입.
+            현지 노무 법률 자문(местный юрист по трудовому праву) 고문 계약 검토.
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== LAW REFERENCE ===== -->
+  <div class="law-ref-section">
+    <div class="section-title">러시아 노동법 주요 조항 참조</div>
+    <div class="law-cards">
+      <div class="law-card">
+        <h4>근로시간 &mdash; 제91조, 제99조</h4>
+        <div class="law-ru">Ст.91, 99 ТК РФ &mdash; Рабочее время / Сверхурочная работа</div>
+        <p>주 40시간 상한 및 초과근무 규정. 연간 120시간 초과근무 한도 (개정 심의 중).</p>
+        <a href="https://www.playroll.com/working-hours/russia" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>급여 지급 주기 &mdash; 제136조</h4>
+        <div class="law-ru">Ст.136 ТК РФ &mdash; Порядок, место и сроки выплаты заработной платы</div>
+        <p>급여 월 2회 이상 지급 의무. 전반기 16~말일, 후반기 익월 1~15일 지급.</p>
+        <a href="https://www.awaragroup.com/blog/new-periods-for-salaries-payment-in-russia/" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>초과근무 수당 &mdash; 제152조</h4>
+        <div class="law-ru">Ст.152 ТК РФ &mdash; Оплата сверхурочной работы</div>
+        <p>1~2시간 1.5배, 이후 2배. 2024.9.1 개정: 수당 포함 총보수 기준 산정.</p>
+        <a href="https://statistics.timecamp.com/countries-overtime-law/russia/" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>연차휴가 &mdash; 제115조, 제122조</h4>
+        <div class="law-ru">Ст.115, 122 ТК РФ &mdash; Продолжительность ежегодного отпуска</div>
+        <p>최소 28역일 유급휴가. 6개월 근속 후 최초 사용 가능. 분할 시 1회 최소 14일 연속.</p>
+        <a href="https://kontur.ru/articles/2601" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>출산전후 휴가 &mdash; 제255조, 제256조</h4>
+        <div class="law-ru">Ст.255, 256 ТК РФ &mdash; Отпуска по беременности и родам</div>
+        <p>출산전후 휴가 140역일(난산 156일, 다태아 194일). 육아휴직 자녀 만 3세까지.</p>
+        <a href="https://vacationtracker.io/leave-laws/europe/russia/" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>해고 예고 및 퇴직금 &mdash; 제178조, 제180조</h4>
+        <div class="law-ru">Ст.178, 180 ТК РФ &mdash; Выходные пособия / Гарантии при увольнении</div>
+        <p>감원·청산 시 60일 전 서면 통보 및 평균 월급 1~3개월 퇴직금 지급.</p>
+        <a href="https://gratanet.com/publications/termination-of-employment-in-russia" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>사회보험 기여금 &mdash; НК РФ 제34章</h4>
+        <div class="law-ru">Глава 34 НК РФ &mdash; Страховые взносы</div>
+        <p>통합 사회보험료 30% (상한 내). 2025년 과세표준 상한: 2,759,000루블.</p>
+        <a href="https://acsour.com/en/news-and-articles/tpost/nsziu19uf1-the-maximum-contribution-base-for-2025" target="_blank">상세 정보 보기</a>
+      </div>
+      <div class="law-card">
+        <h4>최저임금 &mdash; 연방법 №82-ФЗ</h4>
+        <div class="law-ru">Федеральный закон №82-ФЗ &mdash; О минимальном размере оплаты труда</div>
+        <p>2025년 22,440루블/월. 2026년 27,093루블/월 (연방법 №429-ФЗ, 2025.11.28).</p>
+        <a href="https://konsugroup.com/en/news/changes-minimal-wage-regional-practice-2026/" target="_blank">상세 정보 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DISCLAIMER ===== -->
+  <div class="disclaimer">
+    <strong>면책 고지 (Disclaimer):</strong> 본 보고서는 2026년 3월 30일 기준으로 공개된 정보를 바탕으로 작성되었습니다.
+    러시아 노동법은 빈번하게 개정되므로, 본 보고서의 내용은 현지 공인 노무 법률 자문인(российский юрист по трудовому праву)을 통해
+    반드시 최신 법령 기준으로 검증하시기 바랍니다.
+    특히 현재 심의 중인 초과근무 한도 확대 법안(연 240시간)은 국회 통과 여부 확인이 필요합니다.
+    본 보고서는 일반적인 외국계 법인 표준 HR 관행을 기준으로 작성된 것으로, 귀사의 개별 상황에 따라 갭 분석 결과가 상이할 수 있습니다.
+  </div>
+
+</div><!-- /container -->
+
+<!-- ===== FOOTER ===== -->
+<div class="report-footer">
+  Global HR Labor Compliance Report &mdash; Russia (Россия) &nbsp;|&nbsp;
+  보고서 생성일: 2026-03-30 &nbsp;|&nbsp;
+  적용 법령: Трудовой кодекс Российской Федерации (ТК РФ) &nbsp;|&nbsp;
+  분석 기준: 러시아 소재 외국계 법인 표준 HR 관행
+</div>
+
+<script>
+  // Tab switching (single country report — no tabs needed)
+  // Print confirmation
+  document.querySelector('.print-btn').addEventListener('click', function() {
+    window.print();
+  });
+
+  // Animate risk bar on load
+  document.addEventListener('DOMContentLoaded', function() {
+    var segs = document.querySelectorAll('.risk-seg');
+    segs.forEach(function(seg) {
+      var target = seg.style.width;
+      seg.style.width = '0';
+      setTimeout(function() {
+        seg.style.width = target;
+      }, 200);
+    });
+  });
+</script>
+
+</body>
+</html>

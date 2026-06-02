@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노동법 컴플라이언스 대시보드 - 미국(텍사스) / 네덜란드 | 2026-03-30</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0f2f5;color:#222;font-size:14px}
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:24px 32px}
+.header h1{font-size:22px;font-weight:700;margin-bottom:6px}
+.header p{font-size:12px;opacity:.8}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e0e0e0;padding:0 32px}
+.tab{padding:14px 24px;cursor:pointer;font-size:13px;font-weight:600;border-bottom:3px solid transparent;color:#666;transition:.2s}
+.tab.active{color:#1a237e;border-bottom-color:#1a237e}
+.tab-content{display:none;padding:24px 32px}
+.tab-content.active{display:block}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.summary-card{background:#fff;border-radius:8px;padding:16px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.summary-card .val{font-size:28px;font-weight:700;margin-bottom:4px}
+.summary-card .lbl{font-size:11px;color:#666}
+.red-val{color:#DC3545}.yellow-val{color:#FFC107}.green-val{color:#28A745}.gray-val{color:#6C757D}
+.section{background:#fff;border-radius:8px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;cursor:pointer;border-bottom:1px solid #f0f0f0;background:#fafafa}
+.section-header h3{font-size:14px;font-weight:700}
+.toggle-icon{font-size:12px;color:#666}
+.section-body{padding:0}
+.comparison-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f5f5f5}
+.comparison-row:last-child{border-bottom:none}
+.col-legal{padding:16px;background:#f8f9ff;border-right:1px solid #e8eaf6}
+.col-policy{padding:16px}
+.col-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;letter-spacing:.5px}
+.col-legal h4{font-size:12px;font-weight:700;color:#1a237e;margin-bottom:6px}
+.col-legal p{font-size:12px;color:#444;line-height:1.6}
+.col-legal .law-ref{font-size:10px;color:#5c6bc0;margin-top:6px}
+.col-legal a{color:#3f51b5;text-decoration:none}
+.col-legal a:hover{text-decoration:underline}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:4px}
+input[type=number],input[type=text],input[type=date],select,textarea{width:100%;border:1px solid #ddd;border-radius:4px;padding:7px 10px;font-size:13px;font-family:inherit;outline:none;transition:.2s}
+input:focus,select:focus,textarea:focus{border-color:#3f51b5;box-shadow:0 0 0 2px rgba(63,81,181,.12)}
+.gap-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px}
+.badge-red{background:#fdecea;color:#DC3545}
+.badge-yellow{background:#fff8e1;color:#e65100}
+.badge-green{background:#e8f5e9;color:#28A745}
+.badge-gray{background:#f5f5f5;color:#6C757D}
+.gap-desc{font-size:11px;color:#555;margin-top:6px;line-height:1.5;padding:8px;background:#fffde7;border-left:3px solid #FFC107;border-radius:2px}
+.gap-desc.critical{background:#fdecea;border-left-color:#DC3545}
+.gap-desc.ok{background:#e8f5e9;border-left-color:#28A745}
+.btn{padding:9px 18px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-primary{background:#1a237e;color:#fff}
+.btn-secondary{background:#fff;color:#1a237e;border:1px solid #1a237e}
+.btn-success{background:#28A745;color:#fff}
+.btn-danger{background:#DC3545;color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-bar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.progress-bar-wrap{background:#e0e0e0;border-radius:10px;height:10px;overflow:hidden;margin-top:6px}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,#1a237e,#42a5f5);transition:.5s}
+.progress-info{font-size:11px;color:#666;margin-bottom:4px}
+.timeline{padding:16px}
+.timeline-item{display:flex;gap:16px;margin-bottom:20px;position:relative}
+.timeline-item:not(:last-child)::after{content:'';position:absolute;left:14px;top:30px;bottom:-10px;width:2px;background:#e0e0e0}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#fff}
+.tl-past{background:#1565c0}.tl-current{background:#28A745}.tl-upcoming{background:#FFC107;color:#333}.tl-review{background:#9E9E9E}
+.tl-content{flex:1}
+.tl-date{font-size:11px;font-weight:700;color:#555;margin-bottom:2px}
+.tl-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:12px;color:#555;line-height:1.5}
+.tl-checkpoint{font-size:11px;background:#fff3e0;border-left:3px solid #FF9800;padding:6px 10px;margin-top:6px;border-radius:2px}
+.tl-status{font-size:10px;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;font-weight:700}
+.status-past{background:#e3f2fd;color:#1565c0}
+.status-current{background:#e8f5e9;color:#2e7d32}
+.status-upcoming{background:#fff8e1;color:#e65100}
+.status-review{background:#f5f5f5;color:#616161}
+.custom-section{padding:16px}
+.custom-entry{background:#f8f9ff;border:1px solid #e8eaf6;border-radius:6px;padding:12px;margin-bottom:12px;position:relative}
+.custom-entry .remove-btn{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:#aaa;font-size:16px}
+.risk-result{margin-top:10px;padding:10px;border-radius:4px;font-size:12px;line-height:1.6}
+.risk-high{background:#fdecea;border-left:3px solid #DC3545}
+.risk-medium{background:#fff8e1;border-left:3px solid #FFC107}
+.risk-low{background:#e8f5e9;border-left:3px solid #28A745}
+.final-report{background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:none}
+.final-report.show{display:block}
+.report-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+.report-table th{background:#1a237e;color:#fff;padding:10px 12px;text-align:left}
+.report-table td{padding:9px 12px;border-bottom:1px solid #e0e0e0}
+.report-table tr:hover td{background:#f5f5f5}
+.action-item{padding:12px 16px;border-radius:6px;margin-bottom:10px;font-size:12px;line-height:1.6}
+.action-critical{background:#fdecea;border-left:4px solid #DC3545}
+.action-advisory{background:#fff8e1;border-left:4px solid #FFC107}
+.timestamp{font-size:11px;color:#888;margin-top:4px}
+.country-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:8px}
+.badge-us{background:#e3f2fd;color:#1565c0}
+.badge-nl{background:#fff3e0;color:#e65100}
+@media print{
+  .tabs,.btn-bar,button{display:none!important}
+  .tab-content{display:block!important}
+  .section-body{display:block!important}
+  body{background:#fff}
+  .section{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>글로벌 노동법 컴플라이언스 대시보드</h1>
+  <p>분석 국가: 미국 텍사스주(휴스턴) | 네덜란드(암스테르담) &nbsp;|&nbsp; 보고서 생성일: 2026-03-30 &nbsp;|&nbsp; <span id="lastSaved">마지막 저장: -</span></p>
+</div>
+
+<div style="background:#fff;padding:12px 32px;border-bottom:1px solid #e0e0e0;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+  <span id="progressInfo" class="progress-info">입력 진행률: 0 / 0 항목</span>
+  <div style="flex:1;min-width:200px">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+  </div>
+  <button class="btn btn-secondary btn-sm" onclick="saveData()">데이터 저장</button>
+  <button class="btn btn-secondary btn-sm" onclick="loadData()">데이터 불러오기</button>
+  <button class="btn btn-secondary btn-sm" onclick="window.print()">PDF/인쇄</button>
+  <button class="btn btn-success btn-sm" onclick="generateFinalReport()">저장 및 반영 (최종 리포트)</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('us')">미국 텍사스(휴스턴)</div>
+  <div class="tab" onclick="switchTab('nl')">네덜란드(암스테르담)</div>
+  <div class="tab" onclick="switchTab('final')">최종 종합 리포트</div>
+</div>
+
+<!-- ==================== 미국 탭 ==================== -->
+<div class="tab-content active" id="tab-us">
+
+  <div class="summary-grid">
+    <div class="summary-card"><div class="val gray-val" id="us-rate">-</div><div class="lbl">전체 준수율</div></div>
+    <div class="summary-card"><div class="val red-val" id="us-red">0</div><div class="lbl">긴급 (미준수)</div></div>
+    <div class="summary-card"><div class="val yellow-val" id="us-yellow">0</div><div class="lbl">권고 (부분준수)</div></div>
+    <div class="summary-card"><div class="val green-val" id="us-green">0</div><div class="lbl">준수</div></div>
+  </div>
+
+  <!-- 1. 근로시간 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>1. 근로시간 (Working Hours)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>주 40시간 (FLSA 기준)</h4>
+          <p>FLSA상 비면제 근로자는 주 40시간 초과 근무 시 1.5배 초과근무수당 지급 의무. 텍사스주는 별도 주(州) 근로시간법 없음 - 연방법 적용.</p>
+          <p style="margin-top:6px">일일 근로시간 제한: 없음 (연방/텍사스 모두)</p>
+          <div class="law-ref"><a href="https://www.dol.gov/agencies/whd/flsa" target="_blank">FLSA - 29 U.S.C. §207</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>주당 기본 근로시간</label>
+            <input type="number" id="us-wh-hours" placeholder="예: 40" min="1" max="80" oninput="analyzeUS()">
+          </div>
+          <div class="form-group">
+            <label>초과근무 수당 계산방식</label>
+            <select id="us-wh-ot" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="1.5x">1.5배 (FLSA 기준 준수)</option>
+              <option value="2x">2배 이상</option>
+              <option value="straight">일반시급과 동일 (미지급)</option>
+              <option value="comp">보상휴가로 대체</option>
+            </select>
+          </div>
+          <div id="us-wh-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 휴가 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>2. 휴가 (Leave)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>연차휴가: 법정 의무 없음</h4>
+          <p>텍사스주 및 연방법 모두 민간 기업에 유급 연차휴가 부여를 의무화하지 않음. 단, 회사 정책으로 부여 시 해당 정책을 준수해야 함.</p>
+          <h4 style="margin-top:10px">FMLA: 무급 12주</h4>
+          <p>FMLA 대상 사업장(50인 이상, 75마일 반경)은 자격요건 충족 근로자에게 연간 최대 12주 무급 병가/가족돌봄 휴가 보장.</p>
+          <h4 style="margin-top:10px">유급 병가: 법정 의무 없음</h4>
+          <p>텍사스주 사업장에 대한 유급 병가 의무 없음 (오스틴·달라스·샌안토니오 조례 모두 법원에 의해 효력 정지).</p>
+          <div class="law-ref"><a href="https://www.dol.gov/agencies/whd/fmla" target="_blank">FMLA - 29 U.S.C. §2601</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>연간 유급 연차 제공일수</label>
+            <input type="number" id="us-lv-days" placeholder="예: 15" min="0" oninput="analyzeUS()">
+          </div>
+          <div class="form-group">
+            <label>유급 병가 제공 여부</label>
+            <select id="us-lv-sick" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">제공함</option>
+              <option value="no">제공하지 않음</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>FMLA 운용 대상 (종업원 수)</label>
+            <input type="number" id="us-lv-fmla" placeholder="예: 120" min="0" oninput="analyzeUS()">
+          </div>
+          <div id="us-lv-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 급여 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>3. 급여 (Payroll &amp; Wages)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>최저임금: $7.25/시간 (2026)</h4>
+          <p>텍사스주 최저임금은 연방 최저임금과 동일한 $7.25/시간. 휴스턴 시 단위 별도 최저임금 없음.</p>
+          <h4 style="margin-top:10px">FLSA 면제자 급여 기준</h4>
+          <p>임원·관리직·전문직 면제 최저 급여: $684/주($35,568/년) — 2024년 11월 연방법원 판결로 상향 차단, 현행 유지.</p>
+          <h4 style="margin-top:10px">급여 지급 주기: 주 1회 이상 또는 격주</h4>
+          <p>텍사스 노동법(Texas Labor Code §61.011): 면제직 월 1회 이상, 비면제직 반월 이상 지급.</p>
+          <div class="law-ref"><a href="https://statutes.capitol.texas.gov/Docs/LA/htm/LA.61.htm" target="_blank">Texas Labor Code §61.011</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>최저 시급 (USD)</label>
+            <input type="number" id="us-py-minwage" placeholder="예: 7.25" step="0.01" oninput="analyzeUS()">
+          </div>
+          <div class="form-group">
+            <label>급여 지급 주기</label>
+            <select id="us-py-freq" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="weekly">주 1회</option>
+              <option value="biweekly">격주 (2주 1회)</option>
+              <option value="semimonthly">반월 (월 2회)</option>
+              <option value="monthly">월 1회</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>면제직(Exempt) 최저 주급 (USD)</label>
+            <input type="number" id="us-py-exempt" placeholder="예: 684" step="1" oninput="analyzeUS()">
+          </div>
+          <div id="us-py-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 해고/고용종료 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>4. 해고 및 고용종료 (Termination)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>임의고용(At-Will Employment)</h4>
+          <p>텍사스주는 임의고용 원칙 적용. 사용자는 위법한 이유가 아닌 한 언제든 해고 가능. 법정 사전 통보 기간 없음 (민간 사업장).</p>
+          <h4 style="margin-top:10px">WARN Act (연방): 60일 사전 통보</h4>
+          <p>100인 이상 사업장이 50인 이상 집단해고 또는 공장 폐쇄 시 60일 사전 서면 통지 의무.</p>
+          <h4 style="margin-top:10px">퇴직금: 법정 의무 없음</h4>
+          <p>텍사스주 및 연방법상 퇴직금(Severance Pay) 지급 의무 없음. 회사 정책 또는 계약에 따름.</p>
+          <div class="law-ref"><a href="https://www.dol.gov/agencies/eta/layoffs/warn" target="_blank">WARN Act - 29 U.S.C. §2101</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>해고 사전 통보 기간 (일수)</label>
+            <input type="number" id="us-tm-notice" placeholder="예: 30" min="0" oninput="analyzeUS()">
+          </div>
+          <div class="form-group">
+            <label>퇴직금/위로금 정책 보유 여부</label>
+            <select id="us-tm-sev" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">있음</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>집단해고 시 WARN Act 준수 절차 보유</label>
+            <select id="us-tm-warn" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">있음</option>
+              <option value="no">없음</option>
+              <option value="na">해당없음 (100인 미만)</option>
+            </select>
+          </div>
+          <div id="us-tm-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 출산/육아 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>5. 출산/육아휴직 (Parental Leave)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>FMLA: 무급 12주</h4>
+          <p>출산, 입양, 위탁 후 12개월 내 최대 12주 무급 직장복귀보장 휴가. 대상 사업장(50인 이상) 해당.</p>
+          <h4 style="margin-top:10px">유급 출산휴가: 연방 법정 의무 없음</h4>
+          <p>텍사스주 민간기업은 유급 출산/배우자 출산휴가 법적 의무 없음. 임신차별금지법(PDA) 준수 필요.</p>
+          <div class="law-ref"><a href="https://www.eeoc.gov/pregnancy-discrimination" target="_blank">PDA - 42 U.S.C. §2000e(k)</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>출산휴가 제공 주수 (유급)</label>
+            <input type="number" id="us-pl-weeks" placeholder="예: 6" min="0" oninput="analyzeUS()">
+          </div>
+          <div class="form-group">
+            <label>배우자/파트너 출산휴가 제공</label>
+            <select id="us-pl-partner" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">제공함</option>
+              <option value="no">제공하지 않음</option>
+            </select>
+          </div>
+          <div id="us-pl-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 사회보험 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>6. 사회보험 (Social Insurance &amp; Payroll Taxes)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>연방 급여세 (FICA)</h4>
+          <p>사회보장세(Social Security): 사용자 6.2% + 근로자 6.2% (과세 한도 $184,500/2026)<br>
+          메디케어(Medicare): 사용자 1.45% + 근로자 1.45%<br>
+          추가 메디케어: $200,000 초과분 근로자 0.9% 추가</p>
+          <h4 style="margin-top:10px">연방/주 실업보험 (FUTA/SUTA)</h4>
+          <p>FUTA: 6% (첫 $7,000, SUTA 납부 시 5.4% 세액공제)<br>
+          Texas SUTA: 신규사업자 2.7%, 기존 사업자 경험요율 적용 (RTR 0.21% + 이자세 0.01% 포함)</p>
+          <h4 style="margin-top:10px">산재보험 (Workers' Comp)</h4>
+          <p>텍사스는 산재보험 임의가입 주. 단, 정부 계약 사업자는 필수. 미가입 시 민사소송 노출 위험.</p>
+          <div class="law-ref"><a href="https://www.irs.gov/taxtopics/tc751" target="_blank">IRS - FICA 세율 안내</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>사회보장세 납부 여부</label>
+            <select id="us-si-ss" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">납부 중 (사용자 6.2%)</option>
+              <option value="no">미납부</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>산재보험 가입 여부</label>
+            <select id="us-si-wc" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">가입함</option>
+              <option value="no">미가입</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SUTA (텍사스 실업보험) 납부 여부</label>
+            <select id="us-si-suta" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">납부 중</option>
+              <option value="no">미납부</option>
+            </select>
+          </div>
+          <div id="us-si-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 근로계약 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>7. 근로계약 (Employment Contract)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>서면 계약 의무: 없음 (연방/텍사스)</h4>
+          <p>텍사스 및 연방법상 고용계약 서면 작성 의무 없음. 단, 비경쟁·비밀유지 조항은 서면 필수.</p>
+          <h4 style="margin-top:10px">AI 채용 도구 규제 (TRAIGA, 2026.1.1 시행)</h4>
+          <p>HB 149: AI 시스템을 채용/평가에 사용 시 보호계층 차별 의도 금지. 주 기관과 의료기관은 AI 사용 고지 의무.</p>
+          <h4 style="margin-top:10px">비경쟁 조항 (SB 1318, 2026.1.1)</h4>
+          <p>의사 등 의료직: 비경쟁 유효 요건 강화 — 매수 조항 포함, 1년 만료, 5마일 이내 지역 제한, 명확한 문구 필요.</p>
+          <div class="law-ref"><a href="https://legis.state.tx.us/" target="_blank">Texas Legislature Online</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>고용계약 유형</label>
+            <select id="us-ct-type" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="atwill">임의고용(At-Will) 서면 명시</option>
+              <option value="fixed">기간제 계약</option>
+              <option value="none">서면 계약 없음</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>비경쟁 조항 포함 여부</label>
+            <select id="us-ct-noncomp" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">포함됨</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>AI 채용도구 사용 여부</label>
+            <select id="us-ct-ai" onchange="analyzeUS()">
+              <option value="">선택하세요</option>
+              <option value="yes">사용함</option>
+              <option value="no">미사용</option>
+            </select>
+          </div>
+          <div id="us-ct-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 개정법령 타임라인 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>8. 최신 개정법령 타임라인 (미국 텍사스)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-past">P</div>
+          <div class="tl-content">
+            <div class="tl-status status-past">시행완료</div>
+            <div class="tl-date">2024-11-15</div>
+            <div class="tl-title">FLSA 초과근무 면제 급여 기준 상향 법원 차단</div>
+            <div class="tl-desc">텍사스 연방법원이 2024년 7월 시행된 FLSA 면제직 급여 기준 상향($43,888 → 향후 $58,656 예정)을 전국적으로 효력 정지. 현행 $684/주($35,568/년) 유지.</div>
+            <div class="tl-checkpoint">체크포인트: 면제직 분류 재검토. $684/주 이상 지급 중인지 확인. 직무 테스트(Duties Test) 재검토.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-past">P</div>
+          <div class="tl-content">
+            <div class="tl-status status-past">시행완료</div>
+            <div class="tl-date">2025-07-04</div>
+            <div class="tl-title">One Big Beautiful Bill Act - 팁 세금공제 신설</div>
+            <div class="tl-desc">트럼프 대통령 서명. 팁 수입에 대한 세금 공제 허용 (2025-01-01 ~ 2028-12-31). 접객업·서비스업 근로자에게 적용.</div>
+            <div class="tl-checkpoint">체크포인트: 팁 지급 직종 급여시스템 업데이트. 팁 수입 별도 기록 및 W-2 처리 방식 검토.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-current">C</div>
+          <div class="tl-content">
+            <div class="tl-status status-current">현재시행중</div>
+            <div class="tl-date">2026-01-01</div>
+            <div class="tl-title">TRAIGA (HB 149) - 텍사스 AI 거버넌스법</div>
+            <div class="tl-desc">AI 시스템을 채용·평가·승진에 활용 시 보호계층 차별 의도 금지. 주 기관 및 의료기관은 AI 사용 고지 의무. 민간 기업은 의도적 차별만 금지.</div>
+            <div class="tl-checkpoint">체크포인트: AI 채용 도구 사용 현황 파악. 알고리즘 편향 내부 검토 절차 수립. 의도적 차별 방지 정책 문서화.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-current">C</div>
+          <div class="tl-content">
+            <div class="tl-status status-current">현재시행중</div>
+            <div class="tl-date">2026-01-01</div>
+            <div class="tl-title">SB 1318 - 의료직 비경쟁 조항 강화</div>
+            <div class="tl-desc">의사, 치과의사, 간호사, 의사보조원 등 의료직 비경쟁 조항 요건 강화: 매수 조항 필수, 1년 만료, 5마일 반경 제한, 명확한 문구 요건.</div>
+            <div class="tl-checkpoint">체크포인트: 의료직 고용계약 검토 및 비경쟁 조항 수정. 기존 계약의 유효성 법률 검토.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-upcoming">U</div>
+          <div class="tl-content">
+            <div class="tl-status status-upcoming">시행예정</div>
+            <div class="tl-date">2026 (입법 동향)</div>
+            <div class="tl-title">연방 최저임금 인상 논의</div>
+            <div class="tl-desc">연방 최저임금 $7.25(2009년 이후 동결)의 인상 논의가 지속되나 2026년 현재 입법화 미완료. 동향 모니터링 필요.</div>
+            <div class="tl-checkpoint">체크포인트: 연방 최저임금 입법 동향 분기별 모니터링. 인상 시 영향받는 직군 사전 파악.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-review">R</div>
+          <div class="tl-content">
+            <div class="tl-status status-review">심의중</div>
+            <div class="tl-date">2026 (의회 심의)</div>
+            <div class="tl-title">연방 유급 가족·의료 휴가법(PFMLA) 도입 논의</div>
+            <div class="tl-desc">민주당 주도로 연방 차원의 유급 가족의료휴가 도입 법안 발의. 현재 공화당 다수 하원에서 통과 전망 불확실.</div>
+            <div class="tl-checkpoint">체크포인트: 법안 동향 모니터링. 선제적 유급 출산·가족 휴가 정책 도입 검토 (인재 유치 경쟁력).</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 기타 사항 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>9. 기타 사항 (사용자 정의 정책)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="custom-section">
+        <p style="font-size:12px;color:#666;margin-bottom:12px">귀사의 개별 정책 및 특이 사항을 입력하면 텍사스 노동법 관점에서 리스크를 분석합니다.</p>
+        <div id="us-custom-entries"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addCustomEntry('us')">+ 항목 추가</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="reviewCustom('us')">검토 요청</button>
+        <div id="us-custom-result" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end tab-us -->
+
+<!-- ==================== 네덜란드 탭 ==================== -->
+<div class="tab-content" id="tab-nl">
+
+  <div class="summary-grid">
+    <div class="summary-card"><div class="val gray-val" id="nl-rate">-</div><div class="lbl">전체 준수율</div></div>
+    <div class="summary-card"><div class="val red-val" id="nl-red">0</div><div class="lbl">긴급 (미준수)</div></div>
+    <div class="summary-card"><div class="val yellow-val" id="nl-yellow">0</div><div class="lbl">권고 (부분준수)</div></div>
+    <div class="summary-card"><div class="val green-val" id="nl-green">0</div><div class="lbl">준수</div></div>
+  </div>
+
+  <!-- 1. 근로시간 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>1. 근로시간 (Arbeidstijdenwet)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>주 최대 60시간 / 평균 48시간</h4>
+          <p>네덜란드 근로시간법(ATW): 일 최대 12시간, 주 최대 60시간. 16주 기준 주 평균 48시간 이하 유지 의무.</p>
+          <p style="margin-top:6px">일반 근로계약: 주 36~40시간. 초과근무 수당은 단체협약(CAO)에 따름.</p>
+          <div class="law-ref"><a href="https://wetten.overheid.nl/BWBR0007671" target="_blank">Arbeidstijdenwet (ATW)</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>주당 기본 근로시간</label>
+            <input type="number" id="nl-wh-hours" placeholder="예: 40" min="1" max="60" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>초과근무 수당 지급 여부</label>
+            <select id="nl-wh-ot" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">지급함 (CAO 또는 사내규정)</option>
+              <option value="comp">보상휴가로 대체</option>
+              <option value="no">지급 안 함</option>
+            </select>
+          </div>
+          <div id="nl-wh-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 휴가 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>2. 휴가 (Vakantie &amp; Verlof)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>연차: 최소 20일 (주 5일 기준)</h4>
+          <p>BW 7:634조: 주당 근로일수 × 4배의 법정 최소 유급 휴가. 주 5일 근무 시 최소 20일.</p>
+          <h4 style="margin-top:10px">휴가 수당(Vakantiegeld): 총 급여의 8% 이상</h4>
+          <p>고용주는 매년 5월 전후 연간 총급여의 최소 8%를 휴가 수당으로 지급. 월 급여에 포함 지급 가능(계약 명시 시).</p>
+          <h4 style="margin-top:10px">법정 연차 소멸: 다음 해 7월 1일</h4>
+          <p>법정 최소 연차는 부여 후 6개월(다음 해 7월 1일)에 소멸. 초과 연차는 5년간 유효.</p>
+          <div class="law-ref"><a href="https://wetten.overheid.nl/BWBR0005290" target="_blank">Burgerlijk Wetboek Boek 7 Art.634</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>연간 유급 연차 일수</label>
+            <input type="number" id="nl-lv-days" placeholder="예: 25" min="0" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>휴가 수당(8%) 지급 방식</label>
+            <select id="nl-lv-va" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="annual">연 1회 별도 지급 (5월)</option>
+              <option value="monthly">월 급여에 포함 지급</option>
+              <option value="none">별도 지급 안 함</option>
+            </select>
+          </div>
+          <div id="nl-lv-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 급여 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>3. 급여 (Loon &amp; Minimumloon)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>최저임금: €14.71/시간 (2026 상반기)</h4>
+          <p>21세 이상 기준. 6개월마다 조정. 2026년 1월 1일부터 시간당 최저임금제 전면 적용 (Wet minimumloon 개정).</p>
+          <p style="margin-top:6px">20세: €11.77 / 19세: €8.83 / 18세: €7.36</p>
+          <h4 style="margin-top:10px">급여 지급 주기: 월 1회 이상</h4>
+          <p>BW 7:623조: 급여는 월 1회 이상 지급. 통상 말일 또는 25일 지급.</p>
+          <div class="law-ref"><a href="https://www.government.nl/topics/minimum-wage" target="_blank">Wet minimumloon en minimumvakantiebijslag</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>최저 시급 (EUR)</label>
+            <input type="number" id="nl-py-minwage" placeholder="예: 14.71" step="0.01" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>급여 지급 주기</label>
+            <select id="nl-py-freq" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="monthly">월 1회</option>
+              <option value="biweekly">격주</option>
+              <option value="weekly">주 1회</option>
+            </select>
+          </div>
+          <div id="nl-py-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 해고 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>4. 해고 및 전환수당 (Ontslag &amp; Transitievergoeding)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>사전 통보 기간 (Opzegtermijn)</h4>
+          <p>근속 0~5년: 1개월 / 5~10년: 2개월 / 10~15년: 3개월 / 15년 이상: 4개월. 사용자 기준.</p>
+          <h4 style="margin-top:10px">전환수당 (Transitievergoeding)</h4>
+          <p>사용자 귀책 해고 시 의무 지급. 근속 연수 × 월급의 1/3. 2026년 최대 €102,000.</p>
+          <p style="margin-top:6px">단, 중대 귀책(ernstig verwijtbaar) 해고 또는 상호 합의 해고(VSO) 시 지급 불요.</p>
+          <h4 style="margin-top:10px">해고 경로</h4>
+          <p>경영상 해고: UWV 허가 필요 / 개인 귀책: 법원(kantonrechter) 경유 / 상호 합의: VSO 체결</p>
+          <div class="law-ref"><a href="https://business.gov.nl/regulations/transition-payment/" target="_blank">Transitievergoeding - BW 7:673</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>해고 사전 통보 기간 (일수)</label>
+            <input type="number" id="nl-tm-notice" placeholder="예: 30" min="0" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>전환수당 지급 규정 보유</label>
+            <select id="nl-tm-trans" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">있음 (법정 계산식 준수)</option>
+              <option value="partial">있으나 법정 기준 미달</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+          <div id="nl-tm-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 출산/육아 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>5. 출산/육아휴직 (Zwangerschaps- en Ouderschapsverlof)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>출산휴가: 최소 16주 (100% 유급)</h4>
+          <p>출산 전 4~6주 + 출산 후 최소 10주. UWV가 최대 €304.25/일 지급 (2026년 기준).</p>
+          <h4 style="margin-top:10px">배우자 출산휴가: 1주(100%) + 추가 5주(70%)</h4>
+          <p>출산 후 4주 내 1주 유급(100%). 이후 6개월 내 추가 5주(UWV 70% 지급).</p>
+          <h4 style="margin-top:10px">육아휴직: 26주 (첫 9주 유급 70%)</h4>
+          <p>26주 육아휴직 중 첫 9주는 UWV가 일급의 70% 지급. 나머지 17주 무급. 자녀 8세까지 사용 가능.</p>
+          <div class="law-ref"><a href="https://www.uwv.nl/en/individuals/maternity-and-parental-leave" target="_blank">UWV - Zwangerschapsuitkering</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>출산휴가 제공 주수</label>
+            <input type="number" id="nl-pl-weeks" placeholder="예: 16" min="0" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>배우자 출산휴가 (최소 1주 유급 제공)</label>
+            <select id="nl-pl-partner" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">제공함 (1주 이상 유급)</option>
+              <option value="partial">일부 제공</option>
+              <option value="no">제공 안 함</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>육아휴직 정책 보유 여부</label>
+            <select id="nl-pl-parental" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">있음 (법정 26주 준수)</option>
+              <option value="partial">있으나 부분적</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+          <div id="nl-pl-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 사회보험 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>6. 사회보험 (Sociale Verzekeringen)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>국민보험 (Volksverzekeringen) - 근로자 부담</h4>
+          <p>AOW(국가연금) + Anw(유족) + WLZ(장기요양): 합계 약 27.65% (과세 한도 €39,296)</p>
+          <h4 style="margin-top:10px">근로자보험 (Werknemersverzekeringen) - 사용자 부담</h4>
+          <p>WW(실업): ~2.6% / WIA·WAO(장애): ~6.27~7.63% / ZW(상병): ~0.56% (2026 기준, 인상)<br>WGA(복귀지원): 평균 0.96% (2026, 인상)</p>
+          <h4 style="margin-top:10px">건강보험 ZVW - 사용자 부담</h4>
+          <p>사용자: 소득의 6.51% (최대 €75,864 과세 기준) / 근로자: 연 €1,900 명목 보험료</p>
+          <h4 style="margin-top:10px">연금 (Pensioenwet / Wtp)</h4>
+          <p>2026.1.1부터 미래연금법(Wtp) 전면 전환. 참가 연령 18세로 하향. DC형 전환 의무.</p>
+          <div class="law-ref"><a href="https://business.gov.nl/regulations/employee-insurance-schemes-national-insurance/" target="_blank">Business.gov.nl - 사회보험 안내</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>사용자 ZVW(건강보험) 납부 여부</label>
+            <select id="nl-si-zvw" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">납부 중 (6.51%)</option>
+              <option value="partial">부분 납부</option>
+              <option value="no">미납부</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>WIA/WW 사용자 보험료 납부 여부</label>
+            <select id="nl-si-wia" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">납부 중</option>
+              <option value="no">미납부</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>기업연금 가입 여부 (Wtp 기준)</label>
+            <select id="nl-si-pen" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="yes">가입 (18세부터 적용)</option>
+              <option value="partial">가입(전환 진행 중)</option>
+              <option value="no">미가입</option>
+            </select>
+          </div>
+          <div id="nl-si-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 근로계약 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>7. 근로계약 (Arbeidsovereenkomst)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="comparison-row">
+        <div class="col-legal">
+          <div class="col-label">법정 기준</div>
+          <h4>계약 연쇄 제한 (Ketenregeling)</h4>
+          <p>기간제 계약: 최대 3회 또는 3년 이내. 초과 시 자동으로 무기계약 전환.</p>
+          <h4 style="margin-top:10px">영 아워 계약 → 기본계약(Basiscontract)으로 전환</h4>
+          <p>2026년 기준, 영 아워(Zero-hours) 계약 폐지 방향. 최소 고정 근로시간 명시 의무화(입법 진행 중).</p>
+          <h4 style="margin-top:10px">가짜 자영업(Schijnzelfstandigheid) 규제</h4>
+          <p>2025.1.1 세무청 집행 재개. 시급 €36 미만 자영업자는 근로자 추정. 2027년부터 고의 위반 시 과태료.</p>
+          <div class="law-ref"><a href="https://business.gov.nl/starting-your-business/starting-as-a-self-employed-professional/avoid-false-self-employment/" target="_blank">DBA 법 - 가짜 자영업 방지</a></div>
+        </div>
+        <div class="col-policy">
+          <div class="col-label">현행 회사 정책</div>
+          <div class="form-group">
+            <label>계약 유형</label>
+            <select id="nl-ct-type" onchange="analyzeNL()">
+              <option value="">선택하세요</option>
+              <option value="permanent">무기계약 (Onbepaalde tijd)</option>
+              <option value="fixed">기간제 (Bepaalde tijd)</option>
+              <option value="zerohours">영 아워 계약</option>
+              <option value="freelance">프리랜서/ZZP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>기간제 계약 횟수 및 총 기간</label>
+            <input type="text" id="nl-ct-chain" placeholder="예: 2회, 총 18개월" oninput="analyzeNL()">
+          </div>
+          <div class="form-group">
+            <label>자영업자(ZZP) 활용 시 시급 (EUR)</label>
+            <input type="number" id="nl-ct-zzp" placeholder="예: 40" step="0.01" oninput="analyzeNL()">
+          </div>
+          <div id="nl-ct-gap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 개정법령 타임라인 (네덜란드) -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>8. 최신 개정법령 타임라인 (네덜란드)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-past">P</div>
+          <div class="tl-content">
+            <div class="tl-status status-past">시행완료</div>
+            <div class="tl-date">2025-01-01</div>
+            <div class="tl-title">가짜 자영업 집행 재개 (DBA 집행모라토리엄 종료)</div>
+            <div class="tl-desc">세무청(Belastingdienst)이 가짜 자영업(schijnzelfstandigheid) 집행 유예 종료. ZZP 계약 근로자가 실질적 피고용인 여부 집중 점검.</div>
+            <div class="tl-checkpoint">체크포인트: 모든 ZZP/프리랜서 계약 실질 검토. €36/시간 미만 자영업자 근로자 재분류 검토. 기존 계약서 조건 재정비.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-past">P</div>
+          <div class="tl-content">
+            <div class="tl-status status-past">시행완료</div>
+            <div class="tl-date">2025-07-01 (단계적)</div>
+            <div class="tl-title">Wtp (미래연금법) 전환 시작</div>
+            <div class="tl-desc">2023년 7월 발효된 미래연금법(Wet toekomst pensioenen)에 따라 모든 연금기금이 2028년까지 DC형으로 전환 의무. 2026.1.1부터 기업연금 참가 연령 18세로 하향.</div>
+            <div class="tl-checkpoint">체크포인트: 소속 연금기금의 전환 일정 확인. 18세 이상 전 직원 연금 가입 여부 점검. 신입 직원 온보딩 연금 등록 절차 업데이트.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-current">C</div>
+          <div class="tl-content">
+            <div class="tl-status status-current">현재시행중</div>
+            <div class="tl-date">2026-01-01</div>
+            <div class="tl-title">최저시급제 전면 전환 (Wet minimumloon 개정)</div>
+            <div class="tl-desc">기존 최저 월급·주급·일급 기준에서 시간당 최저임금(€14.71, 2026 상반기)으로 전면 전환. 6개월마다 인상 조정.</div>
+            <div class="tl-checkpoint">체크포인트: 시급제·파트타임·단시간 근로자 최저시급 기준 충족 여부 확인. 급여 시스템 최저임금 자동 적용 설정.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-current">C</div>
+          <div class="tl-content">
+            <div class="tl-status status-current">현재시행중</div>
+            <div class="tl-date">2026-01-01</div>
+            <div class="tl-title">파견·임시직 CLA 개정 - 동등대우 강화</div>
+            <div class="tl-desc">파견근로자단체협약(CAO Uitzendkrachten) 개정: 정규직과 동등한 급여, 보너스, 추가 연차, 교육비, 연금 권리 보장. 파견 기간 최대 3년으로 제한.</div>
+            <div class="tl-checkpoint">체크포인트: 파견직 처우 정규직 동등 여부 검토. 파견 기간 3년 초과 시 직접 고용 의무 여부 확인. 파견 계약 갱신 이력 정비.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-upcoming">U</div>
+          <div class="tl-content">
+            <div class="tl-status status-upcoming">시행예정</div>
+            <div class="tl-date">2026 중반 (EU 지침 이행)</div>
+            <div class="tl-title">EU 임금투명성 지침 (Pay Transparency Directive) 이행</div>
+            <div class="tl-desc">2023/970/EU 지침의 네덜란드 국내법 이행 법률 예정. 채용 시 급여 범위 공개, 동일노동 동일임금 보고 의무, 성별 임금격차 보고.</div>
+            <div class="tl-checkpoint">체크포인트: 직무등급별 급여 밴드 설정. 성별 임금격차 사전 분석. 채용 공고 급여 범위 공개 준비. 100인 이상 기업은 보고 의무 선제 대비.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-upcoming">U</div>
+          <div class="tl-content">
+            <div class="tl-status status-upcoming">시행예정</div>
+            <div class="tl-date">2027-01-01</div>
+            <div class="tl-title">가짜 자영업 과태료 시행 (고의 위반 + 과실)</div>
+            <div class="tl-desc">2026년은 고의 위반만 제재. 2027년부터 과실(negligence)도 과태료 대상. 모든 기업이 ZZP 활용 시 법적 리스크 본격화.</div>
+            <div class="tl-checkpoint">체크포인트: 2026년 내 ZZP 계약 전수 검토 완료. 리스크 있는 계약 재분류 또는 재협상. 법적 자문 취득 권고.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot tl-upcoming">U</div>
+          <div class="tl-content">
+            <div class="tl-status status-upcoming">시행예정</div>
+            <div class="tl-date">2027-01-01 (입법 진행)</div>
+            <div class="tl-title">영 아워 계약 폐지 및 기본계약 도입</div>
+            <div class="tl-desc">영 아워(zero-hours) 계약 폐지 입법 진행 중. 최소 고정 근로시간 명시 의무화. 유연 근로시간도 예측가능성 보장 요건 강화.</div>
+            <div class="tl-checkpoint">체크포인트: 현재 영 아워 계약 직원 현황 파악. 대안 계약 유형(min-max계약, 기본계약) 검토. 법안 확정 전 법률 동향 모니터링.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 기타 사항 -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <h3>9. 기타 사항 (사용자 정의 정책)</h3>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="custom-section">
+        <p style="font-size:12px;color:#666;margin-bottom:12px">귀사의 개별 정책 및 특이 사항을 입력하면 네덜란드 노동법 관점에서 리스크를 분석합니다.</p>
+        <div id="nl-custom-entries"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addCustomEntry('nl')">+ 항목 추가</button>
+        <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="reviewCustom('nl')">검토 요청</button>
+        <div id="nl-custom-result" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end tab-nl -->
+
+<!-- ==================== 최종 종합 리포트 탭 ==================== -->
+<div class="tab-content" id="tab-final">
+  <div style="text-align:center;padding:40px;color:#888">
+    <p style="font-size:16px;margin-bottom:12px">하단의 <strong>[저장 및 반영]</strong> 버튼을 클릭하면 최종 종합 리포트가 이 화면에 표시됩니다.</p>
+    <p style="font-size:13px">미국(텍사스)과 네덜란드 두 탭의 입력을 완료한 후 버튼을 클릭하세요.</p>
+    <button class="btn btn-success" style="margin-top:20px" onclick="generateFinalReport()">저장 및 반영 (최종 리포트 생성)</button>
+  </div>
+  <div class="final-report" id="finalReportContent"></div>
+</div>
+
+<div style="text-align:center;padding:16px;color:#aaa;font-size:11px;border-top:1px solid #e0e0e0;margin-top:16px">
+  Global HR Labor Compliance Dashboard | 생성일: 2026-03-30 | 데이터 기준: 2026년 1분기 | ⚠️ 본 리포트는 참고용이며, 최종 법적 판단은 현지 법률 전문가에게 확인하세요.
+</div>
+
+<script>
+// ===== TAB SWITCHING =====
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['us','nl','final'][i]===id);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>{
+    c.classList.toggle('active', c.id==='tab-'+id);
+  });
+}
+
+// ===== SECTION TOGGLE =====
+function toggleSection(header){
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '▶' : '▼';
+}
+
+// ===== BADGE HELPERS =====
+function badge(status, text){
+  const cls = {red:'badge-red',yellow:'badge-yellow',green:'badge-green',gray:'badge-gray'}[status];
+  const icon = {red:'🔴',yellow:'🟡',green:'🟢',gray:'⬜'}[status];
+  return `<span class="gap-badge ${cls}">${icon} ${text}</span>`;
+}
+function desc(status, text){
+  const cls = {red:'critical',yellow:'',green:'ok',gray:''}[status];
+  return text ? `<div class="gap-desc ${cls}">${text}</div>` : '';
+}
+
+// ===== US ANALYSIS =====
+const usResults = {};
+function setUS(key, status, label, detail){
+  usResults[key] = {status, label, detail};
+  updateSummary('us');
+}
+function analyzeUS(){
+  // 근로시간
+  const wh = parseFloat(document.getElementById('us-wh-hours').value);
+  const ot = document.getElementById('us-wh-ot').value;
+  let whStatus='gray', whLabel='미입력', whDetail='';
+  if(!isNaN(wh) || ot){
+    if(!isNaN(wh) && wh > 40 && ot !== '1.5x' && ot !== '2x'){
+      whStatus='red'; whLabel='긴급 - 초과근무 미준수';
+      whDetail='주 40시간 초과 시 FLSA 기준 1.5배 초과근무수당 지급이 의무입니다. 현재 설정은 FLSA 위반 위험이 있습니다. 즉시 급여 시스템 및 정책 수정이 필요합니다.';
+    } else if(ot === 'straight'){
+      whStatus='red'; whLabel='긴급 - 초과근무 수당 미지급';
+      whDetail='FLSA 위반. 비면제 근로자에게 초과근무 수당을 지급하지 않는 것은 법 위반이며 소송 및 벌금 위험이 있습니다.';
+    } else if(ot === 'comp'){
+      whStatus='yellow'; whLabel='권고 - 보상휴가 검토 필요';
+      whDetail='민간 사업장에서는 FLSA상 보상휴가(Comp Time)로 초과근무를 대체하기 어렵습니다(정부기관 예외). 법률 검토 권고.';
+    } else if(!isNaN(wh) && wh <= 40 && (ot==='1.5x'||ot==='2x')){
+      whStatus='green'; whLabel='준수';
+    } else {
+      whStatus='yellow'; whLabel='확인 필요'; whDetail='근로시간 및 초과근무 설정을 모두 입력해 주세요.';
+    }
+  }
+  document.getElementById('us-wh-gap').innerHTML = badge(whStatus,whLabel)+desc(whStatus,whDetail);
+  setUS('wh',whStatus,whLabel,whDetail);
+
+  // 휴가
+  const lvd = parseFloat(document.getElementById('us-lv-days').value);
+  const sick = document.getElementById('us-lv-sick').value;
+  const fmla = parseFloat(document.getElementById('us-lv-fmla').value);
+  let lvStatus='gray', lvLabel='미입력', lvDetail='';
+  if(!isNaN(lvd)||sick||!isNaN(fmla)){
+    const issues=[];
+    if(!isNaN(fmla) && fmla>=50 && sick==='no') issues.push('FMLA 대상 사업장(50인 이상)이나 유급 병가 미제공 — 권고 수준의 베스트 프랙티스 미달');
+    if(issues.length>0){lvStatus='yellow';lvLabel='권고';lvDetail=issues.join('<br>')+' FMLA 무급 12주 보장 준수 여부도 확인하세요.';}
+    else if(!isNaN(lvd)&&lvd>=0&&sick){lvStatus='green';lvLabel='준수';}
+    else{lvStatus='yellow';lvLabel='확인 필요';lvDetail='전체 항목을 입력해 주세요.';}
+  }
+  document.getElementById('us-lv-gap').innerHTML = badge(lvStatus,lvLabel)+desc(lvStatus,lvDetail);
+  setUS('lv',lvStatus,lvLabel,lvDetail);
+
+  // 급여
+  const mw = parseFloat(document.getElementById('us-py-minwage').value);
+  const freq = document.getElementById('us-py-freq').value;
+  const exempt = parseFloat(document.getElementById('us-py-exempt').value);
+  let pyStatus='gray', pyLabel='미입력', pyDetail='';
+  if(!isNaN(mw)||freq||!isNaN(exempt)){
+    const iss=[];
+    if(!isNaN(mw)&&mw<7.25) iss.push('최저임금 $7.25 미달 — 즉시 시정 필요 (FLSA 위반)');
+    if(freq==='monthly') iss.push('비면제직 월 1회 지급은 텍사스주법 위반 가능성. 최소 반월(月 2회) 이상 지급 필요.');
+    if(!isNaN(exempt)&&exempt<684) iss.push('면제직 주급 $684 미달 — 면제 자격 상실, 초과근무수당 소급 위험');
+    if(iss.length>0){pyStatus='red';pyLabel='긴급';pyDetail=iss.join('<br>');}
+    else if(!isNaN(mw)&&mw>=7.25&&freq&&!isNaN(exempt)&&exempt>=684){pyStatus='green';pyLabel='준수';}
+    else{pyStatus='yellow';pyLabel='부분입력';pyDetail='모든 항목을 입력하면 정확한 분석이 가능합니다.';}
+  }
+  document.getElementById('us-py-gap').innerHTML = badge(pyStatus,pyLabel)+desc(pyStatus,pyDetail);
+  setUS('py',pyStatus,pyLabel,pyDetail);
+
+  // 해고
+  const tmn = parseFloat(document.getElementById('us-tm-notice').value);
+  const sev = document.getElementById('us-tm-sev').value;
+  const warn = document.getElementById('us-tm-warn').value;
+  let tmStatus='gray', tmLabel='미입력', tmDetail='';
+  if(!isNaN(tmn)||sev||warn){
+    const iss=[];
+    if(warn==='no') iss.push('100인 이상 사업장의 경우 WARN Act 위반 위험. 집단해고·공장폐쇄 시 60일 사전 서면 통지 절차 필요.');
+    if(iss.length>0){tmStatus='yellow';tmLabel='권고';tmDetail=iss.join('<br>');}
+    else if(sev&&warn){tmStatus='green';tmLabel='준수';}
+    else{tmStatus='yellow';tmLabel='확인 필요';tmDetail='모든 항목을 입력해 주세요.';}
+  }
+  document.getElementById('us-tm-gap').innerHTML = badge(tmStatus,tmLabel)+desc(tmStatus,tmDetail);
+  setUS('tm',tmStatus,tmLabel,tmDetail);
+
+  // 출산/육아
+  const plw = parseFloat(document.getElementById('us-pl-weeks').value);
+  const plp = document.getElementById('us-pl-partner').value;
+  let plStatus='gray', plLabel='미입력', plDetail='';
+  if(!isNaN(plw)||plp){
+    plStatus='green'; plLabel='준수';
+    plDetail='미국 텍사스주는 민간기업 유급 출산휴가 법적 의무 없음. 회사 정책 제공 시 경쟁력 강화. FMLA 12주 무급 보장 여부를 별도로 확인하세요.';
+    if(!isNaN(plw)&&plw>0) plStatus='green';
+  }
+  document.getElementById('us-pl-gap').innerHTML = badge(plStatus,plLabel)+desc('yellow',plDetail);
+  setUS('pl',plStatus,plLabel,plDetail);
+
+  // 사회보험
+  const ss = document.getElementById('us-si-ss').value;
+  const wc = document.getElementById('us-si-wc').value;
+  const suta = document.getElementById('us-si-suta').value;
+  let siStatus='gray', siLabel='미입력', siDetail='';
+  if(ss||wc||suta){
+    const iss=[];
+    if(ss==='no') iss.push('FICA 사회보장세 미납은 연방 세법 위반. 즉각 시정 필요.');
+    if(suta==='no') iss.push('Texas SUTA(실업보험) 미납부 — TWC(텍사스 근로위원회) 제재 위험.');
+    if(iss.length>0){siStatus='red';siLabel='긴급';siDetail=iss.join('<br>');}
+    else if(ss==='yes'&&suta==='yes'){siStatus='green';siLabel='준수';siDetail=wc==='no'?'산재보험 미가입: 정부계약 사업장이 아닌 경우 임의이지만, 미가입 시 민사소송 노출 위험이 높습니다. 가입 권고.':'';}
+    else{siStatus='yellow';siLabel='확인 필요';}
+  }
+  document.getElementById('us-si-gap').innerHTML = badge(siStatus,siLabel)+desc(siStatus==='red'?'red':siStatus==='green'&&wc==='no'?'yellow':siStatus,siDetail);
+  setUS('si',siStatus,siLabel,siDetail);
+
+  // 근로계약
+  const ctt = document.getElementById('us-ct-type').value;
+  const nc = document.getElementById('us-ct-noncomp').value;
+  const ai = document.getElementById('us-ct-ai').value;
+  let ctStatus='gray', ctLabel='미입력', ctDetail='';
+  if(ctt||nc||ai){
+    const iss=[];
+    if(ai==='yes') iss.push('TRAIGA(2026.1.1 시행): AI 채용 도구 사용 시 보호계층 차별 의도 방지 정책 문서화 필요. 알고리즘 편향 내부 검토 절차 수립 권고.');
+    if(nc==='yes') iss.push('비경쟁 조항: 의료직의 경우 SB 1318 요건 충족 여부 확인(매수조항, 1년, 5마일). 일반직은 합리성 기준 충족 필요.');
+    if(iss.length>0){ctStatus='yellow';ctLabel='권고';ctDetail=iss.join('<br>');}
+    else if(ctt){ctStatus='green';ctLabel='준수';}
+    else{ctStatus='yellow';ctLabel='확인 필요';}
+  }
+  document.getElementById('us-ct-gap').innerHTML = badge(ctStatus,ctLabel)+desc(ctStatus,ctDetail);
+  setUS('ct',ctStatus,ctLabel,ctDetail);
+
+  updateProgress();
+}
+
+// ===== NL ANALYSIS =====
+const nlResults = {};
+function setNL(key, status, label, detail){
+  nlResults[key] = {status, label, detail};
+  updateSummary('nl');
+}
+function analyzeNL(){
+  // 근로시간
+  const wh = parseFloat(document.getElementById('nl-wh-hours').value);
+  const ot = document.getElementById('nl-wh-ot').value;
+  let whStatus='gray', whLabel='미입력', whDetail='';
+  if(!isNaN(wh)||ot){
+    if(!isNaN(wh)&&wh>60){whStatus='red';whLabel='긴급';whDetail='ATW 기준 주 최대 60시간 초과. 즉시 근로시간 조정 필요.';}
+    else if(ot==='no'){whStatus='yellow';whLabel='권고';whDetail='초과근무 수당은 CAO 또는 사내 규정에 따라야 합니다. 미지급 시 근로자 청구 위험.';}
+    else if(!isNaN(wh)&&wh<=40&&(ot==='yes'||ot==='comp')){whStatus='green';whLabel='준수';}
+    else{whStatus='yellow';whLabel='확인 필요';whDetail='모든 항목을 입력해 주세요.';}
+  }
+  document.getElementById('nl-wh-gap').innerHTML = badge(whStatus,whLabel)+desc(whStatus,whDetail);
+  setNL('wh',whStatus,whLabel,whDetail);
+
+  // 휴가
+  const lvd = parseFloat(document.getElementById('nl-lv-days').value);
+  const va = document.getElementById('nl-lv-va').value;
+  let lvStatus='gray', lvLabel='미입력', lvDetail='';
+  if(!isNaN(lvd)||va){
+    const iss=[];
+    if(!isNaN(lvd)&&lvd<20) iss.push('법정 최소 연차 20일 미달 — BW 7:634조 위반. 즉시 시정 필요.');
+    if(va==='none') iss.push('휴가 수당(Vakantiegeld) 미지급 — 법정 최소 8% 지급 의무 위반.');
+    if(iss.length>0){lvStatus='red';lvLabel='긴급';lvDetail=iss.join('<br>');}
+    else if(!isNaN(lvd)&&lvd>=20&&va){lvStatus='green';lvLabel='준수';}
+    else{lvStatus='yellow';lvLabel='확인 필요';}
+  }
+  document.getElementById('nl-lv-gap').innerHTML = badge(lvStatus,lvLabel)+desc(lvStatus,lvDetail);
+  setNL('lv',lvStatus,lvLabel,lvDetail);
+
+  // 급여
+  const mw = parseFloat(document.getElementById('nl-py-minwage').value);
+  const freq = document.getElementById('nl-py-freq').value;
+  let pyStatus='gray', pyLabel='미입력', pyDetail='';
+  if(!isNaN(mw)||freq){
+    const iss=[];
+    if(!isNaN(mw)&&mw<14.71) iss.push('최저시급 €14.71 미달 (2026 상반기) — Wet minimumloon 위반. 즉시 시정 필요.');
+    if(iss.length>0){pyStatus='red';pyLabel='긴급';pyDetail=iss.join('<br>');}
+    else if(!isNaN(mw)&&mw>=14.71&&freq){pyStatus='green';pyLabel='준수';}
+    else{pyStatus='yellow';pyLabel='확인 필요';pyDetail='모든 항목을 입력해 주세요.';}
+  }
+  document.getElementById('nl-py-gap').innerHTML = badge(pyStatus,pyLabel)+desc(pyStatus,pyDetail);
+  setNL('py',pyStatus,pyLabel,pyDetail);
+
+  // 해고
+  const tmn = parseFloat(document.getElementById('nl-tm-notice').value);
+  const trans = document.getElementById('nl-tm-trans').value;
+  let tmStatus='gray', tmLabel='미입력', tmDetail='';
+  if(!isNaN(tmn)||trans){
+    const iss=[];
+    if(!isNaN(tmn)&&tmn<30) iss.push('사전 통보 기간 부족 — 근속 5년 미만도 최소 1개월(약 30일) 이상. 현재 설정 재검토 필요.');
+    if(trans==='no') iss.push('전환수당(Transitievergoeding) 미지급 정책은 BW 7:673조 위반. 해고 시 법정 계산식에 따른 지급 의무 있음.');
+    if(trans==='partial') iss.push('전환수당이 법정 기준 미달. 실제 지급액이 근속연수×월급÷3 공식 충족 여부 검토 필요.');
+    if(iss.length>0){tmStatus='red';tmLabel='긴급';tmDetail=iss.join('<br>');}
+    else if(!isNaN(tmn)&&tmn>=30&&trans==='yes'){tmStatus='green';tmLabel='준수';}
+    else{tmStatus='yellow';tmLabel='확인 필요';}
+  }
+  document.getElementById('nl-tm-gap').innerHTML = badge(tmStatus,tmLabel)+desc(tmStatus,tmDetail);
+  setNL('tm',tmStatus,tmLabel,tmDetail);
+
+  // 출산/육아
+  const plw = parseFloat(document.getElementById('nl-pl-weeks').value);
+  const plp = document.getElementById('nl-pl-partner').value;
+  const plpar = document.getElementById('nl-pl-parental').value;
+  let plStatus='gray', plLabel='미입력', plDetail='';
+  if(!isNaN(plw)||plp||plpar){
+    const iss=[];
+    if(!isNaN(plw)&&plw<16) iss.push('출산휴가 최소 16주 미달 — 법정 의무 위반. 시정 필요.');
+    if(plp==='no') iss.push('배우자 출산휴가 1주 미지급 — 법정 의무 위반. WAZO 기준 최소 1주 유급 보장.');
+    if(plpar==='no') iss.push('육아휴직 정책 미비 — 26주 육아휴직(첫 9주 70% UWV 지급) 안내 및 정책 수립 필요.');
+    if(iss.length>0){plStatus='red';plLabel='긴급';plDetail=iss.join('<br>');}
+    else if(!isNaN(plw)&&plw>=16&&plp==='yes'&&plpar==='yes'){plStatus='green';plLabel='준수';}
+    else{plStatus='yellow';plLabel='부분 준수';plDetail='일부 항목 확인 필요.';}
+  }
+  document.getElementById('nl-pl-gap').innerHTML = badge(plStatus,plLabel)+desc(plStatus,plDetail);
+  setNL('pl',plStatus,plLabel,plDetail);
+
+  // 사회보험
+  const zvw = document.getElementById('nl-si-zvw').value;
+  const wia = document.getElementById('nl-si-wia').value;
+  const pen = document.getElementById('nl-si-pen').value;
+  let siStatus='gray', siLabel='미입력', siDetail='';
+  if(zvw||wia||pen){
+    const iss=[];
+    if(zvw==='no') iss.push('ZVW(건강보험) 사용자 부담(6.51%) 미납 — 세무청 제재 위험. 즉시 납부 체계 수립.');
+    if(zvw==='partial') iss.push('ZVW 부분 납부 — 전액 납부 체계로 전환 필요.');
+    if(wia==='no') iss.push('WIA·WW 사용자 보험료 미납 — 법적 의무. 즉시 시정 필요.');
+    if(pen==='no') iss.push('기업연금 미가입 — 업종 CLA에 의무 가입 규정 여부 확인. Wtp 기준 18세 이상 전 직원 가입 대상.');
+    if(iss.length>0){siStatus='red';siLabel='긴급';siDetail=iss.join('<br>');}
+    else if(zvw==='yes'&&wia==='yes'){siStatus=pen==='yes'?'green':'yellow';siLabel=pen==='yes'?'준수':'권고';siDetail=pen==='partial'?'연금 전환(Wtp) 진행 중 — 2028년 의무 전환 일정 준수 필요.':'';}
+    else{siStatus='yellow';siLabel='확인 필요';}
+  }
+  document.getElementById('nl-si-gap').innerHTML = badge(siStatus,siLabel)+desc(siStatus,siDetail);
+  setNL('si',siStatus,siLabel,siDetail);
+
+  // 근로계약
+  const ctt = document.getElementById('nl-ct-type').value;
+  const chain = document.getElementById('nl-ct-chain').value;
+  const zzp = parseFloat(document.getElementById('nl-ct-zzp').value);
+  let ctStatus='gray', ctLabel='미입력', ctDetail='';
+  if(ctt||chain||!isNaN(zzp)){
+    const iss=[];
+    if(ctt==='zerohours') iss.push('영 아워 계약: 2027년 폐지 예정 입법 진행 중. 선제적 계약 전환 검토 권고.');
+    if(ctt==='freelance'&&!isNaN(zzp)&&zzp<36) iss.push('ZZP 시급 €36 미만 — 근로자 추정 규정 적용 위험. 2025.1.1부터 세무청 집행 중. 재분류 법적 검토 필요.');
+    if(iss.length>0){ctStatus='red';ctLabel=iss.some(i=>i.includes('€36'))?'긴급':'권고';ctDetail=iss.join('<br>');}
+    else if(ctt==='permanent'){ctStatus='green';ctLabel='준수';}
+    else if(ctt==='fixed'){ctStatus='yellow';ctLabel='모니터링 필요';ctDetail='기간제 계약 3회·3년 초과 시 무기계약 자동 전환. 계약 연쇄 관리 필요.';}
+    else{ctStatus='yellow';ctLabel='확인 필요';}
+  }
+  document.getElementById('nl-ct-gap').innerHTML = badge(ctStatus,ctLabel)+desc(ctStatus,ctDetail);
+  setNL('ct',ctStatus,ctLabel,ctDetail);
+
+  updateProgress();
+}
+
+// ===== SUMMARY UPDATE =====
+function updateSummary(country){
+  const results = country==='us' ? usResults : nlResults;
+  const counts = {red:0,yellow:0,green:0,gray:0};
+  Object.values(results).forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
+  const total = counts.red+counts.yellow+counts.green;
+  const rate = total>0 ? Math.round(counts.green/total*100) : null;
+  document.getElementById(country+'-rate').textContent = rate!==null ? rate+'%' : '-';
+  document.getElementById(country+'-red').textContent = counts.red||0;
+  document.getElementById(country+'-yellow').textContent = counts.yellow||0;
+  document.getElementById(country+'-green').textContent = counts.green||0;
+}
+
+// ===== PROGRESS =====
+function updateProgress(){
+  const allInputs = document.querySelectorAll('input,select,textarea');
+  let filled=0, total=0;
+  allInputs.forEach(el=>{
+    if(el.id&&el.id!==''&&!el.classList.contains('custom-input')){
+      total++;
+      if(el.value&&el.value!=='')filled++;
+    }
+  });
+  const pct = total>0?Math.round(filled/total*100):0;
+  document.getElementById('progressInfo').textContent = `입력 진행률: ${filled} / ${total} 항목 (${pct}%)`;
+  document.getElementById('progressBar').style.width = pct+'%';
+  localStorage.setItem('compliance_last_modified', new Date().toLocaleString('ko-KR'));
+  document.getElementById('lastSaved').textContent = '마지막 수정: '+new Date().toLocaleString('ko-KR');
+}
+
+// ===== CUSTOM ENTRIES =====
+let customCounter = {us:0, nl:0};
+function addCustomEntry(country){
+  const cnt = ++customCounter[country];
+  const container = document.getElementById(country+'-custom-entries');
+  const div = document.createElement('div');
+  div.className = 'custom-entry';
+  div.id = country+'-entry-'+cnt;
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+    <div class="form-group"><label>정책/항목명</label>
+    <input type="text" class="custom-input" id="${country}-ct-title-${cnt}" placeholder="예: 재택근무 정책, 성과급, 경쟁금지 조항"></div>
+    <div class="form-group"><label>내용 설명</label>
+    <textarea class="custom-input" id="${country}-ct-desc-${cnt}" rows="3" placeholder="예: 주 3일 재택근무 허용, 기본급의 20% 성과급 지급, 퇴직 후 1년 동종업계 취업 금지 등"></textarea></div>
+  `;
+  container.appendChild(div);
+}
+
+// ===== KEYWORD RISK ANALYSIS =====
+const usRiskKeywords = {
+  '재택근무': {level:'low', text:'텍사스주 재택근무 특별 규정 없음. FLSA 근로시간 기록 의무(원격근로자 포함) 준수 필요. 사이버보안 및 장비 정책 권고.'},
+  '원격': {level:'low', text:'원격근무자도 FLSA 초과근무 규정 동일 적용. 근무지가 다른 주인 경우 해당 주 법률 적용 검토 필요.'},
+  '비경쟁': {level:'medium', text:'텍사스주 비경쟁 조항은 합리성(지역·기간·범위) 요건 필요. 의료직은 SB 1318(2026.1.1) 강화 요건 적용.'},
+  '성과급': {level:'low', text:'성과급 지급 정책은 사내 규정에 따르되, FLSA 초과근무 계산 시 보너스 포함 여부 확인 필요(정규 급여율 재산정).'},
+  '파견': {level:'medium', text:'파견·용역 근로자도 FLSA 적용. 공동 사용자(Joint Employer) 책임 가능성 검토 필요.'},
+  '비밀유지': {level:'low', text:'NDA는 텍사스에서 유효. 합리적 범위 내 작성 권고. Trade Secret Act(DTSA) 적용 가능.'},
+  'AI': {level:'medium', text:'TRAIGA(2026.1.1): AI 채용·평가 도구 사용 시 보호계층 차별 의도 방지 정책 필수. 알고리즘 편향 점검 권고.'},
+  '외국인': {level:'medium', text:'외국인 고용 시 I-9 확인 및 비자 유형별 취업 허가 확인 필수. E-Verify 사용 권고.'},
+  '수습': {level:'low', text:'수습(Probationary) 기간 특별 규정 없음. 임의고용 원칙 동일 적용. 수습 기간도 FLSA·차별금지법 적용.'},
+};
+const nlRiskKeywords = {
+  '재택근무': {level:'medium', text:'재택근무법(Wet werken waar je wilt) 입법 논의 중. 근로자가 재택근무 신청 시 사용자는 합리적 이유 없이 거부 불가(Arbo 의무 포함). 재택 근무환경 안전 기준(RI&E) 적용.'},
+  '원격': {level:'medium', text:'국경간 원격근무는 사회보험·세금 적용국 결정 복잡. 6개월 이상 해외 원격근무자는 해당국 법률 검토 필요.'},
+  '비경쟁': {level:'high', text:'네덜란드 비경쟁 조항(concurrentiebeding): 무기계약에만 허용(원칙). 기간제 계약 시 비경쟁 조항은 서면 + 중대한 사업상 이익 명시 필수. 지나치게 광범위한 조항은 법원에 의해 무효화 가능.'},
+  '성과급': {level:'low', text:'성과급은 통상임금(Loon) 해석 여부에 따라 전환수당·휴가수당 계산 기준 포함 여부 달라짐. 계약서에 명확히 규정 권고.'},
+  '파견': {level:'high', text:'2026.1.1부터 파견근로자 동등대우 강화. 급여·보너스·연차·교육비·연금 동일 적용. 파견 최대 3년. 위반 시 직접 고용 의무화 가능성.'},
+  'ZZP': {level:'high', text:'가짜 자영업 집행 재개(2025.1.1). €36/시간 미만 ZZP는 근로자 추정. 2027년부터 과태료. 즉시 계약 검토 및 재분류 법적 자문 필요.'},
+  '자영업': {level:'high', text:'ZZP·프리랜서 계약 실질 검토 시급. 지휘·감독, 도구 제공, 전속성 등 기준으로 근로자 여부 판단. 세무청 집행 활성화.'},
+  '연금': {level:'medium', text:'미래연금법(Wtp) 2028년 전환 의무. 18세 이상 전 직원 기업연금 가입 필요. 소속 연금기금 전환 일정 확인 필수.'},
+  '외국인': {level:'medium', text:'EU 외 외국인 고용 시 TWV(취업허가) 또는 GVVA 필요. 지식이민자(Kennismigrant) 최저임금 기준(2026: €4,612/월 30세 이상) 충족 필요.'},
+  '수습': {level:'low', text:'수습(Proeftijd): 최대 1개월(계약 2년 미만) 또는 2개월(무기계약). 반드시 서면 명시. 수습 기간 중 해고 즉시 가능하나 차별금지법 적용.'},
+};
+function reviewCustom(country){
+  const container = document.getElementById(country+'-custom-entries');
+  const entries = container.querySelectorAll('.custom-entry');
+  const keywords = country==='us' ? usRiskKeywords : nlRiskKeywords;
+  const resultEl = document.getElementById(country+'-custom-result');
+  if(entries.length===0){resultEl.innerHTML='<p style="color:#888;font-size:12px">분석할 항목이 없습니다. 먼저 항목을 추가해 주세요.</p>';return;}
+  let html='<h4 style="font-size:13px;font-weight:700;margin-bottom:10px">사용자 정의 정책 리스크 분석 결과</h4>';
+  let hasResult=false;
+  entries.forEach(entry=>{
+    const titleEl = entry.querySelector('input[type=text]');
+    const descEl = entry.querySelector('textarea');
+    const text = ((titleEl?titleEl.value:'')+' '+(descEl?descEl.value:'')).toLowerCase();
+    const title = titleEl?titleEl.value:'항목';
+    const matched=[];
+    Object.entries(keywords).forEach(([kw,info])=>{
+      if(text.includes(kw.toLowerCase())||text.includes(kw)) matched.push({kw,info});
+    });
+    if(matched.length>0){
+      hasResult=true;
+      html+=`<div style="margin-bottom:14px"><strong style="font-size:12px">${title}</strong>`;
+      matched.forEach(({kw,info})=>{
+        const cls = {high:'risk-high',medium:'risk-medium',low:'risk-low'}[info.level];
+        const lvLabel = {high:'🔴 고위험',medium:'🟡 중위험',low:'🟢 저위험'}[info.level];
+        html+=`<div class="risk-result ${cls}"><strong>[${kw}] ${lvLabel}</strong><br>${info.text}</div>`;
+      });
+      html+='</div>';
+    }
+  });
+  if(!hasResult) html+='<div class="risk-result risk-low">입력된 내용에서 주요 리스크 키워드가 검출되지 않았습니다. 현지 법률 전문가에게 개별 검토를 의뢰하세요.</div>';
+  resultEl.innerHTML=html;
+}
+
+// ===== FINAL REPORT =====
+function generateFinalReport(){
+  saveData();
+  const categories = {wh:'근로시간',lv:'휴가',py:'급여',tm:'해고/고용종료',pl:'출산/육아',si:'사회보험',ct:'근로계약'};
+  const countryNames = {us:'미국(텍사스·휴스턴)',nl:'네덜란드(암스테르담)'};
+  let allResults = {us:usResults, nl:nlResults};
+  let totalRed=0,totalYellow=0,totalGreen=0,totalGray=0;
+  let tableRows='';
+  let actionItems='';
+  Object.entries(allResults).forEach(([country, results])=>{
+    Object.entries(results).forEach(([cat, r])=>{
+      const icon = {red:'🔴',yellow:'🟡',green:'🟢',gray:'⬜'}[r.status];
+      const statusLabel = {red:'긴급(미준수)',yellow:'권고(부분준수)',green:'준수',gray:'미입력'}[r.status];
+      tableRows+=`<tr><td><span class="country-badge badge-${country}">${countryNames[country]}</span></td><td>${categories[cat]||cat}</td><td>${icon} ${statusLabel}</td><td style="font-size:11px;color:#555">${r.detail||'-'}</td></tr>`;
+      if(r.status==='red'){totalRed++;actionItems+=`<div class="action-item action-critical"><strong>[긴급] ${countryNames[country]} - ${categories[cat]||cat}</strong><br>${r.detail||'즉시 시정 필요'}</div>`;}
+      else if(r.status==='yellow'){totalYellow++;actionItems+=`<div class="action-item action-advisory"><strong>[권고] ${countryNames[country]} - ${categories[cat]||cat}</strong><br>${r.detail||'개선 권고'}</div>`;}
+      else if(r.status==='green') totalGreen++;
+      else totalGray++;
+    });
+  });
+  const total=totalRed+totalYellow+totalGreen;
+  const rate=total>0?Math.round(totalGreen/total*100):0;
+  const html=`
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #1a237e">종합 컴플라이언스 최종 리포트</h2>
+    <p class="timestamp">생성일시: ${new Date().toLocaleString('ko-KR')} | 대상: 미국 텍사스(휴스턴) / 네덜란드(암스테르담)</p>
+    <div class="summary-grid" style="margin-top:16px">
+      <div class="summary-card"><div class="val ${rate>=80?'green-val':rate>=50?'yellow-val':'red-val'}">${total>0?rate+'%':'-'}</div><div class="lbl">전체 준수율</div></div>
+      <div class="summary-card"><div class="val red-val">${totalRed}</div><div class="lbl">긴급 항목</div></div>
+      <div class="summary-card"><div class="val yellow-val">${totalYellow}</div><div class="lbl">권고 항목</div></div>
+      <div class="summary-card"><div class="val green-val">${totalGreen}</div><div class="lbl">준수 항목</div></div>
+    </div>
+    <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px">국가별·영역별 갭 분석 요약</h3>
+    <table class="report-table">
+      <thead><tr><th>국가</th><th>컴플라이언스 영역</th><th>상태</th><th>갭 및 조치 사항</th></tr></thead>
+      <tbody>${tableRows||'<tr><td colspan="4" style="text-align:center;color:#888">입력된 데이터가 없습니다. 각 국가 탭에서 정보를 입력해 주세요.</td></tr>'}</tbody>
+    </table>
+    <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px">우선순위별 액션 아이템 로드맵</h3>
+    ${actionItems||'<p style="color:#888;font-size:13px">긴급·권고 항목이 없거나 아직 입력이 완료되지 않았습니다.</p>'}
+    <div style="margin-top:20px;padding:12px;background:#e8f5e9;border-radius:6px;font-size:12px;color:#2e7d32">
+      <strong>면책 고지:</strong> 본 리포트는 2026년 3월 30일 기준 공개 자료를 바탕으로 작성된 참고 자료입니다. 실제 법적 판단 및 컴플라이언스 결정은 반드시 현지 자격을 갖춘 노동법 전문 법률가에게 확인하시기 바랍니다.
+    </div>
+  `;
+  const finalDiv = document.getElementById('finalReportContent');
+  finalDiv.innerHTML = html;
+  finalDiv.classList.add('show');
+  switchTab('final');
+  document.getElementById('tab-final').querySelector('.final-report').scrollIntoView({behavior:'smooth'});
+}
+
+// ===== DATA SAVE/LOAD =====
+function saveData(){
+  const data={};
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(el.id) data[el.id]=el.type==='checkbox'?el.checked:el.value;
+  });
+  localStorage.setItem('compliance_data', JSON.stringify(data));
+  localStorage.setItem('compliance_saved', new Date().toLocaleString('ko-KR'));
+  document.getElementById('lastSaved').textContent='마지막 저장: '+new Date().toLocaleString('ko-KR');
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='compliance-data-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+function loadData(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        Object.entries(data).forEach(([id,val])=>{
+          const el=document.getElementById(id);
+          if(el){if(el.type==='checkbox')el.checked=val;else el.value=val;}
+        });
+        analyzeUS();analyzeNL();
+        alert('데이터를 성공적으로 불러왔습니다.');
+      }catch(err){alert('파일 형식 오류: 올바른 JSON 파일을 선택해 주세요.');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ===== AUTO-LOAD FROM LOCALSTORAGE =====
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('compliance_data');
+  if(saved){
+    try{
+      const data=JSON.parse(saved);
+      Object.entries(data).forEach(([id,val])=>{
+        const el=document.getElementById(id);
+        if(el){if(el.type==='checkbox')el.checked=val;else el.value=val;}
+      });
+      analyzeUS();analyzeNL();
+    }catch(e){}
+  }
+  const lastSave=localStorage.getItem('compliance_saved');
+  if(lastSave) document.getElementById('lastSaved').textContent='마지막 저장: '+lastSave;
+  updateProgress();
+});
+</script>
+</body>
+</html>

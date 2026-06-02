@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중국 북경 노동법 컴플라이언스 분석 도구 | China Beijing Labor Compliance Tool</title>
+<style>
+:root {
+  --red: #DC3545; --yellow: #FFC107; --green: #28A745; --gray: #6C757D;
+  --red-bg: #fff5f5; --yellow-bg: #fffdf0; --green-bg: #f0fff4; --gray-bg: #f8f9fa;
+  --primary: #1a3a5c; --secondary: #2c5f8a; --accent: #e8424c;
+  --border: #dee2e6; --text: #212529; --muted: #6c757d;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif; background: #f0f2f5; color: var(--text); font-size: 14px; }
+
+/* HEADER */
+.page-header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: #fff; padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.page-header h1 { font-size: 22px; font-weight: 700; }
+.page-header .subtitle { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #c0392b; }
+.btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.6); }
+.btn-outline:hover { background: rgba(255,255,255,0.15); }
+.btn-dark { background: var(--primary); color: #fff; }
+.btn-dark:hover { background: #0f2540; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { background: #1e8c3a; }
+
+/* DASHBOARD */
+.dashboard { background: #fff; border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+.stat-card { text-align: center; min-width: 100px; }
+.stat-num { font-size: 28px; font-weight: 800; }
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.progress-wrap { flex: 1; min-width: 200px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+.progress-bar { height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 5px; transition: width 0.5s; background: linear-gradient(90deg, var(--green), #52c27a); }
+.divider-v { width: 1px; background: var(--border); height: 40px; }
+
+/* MAIN LAYOUT */
+.main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+/* SECTION CARD */
+.section-card { background: #fff; border-radius: 12px; box-shadow: var(--card-shadow); margin-bottom: 20px; overflow: hidden; border: 1px solid var(--border); }
+.section-header { padding: 14px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-bottom: 1px solid var(--border); user-select: none; }
+.section-header:hover { background: #eef1f4; }
+.section-title { font-size: 15px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+.section-num { background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.section-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #f5c6cb; }
+.badge-yellow { background: var(--yellow-bg); color: #856404; border: 1px solid #ffeeba; }
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #c3e6cb; }
+.badge-gray { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--border); }
+.toggle-icon { font-size: 18px; color: var(--muted); transition: transform 0.3s; }
+.section-body { padding: 20px; }
+.section-body.collapsed { display: none; }
+
+/* TWO-COL COMPARE */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .compare-grid { grid-template-columns: 1fr; } }
+.col-legal { background: #f8f9fa; border-radius: 8px; padding: 16px; border-left: 4px solid var(--secondary); }
+.col-current { background: #fafbff; border-radius: 8px; padding: 16px; border-left: 4px solid var(--accent); }
+.col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.col-legal .col-title { color: var(--secondary); }
+.col-current .col-title { color: var(--accent); }
+
+/* LEGAL ITEMS */
+.legal-item { margin-bottom: 12px; }
+.legal-item-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+.legal-item-value { font-size: 13px; color: var(--text); font-weight: 600; }
+.legal-item-cn { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.law-cite { font-size: 11px; color: var(--secondary); margin-top: 4px; }
+.law-link { color: var(--secondary); text-decoration: none; font-size: 11px; }
+.law-link:hover { text-decoration: underline; }
+
+/* FORM ELEMENTS */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.form-control { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; background: #fff; transition: border-color 0.2s; }
+.form-control:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(44,95,138,0.1); }
+.form-control.input-red { border-color: var(--red); background: #fff8f8; }
+.form-control.input-yellow { border-color: var(--yellow); background: #fffdf0; }
+.form-control.input-green { border-color: var(--green); background: #f0fff4; }
+.input-unit { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* GAP RESULT */
+.gap-result { margin-top: 16px; padding: 12px 16px; border-radius: 8px; display: none; }
+.gap-result.visible { display: block; }
+.gap-result.red { background: var(--red-bg); border-left: 4px solid var(--red); }
+.gap-result.yellow { background: var(--yellow-bg); border-left: 4px solid var(--yellow); }
+.gap-result.green { background: var(--green-bg); border-left: 4px solid var(--green); }
+.gap-result.gray { background: var(--gray-bg); border-left: 4px solid var(--gray); }
+.gap-status { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.gap-status.red { color: var(--red); }
+.gap-status.yellow { color: #856404; }
+.gap-status.green { color: var(--green); }
+.gap-status.gray { color: var(--gray); }
+.gap-detail { font-size: 12px; color: var(--text); line-height: 1.6; }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-dot { position: absolute; left: -20px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--border); top: 3px; }
+.timeline-dot.red { background: var(--red); box-shadow: 0 0 0 2px var(--red); }
+.timeline-dot.yellow { background: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
+.timeline-dot.green { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+.timeline-dot.gray { background: var(--gray); box-shadow: 0 0 0 2px var(--gray); }
+.timeline-content { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.timeline-date { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+.timeline-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.timeline-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.status-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+.pill-done { background: #d4edda; color: #155724; }
+.pill-upcoming { background: #cce5ff; color: #004085; }
+.pill-review { background: #fff3cd; color: #856404; }
+.checkpoint { margin-top: 10px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; font-size: 12px; }
+.checkpoint-title { font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.checkpoint ul { padding-left: 16px; }
+.checkpoint li { color: var(--muted); line-height: 1.6; }
+
+/* OTHER SECTION */
+.other-item { border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #fff; }
+.other-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.btn-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 18px; padding: 0 4px; }
+.risk-result { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 12px; display: none; }
+.risk-result.visible { display: block; }
+
+/* REPORT MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; padding: 20px; }
+.modal-overlay.visible { display: flex; justify-content: center; align-items: flex-start; }
+.modal-box { background: #fff; border-radius: 12px; max-width: 900px; width: 100%; margin: auto; }
+.modal-header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; padding: 20px 24px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 18px; font-weight: 700; }
+.modal-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+.modal-body { padding: 24px; max-height: 75vh; overflow-y: auto; }
+.report-section { margin-bottom: 24px; }
+.report-section h3 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.summary-stat { text-align: center; padding: 16px; border-radius: 8px; }
+.summary-stat.red { background: var(--red-bg); }
+.summary-stat.yellow { background: var(--yellow-bg); }
+.summary-stat.green { background: var(--green-bg); }
+.summary-stat .num { font-size: 32px; font-weight: 800; }
+.summary-stat.red .num { color: var(--red); }
+.summary-stat.yellow .num { color: #856404; }
+.summary-stat.green .num { color: var(--green); }
+.summary-stat .lbl { font-size: 12px; color: var(--muted); }
+.report-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.report-table th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 700; border: 1px solid var(--border); color: var(--primary); }
+.report-table td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+.status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.dot-red { background: var(--red); }
+.dot-yellow { background: var(--yellow); }
+.dot-green { background: var(--green); }
+.dot-gray { background: var(--gray); }
+.action-item { display: flex; gap: 12px; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; }
+.action-item.red { background: var(--red-bg); border-left: 3px solid var(--red); }
+.action-item.yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+.action-num { font-weight: 800; font-size: 16px; color: var(--muted); }
+.action-content .title { font-weight: 700; font-size: 13px; }
+.action-content .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* FOOTER */
+.page-footer { background: #fff; border-top: 1px solid var(--border); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--muted); }
+.save-bar { background: var(--primary); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.save-bar-text { color: #fff; font-size: 13px; }
+.save-bar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* PRINT */
+@media print {
+  .page-header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .btn, .header-actions, .save-bar, .modal-overlay { display: none !important; }
+  .section-body.collapsed { display: block !important; }
+  .section-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>중국 북경 노동법 컴플라이언스 분석 도구</h1>
+    <div class="subtitle">China Beijing Labor Law Compliance Interactive Tool &nbsp;|&nbsp; 中国北京劳动法合规分析工具 &nbsp;|&nbsp; 기준일: 2025-2026</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="exportJSON()">JSON 내보내기</button>
+    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">JSON 불러오기</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn btn-outline" onclick="window.print()">PDF 출력</button>
+    <button class="btn btn-primary" onclick="generateReport()">종합 리포트 생성</button>
+  </div>
+</div>
+
+<!-- LIVE DASHBOARD -->
+<div class="dashboard">
+  <div class="stat-card">
+    <div class="stat-num" id="dash-total" style="color:var(--primary)">0</div>
+    <div class="stat-label">전체 항목</div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="stat-card">
+    <div class="stat-num" id="dash-green" style="color:var(--green)">0</div>
+    <div class="stat-label">준수 (Green)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="dash-yellow" style="color:#856404">0</div>
+    <div class="stat-label">권고 (Yellow)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="dash-red" style="color:var(--red)">0</div>
+    <div class="stat-label">긴급 (Red)</div>
+  </div>
+  <div class="divider-v"></div>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>전체 준수율</span>
+      <span id="dash-rate" style="font-weight:700">-</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="dash-bar" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div style="font-size:11px; color:var(--muted)">마지막 저장</div>
+    <div id="dash-saved" style="font-size:12px; color:var(--text); margin-top:2px">-</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ==================== SECTION 1: 근로시간 ==================== -->
+<div class="section-card" id="sec1">
+  <div class="section-header" onclick="toggleSection('sec1')">
+    <div class="section-title">
+      <span class="section-num">1</span>
+      근로시간 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">工作时间 | Working Hours</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec1">미입력</span>
+      <span class="toggle-icon" id="icon-sec1">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec1">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">표준 근무시간</div>
+          <div class="legal-item-value">1일 8시간 / 주 40시간</div>
+          <div class="legal-item-cn">每日8小时 / 每周40小时</div>
+          <div class="law-cite">劳动法 第36条 &nbsp;<a href="https://flk.npc.gov.cn/detail2.html?MmM5MDlmZGQ2NzhiZjE3OTAxNjc4YmY3NGQ3MTA2YjM=" class="law-link" target="_blank">[원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">초과근무 한도</div>
+          <div class="legal-item-value">1일 최대 3시간 / 월 최대 36시간</div>
+          <div class="legal-item-cn">每日不超过3小时 / 每月不超过36小时</div>
+          <div class="law-cite">劳动法 第41条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">초과근무 수당율</div>
+          <div class="legal-item-value">평일 150% / 휴일 200% / 법정공휴일 300%</div>
+          <div class="legal-item-cn">延时加班150% / 休息日200% / 法定节假日300%</div>
+          <div class="law-cite">劳动法 第44条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">연간 법정 근무일수 (2025~)</div>
+          <div class="legal-item-value">248일 / 1,984시간</div>
+          <div class="legal-item-cn">2025年起适用新工作日历</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">주당 소정근무시간 (시간)</label>
+          <input class="form-control" type="number" id="wh-weekly" placeholder="예: 40" min="0" max="60" oninput="analyzeWH()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">월평균 초과근무 시간</label>
+          <input class="form-control" type="number" id="wh-ot-month" placeholder="예: 20" min="0" max="100" oninput="analyzeWH()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">평일 초과근무 수당율 (%)</label>
+          <input class="form-control" type="number" id="wh-rate-wd" placeholder="예: 150" min="100" max="500" oninput="analyzeWH()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">휴일 초과근무 수당율 (%)</label>
+          <input class="form-control" type="number" id="wh-rate-rest" placeholder="예: 200" min="100" max="500" oninput="analyzeWH()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">법정공휴일 초과근무 수당율 (%)</label>
+          <input class="form-control" type="number" id="wh-rate-hol" placeholder="예: 300" min="100" max="500" oninput="analyzeWH()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">근무시간 제도 유형</label>
+          <select class="form-control" id="wh-type" onchange="analyzeWH()">
+            <option value="">선택하세요</option>
+            <option value="standard">표준근무제 (标准工时制)</option>
+            <option value="flexible">종합근무제 (综合计算工时制)</option>
+            <option value="irregular">불규칙근무제 (不定时工作制)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec1">
+      <div class="gap-status" id="gap-sec1-status"></div>
+      <div class="gap-detail" id="gap-sec1-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 2: 연차휴가 ==================== -->
+<div class="section-card" id="sec2">
+  <div class="section-header" onclick="toggleSection('sec2')">
+    <div class="section-title">
+      <span class="section-num">2</span>
+      연차유급휴가 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">带薪年休假 | Annual Leave</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec2">미입력</span>
+      <span class="toggle-icon" id="icon-sec2">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec2">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">근속 1년 이상 ~ 10년 미만</div>
+          <div class="legal-item-value">연 5일</div>
+          <div class="legal-item-cn">工龄1年以上不满10年: 5天/年</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">근속 10년 이상 ~ 20년 미만</div>
+          <div class="legal-item-value">연 10일</div>
+          <div class="legal-item-cn">工龄10年以上不满20年: 10天/年</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">근속 20년 이상</div>
+          <div class="legal-item-value">연 15일</div>
+          <div class="legal-item-cn">工龄20年以上: 15天/年</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">미사용 연차 보상</div>
+          <div class="legal-item-value">일급 300% 지급 (회사 귀책 시)</div>
+          <div class="legal-item-cn">未安排年休假: 按日工资300%支付</div>
+          <div class="law-cite">职工带薪年休假条例 (国务院令514号) &nbsp;<a href="https://flk.npc.gov.cn/" class="law-link" target="_blank">[원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">이월 규정</div>
+          <div class="legal-item-value">원칙적 당해 사용, 사업상 필요 시 다음연도 이월 가능</div>
+          <div class="legal-item-cn">原则当年使用，因工作需要可跨年安排</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">근속 1-10년 미만 부여 연차 (일)</label>
+          <input class="form-control" type="number" id="al-tier1" placeholder="법정: 5일" min="0" max="50" oninput="analyzeAL()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">근속 10-20년 미만 부여 연차 (일)</label>
+          <input class="form-control" type="number" id="al-tier2" placeholder="법정: 10일" min="0" max="50" oninput="analyzeAL()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">근속 20년 이상 부여 연차 (일)</label>
+          <input class="form-control" type="number" id="al-tier3" placeholder="법정: 15일" min="0" max="50" oninput="analyzeAL()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">미사용 연차 처리 방식</label>
+          <select class="form-control" id="al-unused" onchange="analyzeAL()">
+            <option value="">선택하세요</option>
+            <option value="pay300">300% 수당 지급</option>
+            <option value="carry">익년 이월</option>
+            <option value="lose">소멸 처리</option>
+            <option value="pay100">기본급만 지급</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">연차 이월 가능 여부</label>
+          <select class="form-control" id="al-carryover" onchange="analyzeAL()">
+            <option value="">선택하세요</option>
+            <option value="yes">이월 허용</option>
+            <option value="no">이월 불가 (당해 소멸)</option>
+            <option value="partial">부분 이월</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec2">
+      <div class="gap-status" id="gap-sec2-status"></div>
+      <div class="gap-detail" id="gap-sec2-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 3: 급여 ==================== -->
+<div class="section-card" id="sec3">
+  <div class="section-header" onclick="toggleSection('sec3')">
+    <div class="section-title">
+      <span class="section-num">3</span>
+      급여 및 최저임금 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">工资与最低工资标准 | Wages & Minimum Wage</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec3">미입력</span>
+      <span class="toggle-icon" id="icon-sec3">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec3">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">북경시 월 최저임금 (2025.9.1~)</div>
+          <div class="legal-item-value" style="color:var(--red)">2,540 위안/월</div>
+          <div class="legal-item-cn">北京市月最低工资标准: 2,540元/月（2025年9月1日起）</div>
+          <div class="law-cite"><a href="https://rsj.beijing.gov.cn/xxgk/2024zcwj/202507/t20250725_4158456.html" class="law-link" target="_blank">北京市人社局 2025年7月公告 [원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">비전일제 시간당 최저임금 (2025.9.1~)</div>
+          <div class="legal-item-value">27.7 위안/시간 (법정공휴일: 65.1 위안)</div>
+          <div class="legal-item-cn">非全日制: 27.7元/小时; 法定节假日: 65.1元/小时</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">급여 지급 주기</div>
+          <div class="legal-item-value">월 1회 이상, 정기 지급 의무</div>
+          <div class="legal-item-cn">每月至少支付一次工资</div>
+          <div class="law-cite">劳动合同法 第30条 / 工资支付暂行规定</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">임금 체불 시 제재</div>
+          <div class="legal-item-value">지연 배상금 50%~100% 추가 지급 명령 가능</div>
+          <div class="legal-item-cn">逾期不支付: 额外支付50%~100%赔偿金</div>
+          <div class="law-cite">劳动合同法 第85条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">최저임금 구성 제외 항목</div>
+          <div class="legal-item-value">가산임금, 사회보험 개인부담분, 야간·위험수당 제외</div>
+          <div class="legal-item-cn">加班工资、社保个人部分、夜班等特殊津贴不计入</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">사내 최저 기본급 (위안/월)</label>
+          <input class="form-control" type="number" id="wage-min" placeholder="예: 3000" min="0" oninput="analyzeWage()">
+          <div class="input-unit">북경시 법정 최저: 2,540 위안 (2025.9.1~)</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">급여 지급 주기</label>
+          <select class="form-control" id="wage-cycle" onchange="analyzeWage()">
+            <option value="">선택하세요</option>
+            <option value="monthly">월 1회</option>
+            <option value="biweekly">월 2회</option>
+            <option value="weekly">주 1회</option>
+            <option value="irregular">비정기</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">임금 체불 규정 사내 규정 여부</label>
+          <select class="form-control" id="wage-arrear" onchange="analyzeWage()">
+            <option value="">선택하세요</option>
+            <option value="yes">규정 있음 (지연 시 추가 배상 명시)</option>
+            <option value="no">규정 없음</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">임금 구성 항목 명세서 제공</label>
+          <select class="form-control" id="wage-slip" onchange="analyzeWage()">
+            <option value="">선택하세요</option>
+            <option value="yes">제공 (급여명세서 발급)</option>
+            <option value="no">미제공</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec3">
+      <div class="gap-status" id="gap-sec3-status"></div>
+      <div class="gap-detail" id="gap-sec3-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 4: 해고/계약 종료 ==================== -->
+<div class="section-card" id="sec4">
+  <div class="section-header" onclick="toggleSection('sec4')">
+    <div class="section-title">
+      <span class="section-num">4</span>
+      해고 및 계약 종료 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">解除劳动合同 | Termination</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec4">미입력</span>
+      <span class="toggle-icon" id="icon-sec4">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec4">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">경제성 해고 예고기간</div>
+          <div class="legal-item-value">30일 전 서면 예고 또는 1개월 임금 대체 지급</div>
+          <div class="legal-item-cn">提前30日书面通知 或 额外支付1个月工资代替通知</div>
+          <div class="law-cite">劳动合同法 第40条 &nbsp;<a href="https://flk.npc.gov.cn/detail2.html?MmM5MDlmZGQ2NzhiZjE3OTAxNjc4YmY3NGQ3MTA2YjM=" class="law-link" target="_blank">[원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">경제보상금 (N) 산정</div>
+          <div class="legal-item-value">근속연수 × 1개월 평균임금 (6개월 이상 = 1년으로 반올림)</div>
+          <div class="legal-item-cn">经济补偿: 工龄N年×月均工资（不满1年按1年计，6个月以上算1年）</div>
+          <div class="law-cite">劳动合同法 第47条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">N+1 공식</div>
+          <div class="legal-item-value">예고 없이 즉시 해고 시: N개월 + 추가 1개월 임금</div>
+          <div class="legal-item-cn">未提前通知即解除: N+1个月工资</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">임금 상한선</div>
+          <div class="legal-item-value">월평균임금이 지역 평균의 3배 초과 시: 3배 기준 적용, 최대 12년</div>
+          <div class="legal-item-cn">月薪超地区平均3倍时: 按3倍上限, 最多补偿12年</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">해고 제한 대상 (劳动合同法 제42조)</div>
+          <div class="legal-item-value">직업병 확진자 / 업무상 부상자 / 임신·출산·수유 중 여성 / 근속 15년 이상 + 정년 5년 미만</div>
+          <div class="legal-item-cn">职业病/工伤/孕产哺期女工/连续工作15年且距退休不足5年</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">부당 해고 시 2N 배상</div>
+          <div class="legal-item-value">위법 해고 = 경제보상금의 2배 배상 의무</div>
+          <div class="legal-item-cn">违法解除: 支付2倍经济补偿金（赔偿金）</div>
+          <div class="law-cite">劳动合同法 第87条</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">경제성 해고 예고기간 (일)</label>
+          <input class="form-control" type="number" id="term-notice" placeholder="법정: 30일" min="0" max="180" oninput="analyzeTerm()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">경제보상금 산정 방식</label>
+          <select class="form-control" id="term-severance" onchange="analyzeTerm()">
+            <option value="">선택하세요</option>
+            <option value="legal">법정 기준 (N개월) 준수</option>
+            <option value="above">법정 기준 초과 지급</option>
+            <option value="below">법정 기준 미달</option>
+            <option value="none">경제보상금 미지급</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">해고 제한 대상 보호 규정 존재 여부</label>
+          <select class="form-control" id="term-protect" onchange="analyzeTerm()">
+            <option value="">선택하세요</option>
+            <option value="yes">사내 규정에 명시됨</option>
+            <option value="partial">일부만 명시</option>
+            <option value="no">사내 규정 없음 (법령에만 의존)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">퇴직 시 사회보험 정산 절차 보유</label>
+          <select class="form-control" id="term-social" onchange="analyzeTerm()">
+            <option value="">선택하세요</option>
+            <option value="yes">절차 보유</option>
+            <option value="no">절차 없음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec4">
+      <div class="gap-status" id="gap-sec4-status"></div>
+      <div class="gap-detail" id="gap-sec4-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 5: 출산/육아휴가 ==================== -->
+<div class="section-card" id="sec5">
+  <div class="section-header" onclick="toggleSection('sec5')">
+    <div class="section-title">
+      <span class="section-num">5</span>
+      출산·육아휴가 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">产假与育儿假 | Maternity & Parental Leave</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec5">미입력</span>
+      <span class="toggle-icon" id="icon-sec5">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec5">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">산전산후 기본 산휴 (전국)</div>
+          <div class="legal-item-value">98일 (산전 15일 포함)</div>
+          <div class="legal-item-cn">产假98天（含产前15天）</div>
+          <div class="law-cite">女职工劳动保护特别规定 第7条 &nbsp;<a href="https://flk.npc.gov.cn/" class="law-link" target="_blank">[원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">북경시 연장 생육가 (추가)</div>
+          <div class="legal-item-value">+60일 (합계 158일)</div>
+          <div class="legal-item-cn">北京市延长生育假60天 → 合计158天</div>
+          <div class="law-cite">北京市人口与计划生育条例 (2021.11.26 개정)</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">배우자 출산휴가 (陪产假)</div>
+          <div class="legal-item-value">15일 (북경시 기준)</div>
+          <div class="legal-item-cn">陪产假15天</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">난산·다태아 추가 산휴</div>
+          <div class="legal-item-value">난산 +15일 / 다태아 1명 추가 시 +15일</div>
+          <div class="legal-item-cn">难产增加15天 / 多胞胎每多1胎增加15天</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">유산휴가</div>
+          <div class="legal-item-value">16주 이하: 15일 / 16주 초과: 42일</div>
+          <div class="legal-item-cn">怀孕不满16周(含): 15天 / 16周以上: 42天</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">임신·출산·수유 중 해고 금지</div>
+          <div class="legal-item-value">해당 기간 해고·계약 해지 불가</div>
+          <div class="legal-item-cn">孕产哺期间禁止解除劳动合同</div>
+          <div class="law-cite">劳动合同法 第42条</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">사내 산휴 일수 (일)</label>
+          <input class="form-control" type="number" id="mat-days" placeholder="법정(북경): 158일" min="0" max="365" oninput="analyzeMat()">
+          <div class="input-unit">북경시 법정: 기본 98일 + 연장 60일 = 158일</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">배우자 출산휴가 일수 (일)</label>
+          <input class="form-control" type="number" id="mat-partner" placeholder="법정: 15일" min="0" max="90" oninput="analyzeMat()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">산휴 중 급여 지급</label>
+          <select class="form-control" id="mat-pay" onchange="analyzeMat()">
+            <option value="">선택하세요</option>
+            <option value="full">전액 지급</option>
+            <option value="partial">일부 지급</option>
+            <option value="none">미지급</option>
+            <option value="insurance">생육보험 청구로 처리</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">임신·출산·수유 기간 해고 금지 사내 규정</label>
+          <select class="form-control" id="mat-protect" onchange="analyzeMat()">
+            <option value="">선택하세요</option>
+            <option value="yes">사내 규정 명시</option>
+            <option value="no">사내 규정 없음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec5">
+      <div class="gap-status" id="gap-sec5-status"></div>
+      <div class="gap-detail" id="gap-sec5-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 6: 사회보험 ==================== -->
+<div class="section-card" id="sec6">
+  <div class="section-header" onclick="toggleSection('sec6')">
+    <div class="section-title">
+      <span class="section-num">6</span>
+      사회보험 및 주택공적금 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">社会保险与住房公积金 | Social Insurance & Housing Fund</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec6">미입력</span>
+      <span class="toggle-icon" id="icon-sec6">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec6">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 — 북경시 2025년도 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">사회보험 납부 기준 (2025.7~)</div>
+          <div class="legal-item-value">상한: 35,811위안 / 하한: 7,162위안</div>
+          <div class="legal-item-cn">缴费基数上限: 35,811元 / 下限: 7,162元（2025年7月起）</div>
+          <div class="law-cite"><a href="https://rsj.beijing.gov.cn/xxgk/2024zcwj/202509/t20250918_4204880.html" class="law-link" target="_blank">北京市人社局 2025年度社保基数公告 [원문링크]</a></div>
+        </div>
+        <div style="overflow-x:auto">
+        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:8px">
+          <tr style="background:#e8f0fe">
+            <th style="padding:6px;border:1px solid #c5d3e8;text-align:left">보험 종류</th>
+            <th style="padding:6px;border:1px solid #c5d3e8;text-align:center">단위 부담</th>
+            <th style="padding:6px;border:1px solid #c5d3e8;text-align:center">개인 부담</th>
+          </tr>
+          <tr><td style="padding:5px 6px;border:1px solid #dee2e6">양로보험 (养老保险)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">20%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">8%</td></tr>
+          <tr style="background:#f8f9fa"><td style="padding:5px 6px;border:1px solid #dee2e6">의료보험 (医疗保险)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">6%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">2%</td></tr>
+          <tr><td style="padding:5px 6px;border:1px solid #dee2e6">실업보험 (失业保险)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0.8%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0.2%</td></tr>
+          <tr style="background:#f8f9fa"><td style="padding:5px 6px;border:1px solid #dee2e6">산재보험 (工伤保险)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0.2~1.9%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0%</td></tr>
+          <tr><td style="padding:5px 6px;border:1px solid #dee2e6">생육보험 (生育保险)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0.8%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center">0%</td></tr>
+          <tr style="background:#e8f0fe"><td style="padding:5px 6px;border:1px solid #dee2e6;font-weight:700">합계 (5험)</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center;font-weight:700">~29.5%</td><td style="padding:5px 6px;border:1px solid #dee2e6;text-align:center;font-weight:700">10.2%</td></tr>
+        </table>
+        </div>
+        <div class="legal-item" style="margin-top:12px">
+          <div class="legal-item-label">주택공적금 (住房公积金) 비율 (2025년도)</div>
+          <div class="legal-item-value">단위 5~12% / 개인 5~12% (각자 자율 설정)</div>
+          <div class="legal-item-cn">单位和个人各缴存5%~12%，由单位自主确定</div>
+          <div class="legal-item-label" style="margin-top:6px">기준 상한: 35,811위안 / 하한(2025.9.1~): 2,540위안</div>
+          <div class="law-cite"><a href="https://gjj.beijing.gov.cn/web/zwgk61/2024zcwj/436433461/743765441/index.html" class="law-link" target="_blank">北京市住房公积金 2025年度缴存通知 [원문링크]</a></div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">5대 사회보험 가입 여부</label>
+          <select class="form-control" id="si-enroll" onchange="analyzeSI()">
+            <option value="">선택하세요</option>
+            <option value="all">전 직원 5험 가입</option>
+            <option value="partial">일부 직원만 가입</option>
+            <option value="none">미가입</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">양로보험 회사 납부율 (%)</label>
+          <input class="form-control" type="number" id="si-pension" placeholder="법정: 20%" min="0" max="30" step="0.1" oninput="analyzeSI()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">의료보험 회사 납부율 (%)</label>
+          <input class="form-control" type="number" id="si-medical" placeholder="법정: 6%" min="0" max="15" step="0.1" oninput="analyzeSI()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">주택공적금 납부율 (단위, %)</label>
+          <input class="form-control" type="number" id="si-hf" placeholder="5~12% 범위" min="0" max="15" step="0.1" oninput="analyzeSI()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">사회보험 기수 신고 방식</label>
+          <select class="form-control" id="si-base" onchange="analyzeSI()">
+            <option value="">선택하세요</option>
+            <option value="actual">실제 임금 기준 신고</option>
+            <option value="minimum">하한선 기준 신고</option>
+            <option value="mixed">혼합 신고</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec6">
+      <div class="gap-status" id="gap-sec6-status"></div>
+      <div class="gap-detail" id="gap-sec6-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 7: 근로계약 ==================== -->
+<div class="section-card" id="sec7">
+  <div class="section-header" onclick="toggleSection('sec7')">
+    <div class="section-title">
+      <span class="section-num">7</span>
+      근로계약 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">劳动合同 | Employment Contract</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec7">미입력</span>
+      <span class="toggle-icon" id="icon-sec7">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec7">
+    <div class="compare-grid">
+      <div class="col-legal">
+        <div class="col-title">법정 기준 (Legal Standard)</div>
+        <div class="legal-item">
+          <div class="legal-item-label">서면계약 체결 의무</div>
+          <div class="legal-item-value">입사 후 1개월 이내 서면 계약 체결</div>
+          <div class="legal-item-cn">建立劳动关系起1个月内订立书面劳动合同</div>
+          <div class="law-cite">劳动合同法 第10条 &nbsp;<a href="https://flk.npc.gov.cn/detail2.html?MmM5MDlmZGQ2NzhiZjE3OTAxNjc4YmY3NGQ3MTA2YjM=" class="law-link" target="_blank">[원문링크]</a></div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">미체결 시 제재</div>
+          <div class="legal-item-value">1개월 초과~1년: 2배 임금 지급 / 1년 초과: 무고정기한 계약 간주</div>
+          <div class="legal-item-cn">超1个月未签: 支付双倍工资 / 超1年: 视为无固定期限合同</div>
+          <div class="law-cite">劳动合同法 第82条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">시용기간 (试用期) 상한</div>
+          <div class="legal-item-value">계약 3개월 미만: 불가 / 3개월~1년: 1개월 / 1~3년: 2개월 / 3년 이상: 최대 6개월</div>
+          <div class="legal-item-cn">合同3个月以下: 不得约定 / 3个月~1年: 1个月 / 1~3年: 2个月 / 3年+: 最长6个月</div>
+          <div class="law-cite">劳动合同法 第19条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">시용기간 중 최저임금</div>
+          <div class="legal-item-value">정식 임금의 80% 이상 & 법정 최저임금 이상</div>
+          <div class="legal-item-cn">试用期工资不得低于正式工资80% 且不低于最低工资标准</div>
+          <div class="law-cite">劳动合同法 第20条</div>
+        </div>
+        <div class="legal-item">
+          <div class="legal-item-label">무고정기한 계약 전환 조건</div>
+          <div class="legal-item-value">①근속 10년 이상 ②고정기한 계약 2회 연속 후 갱신 ③1년 이상 미체결 상태</div>
+          <div class="legal-item-cn">①连续工作满10年 ②连续订立2次固定期限后续订 ③超1年未签书面合同</div>
+          <div class="law-cite">劳动合同法 第14条 / 最高法解释(二) 2025.9.1 시행</div>
+        </div>
+      </div>
+      <div class="col-current">
+        <div class="col-title">현행 제도 입력 (Current Policy)</div>
+        <div class="form-group">
+          <label class="form-label">서면계약 체결 시점</label>
+          <select class="form-control" id="ct-timing" onchange="analyzeCT()">
+            <option value="">선택하세요</option>
+            <option value="before">입사 전 체결</option>
+            <option value="day1">입사 당일</option>
+            <option value="within1m">입사 1개월 이내</option>
+            <option value="after1m">입사 1개월 초과</option>
+            <option value="no">서면 계약 없음</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">시용기간 설정 (월)</label>
+          <input class="form-control" type="number" id="ct-probation" placeholder="예: 3" min="0" max="12" oninput="analyzeCT()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">주요 계약 유형</label>
+          <select class="form-control" id="ct-type" onchange="analyzeCT()">
+            <option value="">선택하세요</option>
+            <option value="fixed1">1년 고정기한</option>
+            <option value="fixed3">3년 고정기한</option>
+            <option value="open">무고정기한</option>
+            <option value="task">업무완성형</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">무고정기한 계약 전환 관리 여부</label>
+          <select class="form-control" id="ct-open" onchange="analyzeCT()">
+            <option value="">선택하세요</option>
+            <option value="yes">전환 조건 추적 관리 중</option>
+            <option value="partial">일부 관리</option>
+            <option value="no">관리 안 됨</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">시용기간 임금 (정식 대비 %)</label>
+          <input class="form-control" type="number" id="ct-probwage" placeholder="법정: 80% 이상" min="0" max="100" oninput="analyzeCT()">
+        </div>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec7">
+      <div class="gap-status" id="gap-sec7-status"></div>
+      <div class="gap-detail" id="gap-sec7-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 8: 최신 개정법령 타임라인 ==================== -->
+<div class="section-card" id="sec8">
+  <div class="section-header" onclick="toggleSection('sec8')">
+    <div class="section-title">
+      <span class="section-num">8</span>
+      최신 개정법령 타임라인 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">2024-2026 法律更新 | Recent Amendments</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-yellow" id="badge-sec8">검토 필요</span>
+      <span class="toggle-icon" id="icon-sec8">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec8">
+    <div class="timeline">
+
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025년 9월 1일 시행 <span class="status-pill pill-done">시행완료</span></div>
+          <div class="timeline-title">최고인민법원 劳动争议司法解释(二) 시행 / 북경시 최저임금 인상</div>
+          <div class="timeline-desc">
+            1. 무고정기한 계약 전환 조건 구체화: 협의 연장·자동연장·법인명 변경 등 탈법적 회피행위도 전환 의무 발생<br>
+            2. 북경시 월 최저임금 2,420원 → <strong>2,540원</strong>으로 인상<br>
+            3. 비전일제 시간당 최저임금 26.4원 → <strong>27.7원</strong>
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>최저임금 미만 직원 급여 일괄 검토 및 인상 조치</li>
+              <li>장기 고정기한 직원(10년 근접) 계약 관리 대장 재점검</li>
+              <li>비전일제 직원 시급 재산정 여부 확인</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025년 7월 시행 <span class="status-pill pill-done">시행완료</span></div>
+          <div class="timeline-title">북경시 2025년도 사회보험 납부 기수 조정</div>
+          <div class="timeline-desc">
+            납부 기수 상한 33,891원 → <strong>35,811원</strong>으로 상향<br>
+            납부 기수 하한 6,821원 → <strong>7,162원</strong>으로 상향<br>
+            주택공적금 기수 상한도 동일하게 35,811원 적용
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>사회보험 납부 기수 실제 임금 반영 여부 재확인</li>
+              <li>고임금 직원 기수 상한 변경에 따른 회사 부담 재계산</li>
+              <li>급여 시스템 업데이트 여부 확인</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025년 1월 1일 시행 <span class="status-pill pill-done">시행완료</span></div>
+          <div class="timeline-title">법정 정년 단계적 연장 개시 (退休年龄改革)</div>
+          <div class="timeline-desc">
+            15년에 걸쳐 단계적 상향: 남성 60→63세 / 여성(사무직) 55→58세 / 여성(생산직) 50→55세<br>
+            최소 연금 납부기간: 15년 → 2030년까지 20년으로 단계 연장<br>
+            본인 희망 시 최대 3년 조기·연장 퇴직 선택 가능
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>정년 도달 직원 연도별 실제 퇴직 시점 재산정</li>
+              <li>노동계약 종료 시점 재검토 (정년 연장에 따른 자동종료 조항 확인)</li>
+              <li>연금 수령 요건 미달 직원 관리 방안 수립</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2024년 3월 22일 시행 <span class="status-pill pill-done">시행완료</span></div>
+          <div class="timeline-title">국경간 데이터 이전 규정 (跨境数据流动规定) — 인사 데이터 적용</div>
+          <div class="timeline-desc">
+            해외 그룹사 HR 관리를 위한 직원 개인정보 국경간 이전 시, 개인정보보호법상 보안평가·표준계약·인증 의무 면제 가능<br>
+            조건: ①법령에 근거한 취업규칙·단체협약에 따른 이전 ②최소 필요 데이터만 이전 ③직원 충분한 고지
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>해외 그룹사 인사 시스템에 중국 직원 데이터 전송 여부 확인</li>
+              <li>취업규칙 내 개인정보 국경간 이전 조항 포함 여부</li>
+              <li>이전 데이터 목록 및 최소화 원칙 준수 여부 점검</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot yellow"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2026년 (예정) <span class="status-pill pill-upcoming">시행예정</span></div>
+          <div class="timeline-title">공휴일 제도 개편 논의 / 사회보험법 개정 추진 동향</div>
+          <div class="timeline-desc">
+            ① 법정 공휴일 11일 → 13일 확대 논의 진행 중 (확정 시 급여 및 초과근무 수당 재산정 필요)<br>
+            ② 사회보험법 전면 개정 초안 검토 중 — 최소 납부기간 연장, 적용 범위 확대 등 포함 가능성
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>공휴일 확대 시 초과근무 수당 예산 영향 사전 시뮬레이션</li>
+              <li>사회보험법 개정 동향 분기별 모니터링 체계 수립</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot yellow"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">심의 진행 중 <span class="status-pill pill-review">심의중</span></div>
+          <div class="timeline-title">외국인 취업 관리 규정 개정 / 비경쟁 조항 사법 기준 정비</div>
+          <div class="timeline-desc">
+            ① 외국인 취업허가 통합 관리 강화 — 허가증 미취득 외국인 고용 시 기업 책임 강화 예상<br>
+            ② 비경쟁 약정(竞业限制) 보상금 지급 기준 및 분쟁 처리 관련 사법 해석 정비 논의
+          </div>
+          <div class="checkpoint">
+            <div class="checkpoint-title">HR 체크포인트</div>
+            <ul>
+              <li>외국인 직원 취업허가증 만료일 관리 대장 유지</li>
+              <li>비경쟁 약정 체결 직원 보상금 지급 조건 재검토</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 9: 기타 사항 ==================== -->
+<div class="section-card" id="sec9">
+  <div class="section-header" onclick="toggleSection('sec9')">
+    <div class="section-title">
+      <span class="section-num">9</span>
+      기타 / 법인 고유 제도 &nbsp;<span style="color:var(--muted);font-weight:400;font-size:13px">其他事项 | Other Matters</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="section-badge badge-gray" id="badge-sec9">미입력</span>
+      <span class="toggle-icon" id="icon-sec9">▼</span>
+    </div>
+  </div>
+  <div class="section-body" id="body-sec9">
+    <div style="margin-bottom:14px; padding:12px 14px; background:#f0f4ff; border-radius:8px; font-size:12px; color:#1a3a5c;">
+      법인 고유의 제도나 특수한 상황을 자유롭게 입력하세요. 제목 입력 시 관련 중국 노동법 키워드를 자동으로 분석합니다.
+    </div>
+    <div id="other-items-container"></div>
+    <button class="btn btn-dark" onclick="addOtherItem()" style="margin-top:8px">+ 항목 추가</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- SAVE BAR -->
+<div class="save-bar">
+  <div class="save-bar-text">모든 입력 데이터를 저장하고 종합 갭 분석 리포트를 생성합니다.</div>
+  <div class="save-bar-actions">
+    <button class="btn btn-outline" onclick="saveToStorage()">저장 (localStorage)</button>
+    <button class="btn btn-success" onclick="generateReport()">저장 및 리포트 생성</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <div>중국 북경 노동법 컴플라이언스 분석 도구 | 기준: 北京市 2025-2026 &nbsp;|&nbsp; 생성일: 2026-03-30</div>
+  <div>⚠ 법률 자문이 필요한 사항은 현지 노동법 전문 법률가에게 확인하시기 바랍니다.</div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>종합 컴플라이언스 갭 분석 리포트</h2>
+      <button class="modal-close" onclick="closeReport()">&times;</button>
+    </div>
+    <div class="modal-body" id="reportContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-dark" onclick="exportJSON()">JSON 내보내기</button>
+      <button class="btn btn-outline" style="color:var(--primary);border-color:var(--border)" onclick="closeReport()">닫기</button>
+      <button class="btn btn-primary" onclick="window.print()">PDF 출력</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== STATE ==========
+const STATE = {
+  gaps: {},  // sectionId -> { status: 'red'|'yellow'|'green'|'gray', label: string }
+};
+
+// ========== TOGGLE ==========
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id.replace('sec',''));
+  const icon = document.getElementById('icon-' + id.replace('sec',''));
+  if (!body || !icon) {
+    const b = document.getElementById(id).querySelector('.section-body');
+    const i = document.getElementById(id).querySelector('.toggle-icon');
+    b.classList.toggle('collapsed');
+    i.textContent = b.classList.contains('collapsed') ? '▶' : '▼';
+    return;
+  }
+  body.classList.toggle('collapsed');
+  icon.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+// ========== GAP DISPLAY ==========
+function showGap(secNum, status, statusText, detail) {
+  const el = document.getElementById('gap-sec' + secNum);
+  const st = document.getElementById('gap-sec' + secNum + '-status');
+  const dt = document.getElementById('gap-sec' + secNum + '-detail');
+  const badge = document.getElementById('badge-sec' + secNum);
+
+  el.className = 'gap-result visible ' + status;
+  st.className = 'gap-status ' + status;
+  st.textContent = statusText;
+  dt.textContent = detail;
+
+  const badgeMap = { red: ['badge-red','긴급'], yellow: ['badge-yellow','권고'], green: ['badge-green','준수'], gray: ['badge-gray','미입력'] };
+  badge.className = 'section-badge ' + badgeMap[status][0];
+  badge.textContent = badgeMap[status][1];
+
+  STATE.gaps['sec' + secNum] = { status, label: statusText };
+  updateDashboard();
+}
+
+// ========== DASHBOARD ==========
+function updateDashboard() {
+  const all = Object.values(STATE.gaps).filter(g => g.status !== 'gray');
+  const red = all.filter(g => g.status === 'red').length;
+  const yellow = all.filter(g => g.status === 'yellow').length;
+  const green = all.filter(g => g.status === 'green').length;
+  const total = all.length;
+  const rate = total > 0 ? Math.round((green / total) * 100) : 0;
+
+  document.getElementById('dash-total').textContent = total;
+  document.getElementById('dash-red').textContent = red;
+  document.getElementById('dash-yellow').textContent = yellow;
+  document.getElementById('dash-green').textContent = green;
+  document.getElementById('dash-rate').textContent = total > 0 ? rate + '%' : '-';
+  document.getElementById('dash-bar').style.width = rate + '%';
+}
+
+// ========== ANALYSIS FUNCTIONS ==========
+function analyzeWH() {
+  const weekly = parseFloat(document.getElementById('wh-weekly').value);
+  const otMonth = parseFloat(document.getElementById('wh-ot-month').value);
+  const rateWD = parseFloat(document.getElementById('wh-rate-wd').value);
+  const rateRest = parseFloat(document.getElementById('wh-rate-rest').value);
+  const rateHol = parseFloat(document.getElementById('wh-rate-hol').value);
+
+  if (isNaN(weekly) && isNaN(otMonth) && isNaN(rateWD)) {
+    showGap(1, 'gray', '미입력', '현행 제도를 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+
+  if (!isNaN(weekly)) {
+    if (weekly > 40) issues.push(`주 소정근무시간 ${weekly}시간 — 법정 한도(40시간) 초과`);
+    else if (weekly === 40) {}
+    else warnings.push(`주 ${weekly}시간 운영 — 법정 기준(40시간) 이내이나 취업규칙 명시 확인 필요`);
+  }
+  if (!isNaN(otMonth) && otMonth > 36) issues.push(`월 초과근무 ${otMonth}시간 — 법정 한도(36시간) 초과 (劳动法 第41条)`);
+  if (!isNaN(rateWD) && rateWD < 150) issues.push(`평일 초과근무 수당 ${rateWD}% — 법정 최소(150%) 미달`);
+  if (!isNaN(rateRest) && rateRest < 200) issues.push(`휴일 초과근무 수당 ${rateRest}% — 법정 최소(200%) 미달`);
+  if (!isNaN(rateHol) && rateHol < 300) issues.push(`법정공휴일 초과근무 수당 ${rateHol}% — 법정 최소(300%) 미달`);
+
+  if (issues.length > 0) showGap(1, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(1, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(1, 'green', '준수 (Compliant) — 법정 기준 충족', '현행 근로시간 및 초과근무 수당 기준이 법정 요건을 충족합니다.');
+}
+
+function analyzeAL() {
+  const t1 = parseFloat(document.getElementById('al-tier1').value);
+  const t2 = parseFloat(document.getElementById('al-tier2').value);
+  const t3 = parseFloat(document.getElementById('al-tier3').value);
+  const unused = document.getElementById('al-unused').value;
+
+  if (isNaN(t1) && isNaN(t2) && isNaN(t3) && !unused) {
+    showGap(2, 'gray', '미입력', '연차 부여 일수를 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+
+  if (!isNaN(t1) && t1 < 5) issues.push(`근속 1-10년 연차 ${t1}일 — 법정(5일) 미달`);
+  if (!isNaN(t2) && t2 < 10) issues.push(`근속 10-20년 연차 ${t2}일 — 법정(10일) 미달`);
+  if (!isNaN(t3) && t3 < 15) issues.push(`근속 20년+ 연차 ${t3}일 — 법정(15일) 미달`);
+  if (unused === 'lose') issues.push('미사용 연차 소멸 처리 — 법 위반 (회사 귀책 시 300% 수당 지급 의무)');
+  if (unused === 'pay100') issues.push('미사용 연차 기본급만 지급 — 법정 기준 300% 미달');
+  if (unused === 'carry') warnings.push('미사용 연차 이월 정책 — 이월 기한 및 처리 규정 명확화 필요');
+
+  if (issues.length > 0) showGap(2, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(2, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(2, 'green', '준수 (Compliant) — 법정 기준 충족', '연차 부여 기준 및 미사용 연차 처리 방식이 법정 요건을 충족합니다.');
+}
+
+function analyzeWage() {
+  const minWage = parseFloat(document.getElementById('wage-min').value);
+  const cycle = document.getElementById('wage-cycle').value;
+
+  if (isNaN(minWage) && !cycle) {
+    showGap(3, 'gray', '미입력', '급여 기준을 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+  const LEGAL_MIN = 2540;
+
+  if (!isNaN(minWage) && minWage < LEGAL_MIN) issues.push(`사내 최저 기본급 ${minWage}위안 — 북경시 법정 최저(2,540위안, 2025.9.1~) 미달`);
+  if (!isNaN(minWage) && minWage >= LEGAL_MIN && minWage < 3000) warnings.push(`기본급 ${minWage}위안 — 법정 최저 충족이나 생활비 대비 낮은 수준`);
+  if (cycle === 'irregular') issues.push('비정기 급여 지급 — 劳动合同法 제30조 위반 (정기 지급 의무)');
+
+  if (issues.length > 0) showGap(3, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(3, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(3, 'green', '준수 (Compliant) — 법정 기준 충족', '급여 수준 및 지급 주기가 북경시 법정 기준을 충족합니다.');
+}
+
+function analyzeTerm() {
+  const notice = parseFloat(document.getElementById('term-notice').value);
+  const severance = document.getElementById('term-severance').value;
+  const protect = document.getElementById('term-protect').value;
+
+  if (isNaN(notice) && !severance) {
+    showGap(4, 'gray', '미입력', '해고 관련 기준을 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+
+  if (!isNaN(notice) && notice < 30) issues.push(`예고기간 ${notice}일 — 법정(30일) 미달`);
+  if (severance === 'below') issues.push('경제보상금 법정 기준 미달 — 즉시 시정 필요');
+  if (severance === 'none') issues.push('경제보상금 미지급 — 劳动合同法 제47조 위반');
+  if (protect === 'no') warnings.push('해고 제한 대상(임신·업무상 재해 등) 보호 규정이 사내 취업규칙에 미명시');
+  if (protect === 'partial') warnings.push('해고 제한 대상 보호 규정 일부 누락 — 전체 요건 검토 필요');
+
+  if (issues.length > 0) showGap(4, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(4, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(4, 'green', '준수 (Compliant) — 법정 기준 충족', '해고 예고기간 및 경제보상금 기준이 법정 요건을 충족합니다.');
+}
+
+function analyzeMat() {
+  const days = parseFloat(document.getElementById('mat-days').value);
+  const partner = parseFloat(document.getElementById('mat-partner').value);
+  const pay = document.getElementById('mat-pay').value;
+
+  if (isNaN(days) && isNaN(partner) && !pay) {
+    showGap(5, 'gray', '미입력', '출산·육아휴가 기준을 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+  const LEGAL_MAT = 158; // 98 + 60 Beijing
+  const LEGAL_PARTNER = 15;
+
+  if (!isNaN(days) && days < 98) issues.push(`산휴 ${days}일 — 전국 법정(98일) 미달`);
+  else if (!isNaN(days) && days < LEGAL_MAT) warnings.push(`산휴 ${days}일 — 전국 기준(98일) 충족이나 북경시 기준(158일) 미달. 북경 법정 연장휴가(60일) 추가 부여 검토`);
+  if (!isNaN(partner) && partner < LEGAL_PARTNER) issues.push(`배우자 출산휴가 ${partner}일 — 북경시 법정(15일) 미달`);
+  if (pay === 'none') issues.push('산휴 중 급여 미지급 — 위법');
+
+  if (issues.length > 0) showGap(5, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(5, 'yellow', '권고 (Advisory) — 북경시 기준 미달', warnings.join(' | '));
+  else showGap(5, 'green', '준수 (Compliant) — 법정 기준 충족', '출산·육아휴가 기준이 북경시 법정 요건을 충족합니다.');
+}
+
+function analyzeSI() {
+  const enroll = document.getElementById('si-enroll').value;
+  const pension = parseFloat(document.getElementById('si-pension').value);
+  const medical = parseFloat(document.getElementById('si-medical').value);
+  const hf = parseFloat(document.getElementById('si-hf').value);
+  const base = document.getElementById('si-base').value;
+
+  if (!enroll && isNaN(pension) && isNaN(medical)) {
+    showGap(6, 'gray', '미입력', '사회보험 납부 기준을 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+
+  if (enroll === 'none') issues.push('사회보험 미가입 — 社会保险法 위반, 즉각 시정 필요');
+  if (enroll === 'partial') issues.push('일부 직원만 사회보험 가입 — 전 직원 가입 의무 위반');
+  if (!isNaN(pension) && pension < 20) issues.push(`양로보험 회사 납부율 ${pension}% — 법정(20%) 미달`);
+  if (!isNaN(medical) && medical < 6) issues.push(`의료보험 회사 납부율 ${medical}% — 법정(6%) 미달`);
+  if (!isNaN(hf) && hf < 5) issues.push(`주택공적금 납부율 ${hf}% — 법정 하한(5%) 미달`);
+  if (!isNaN(hf) && hf > 12) issues.push(`주택공적금 납부율 ${hf}% — 법정 상한(12%) 초과`);
+  if (base === 'minimum') warnings.push('사회보험 기수를 하한선으로만 신고 — 실제 임금과 괴리 시 노동중재 리스크 존재');
+
+  if (issues.length > 0) showGap(6, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(6, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(6, 'green', '준수 (Compliant) — 법정 기준 충족', '사회보험 가입 및 납부 비율이 법정 요건을 충족합니다.');
+}
+
+function analyzeCT() {
+  const timing = document.getElementById('ct-timing').value;
+  const probation = parseFloat(document.getElementById('ct-probation').value);
+  const ctType = document.getElementById('ct-type').value;
+  const probwage = parseFloat(document.getElementById('ct-probwage').value);
+  const openMgmt = document.getElementById('ct-open').value;
+
+  if (!timing && isNaN(probation)) {
+    showGap(7, 'gray', '미입력', '근로계약 관련 정보를 입력하면 자동으로 갭 분석이 실행됩니다.');
+    return;
+  }
+
+  let issues = []; let warnings = [];
+
+  if (timing === 'after1m') issues.push('서면 계약 체결 시점이 입사 1개월 초과 — 双倍工资 지급 의무 발생 위험');
+  if (timing === 'no') issues.push('서면 근로계약 없음 — 劳动合同法 제10조 위반, 즉각 시정 필요');
+  if (!isNaN(probwage) && probwage < 80) issues.push(`시용기간 임금 ${probwage}% — 법정(정식임금의 80% 이상) 미달`);
+  if (!isNaN(probation) && ctType === 'fixed1' && probation > 1) issues.push(`1년 계약에 시용기간 ${probation}개월 — 법정 상한(1개월) 초과`);
+  if (!isNaN(probation) && ctType === 'fixed3' && probation > 2) issues.push(`3년 계약에 시용기간 ${probation}개월 — 법정 상한(2개월) 초과`);
+  if (openMgmt === 'no') warnings.push('무고정기한 전환 조건 미추적 관리 — 最高法解释(二) 시행으로 회피행위 통제 강화, 관리 시스템 도입 필요');
+  if (openMgmt === 'partial') warnings.push('무고정기한 전환 조건 부분 관리 — 全 직원 이력 확인 필요');
+
+  if (issues.length > 0) showGap(7, 'red', '긴급 (Critical) — 법령 위반', issues.join(' | '));
+  else if (warnings.length > 0) showGap(7, 'yellow', '권고 (Advisory) — 개선 권장', warnings.join(' | '));
+  else showGap(7, 'green', '준수 (Compliant) — 법정 기준 충족', '근로계약 체결 및 시용기간 기준이 법정 요건을 충족합니다.');
+}
+
+// ========== OTHER ITEMS ==========
+let otherCount = 0;
+const KEYWORDS = {
+  '파견': { cn: '劳务派遣', risk: '파견근로 비율(전체 10% 이하), 동일 업무 동일 임금(同工同酬) 원칙, 파견 금지 업무 확인 필요. 劳动合同法 제67조.' },
+  '비경쟁': { cn: '竞业限制', risk: '보상금 지급 없는 비경쟁 약정은 효력 없음. 월 보상금 = 전직 전 12개월 평균임금의 최소 30% 이상 권장. 최대 2년.' },
+  '경제보상': { cn: '经济补偿金', risk: '해고 사유별 경제보상금 산정 기준 확인. 부당해고 시 2배 배상. 임금 상한선(지역 평균 3배×12년) 적용 여부 확인.' },
+  '사회보험': { cn: '社会保险', risk: '북경시 2025년도 기수 상한 35,811위안 / 하한 7,162위안 적용 여부 확인. 실제 임금 기준 신고 의무.' },
+  '공적금': { cn: '住房公积金', risk: '2025.9.1부터 기수 하한 2,540위안. 납부율 5~12% 범위 내 자율 결정. 미납 시 행정처벌 + 직원 청구권 발생.' },
+  '개인정보': { cn: '个人信息保护', risk: '개인정보 수집 시 동의 취득, 목적 외 사용 금지. 해외 그룹사 이전 시 2024년 跨境데이터 규정 면제 조건 충족 여부 확인.' },
+  '외국인': { cn: '外国人就业', risk: '취업허가증(工作许可证) + 거류허가(居留许可) 필수. 미취득자 고용 시 기업 벌금(최대 75,000위안/인). 정기 갱신 관리 필요.' },
+  '중재': { cn: '劳动仲裁', risk: '노동중재 전치주의 (소송 전 仲裁委 거침). 중재 시효: 일반 1년, 임금체불은 노동관계 존속 중 시효 미적용.' },
+  '노무': { cn: '劳务派遣', risk: '파견과 도급(业务外包) 구분 필요. 실질 사용 관계 기준으로 판단 — 사실상 파견 인정 시 고용주 책임.' },
+  '퇴직': { cn: '退休', risk: '2025.1.1부터 법정 정년 단계적 연장. 남성 60→63세, 여성 55→58세(사무직). 계약 종료 시점 재검토 필요.' },
+};
+
+function addOtherItem() {
+  otherCount++;
+  const id = 'other-' + otherCount;
+  const container = document.getElementById('other-items-container');
+  const div = document.createElement('div');
+  div.className = 'other-item';
+  div.id = id;
+  div.innerHTML = `
+    <div class="other-item-header">
+      <input class="form-control" type="text" id="${id}-title" placeholder="제도명 또는 이슈 제목 (예: 파견직 운영, 비경쟁 약정 등)" style="font-weight:600" oninput="analyzeOther('${id}')">
+      <button class="btn-remove" onclick="removeOtherItem('${id}')" title="삭제">×</button>
+    </div>
+    <textarea class="form-control" id="${id}-detail" rows="3" placeholder="상세 내용을 입력하세요..." style="resize:vertical" oninput="analyzeOther('${id}')"></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-dark" style="font-size:12px;padding:5px 12px" onclick="analyzeOther('${id}')">검토 요청</button>
+    </div>
+    <div class="risk-result" id="${id}-risk"></div>
+  `;
+  container.appendChild(div);
+  document.getElementById('badge-sec9').className = 'section-badge badge-yellow';
+  document.getElementById('badge-sec9').textContent = '입력 중';
+}
+
+function removeOtherItem(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  if (document.getElementById('other-items-container').children.length === 0) {
+    document.getElementById('badge-sec9').className = 'section-badge badge-gray';
+    document.getElementById('badge-sec9').textContent = '미입력';
+  }
+}
+
+function analyzeOther(id) {
+  const title = (document.getElementById(id + '-title').value || '').toLowerCase();
+  const detail = (document.getElementById(id + '-detail').value || '').toLowerCase();
+  const combined = title + ' ' + detail;
+  const riskEl = document.getElementById(id + '-risk');
+
+  let found = [];
+  for (const [kor, info] of Object.entries(KEYWORDS)) {
+    if (combined.includes(kor) || combined.includes(info.cn.toLowerCase())) {
+      found.push(`<strong>[${kor} / ${info.cn}]</strong> ${info.risk}`);
+    }
+  }
+
+  if (found.length > 0) {
+    riskEl.className = 'risk-result visible';
+    riskEl.style.background = '#fff8e6';
+    riskEl.style.borderLeft = '4px solid #FFC107';
+    riskEl.style.color = '#333';
+    riskEl.innerHTML = '<strong style="color:#856404">관련 노동법 리스크 감지</strong><br><br>' + found.join('<br><br>');
+  } else if (combined.trim().length > 5) {
+    riskEl.className = 'risk-result visible';
+    riskEl.style.background = '#f0fff4';
+    riskEl.style.borderLeft = '4px solid #28A745';
+    riskEl.style.color = '#333';
+    riskEl.innerHTML = '특별한 노동법 리스크 키워드가 감지되지 않았습니다. 필요 시 노동법 전문가 검토를 요청하세요.';
+  }
+}
+
+// ========== STORAGE ==========
+function saveToStorage() {
+  const data = collectData();
+  localStorage.setItem('china_bj_compliance', JSON.stringify(data));
+  const now = new Date();
+  document.getElementById('dash-saved').textContent = now.toLocaleTimeString('ko-KR');
+  alert('저장 완료! (브라우저 localStorage)');
+}
+
+function collectData() {
+  const fields = ['wh-weekly','wh-ot-month','wh-rate-wd','wh-rate-rest','wh-rate-hol','wh-type',
+    'al-tier1','al-tier2','al-tier3','al-unused','al-carryover',
+    'wage-min','wage-cycle','wage-arrear','wage-slip',
+    'term-notice','term-severance','term-protect','term-social',
+    'mat-days','mat-partner','mat-pay','mat-protect',
+    'si-enroll','si-pension','si-medical','si-hf','si-base',
+    'ct-timing','ct-probation','ct-type','ct-open','ct-probwage'];
+  const data = { timestamp: new Date().toISOString(), gaps: STATE.gaps };
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) data[f] = el.value;
+  });
+  // Other items
+  const others = [];
+  document.querySelectorAll('[id^="other-"]').forEach(el => {
+    if (el.id.endsWith('-title')) {
+      const base = el.id.replace('-title','');
+      others.push({ title: el.value, detail: document.getElementById(base+'-detail')?.value || '' });
+    }
+  });
+  data.otherItems = others;
+  return data;
+}
+
+function exportJSON() {
+  const data = collectData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'china_bj_compliance_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      Object.keys(data).forEach(k => {
+        const el = document.getElementById(k);
+        if (el && data[k] !== undefined) el.value = data[k];
+      });
+      // Trigger all analyses
+      ['analyzeWH','analyzeAL','analyzeWage','analyzeTerm','analyzeMat','analyzeSI','analyzeCT'].forEach(fn => {
+        try { window[fn](); } catch(ex) {}
+      });
+      alert('데이터 불러오기 완료!');
+    } catch(err) {
+      alert('JSON 파일 형식 오류: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ========== REPORT GENERATION ==========
+function generateReport() {
+  saveToStorage();
+
+  const gaps = STATE.gaps;
+  const secNames = {
+    sec1: '근로시간', sec2: '연차유급휴가', sec3: '급여/최저임금',
+    sec4: '해고/계약종료', sec5: '출산·육아휴가', sec6: '사회보험/공적금', sec7: '근로계약'
+  };
+
+  const redItems = Object.entries(gaps).filter(([,v]) => v.status === 'red');
+  const yellowItems = Object.entries(gaps).filter(([,v]) => v.status === 'yellow');
+  const greenItems = Object.entries(gaps).filter(([,v]) => v.status === 'green');
+  const total = redItems.length + yellowItems.length + greenItems.length;
+  const rate = total > 0 ? Math.round((greenItems.length / total) * 100) : 0;
+
+  let html = `
+    <div class="report-section">
+      <h3>경영진 요약 (Executive Summary)</h3>
+      <div class="summary-grid">
+        <div class="summary-stat red"><div class="num">${redItems.length}</div><div class="lbl">긴급 (Red)</div></div>
+        <div class="summary-stat yellow"><div class="num">${yellowItems.length}</div><div class="lbl">권고 (Yellow)</div></div>
+        <div class="summary-stat green"><div class="num">${greenItems.length}</div><div class="lbl">준수 (Green)</div></div>
+      </div>
+      <p style="font-size:13px;color:#555;margin-bottom:8px">
+        전체 분석 항목 <strong>${total}개</strong> 중 준수율 <strong>${rate}%</strong> |
+        긴급 시정 항목 <strong style="color:var(--red)">${redItems.length}건</strong>,
+        개선 권고 <strong style="color:#856404">${yellowItems.length}건</strong>
+      </p>
+      <div style="font-size:12px;color:var(--muted)">분석 기준: 중국 노동법 / 北京市 지역 규정 (2025-2026) | 생성: ${new Date().toLocaleString('ko-KR')}</div>
+    </div>
+
+    <div class="report-section">
+      <h3>영역별 상세 비교표</h3>
+      <table class="report-table">
+        <thead><tr><th>카테고리</th><th>상태</th><th>분석 결과</th></tr></thead>
+        <tbody>`;
+
+  Object.entries(secNames).forEach(([key, name]) => {
+    const g = gaps[key];
+    if (g) {
+      const dotClass = 'dot-' + g.status;
+      html += `<tr>
+        <td><strong>${name}</strong></td>
+        <td><span class="status-dot ${dotClass}"></span>${g.label}</td>
+        <td style="font-size:12px">${getGapDetail(key)}</td>
+      </tr>`;
+    } else {
+      html += `<tr>
+        <td><strong>${name}</strong></td>
+        <td><span class="status-dot dot-gray"></span>미분석</td>
+        <td style="font-size:12px;color:var(--muted)">데이터 미입력</td>
+      </tr>`;
+    }
+  });
+
+  html += `</tbody></table></div>`;
+
+  // Action Items
+  if (redItems.length > 0 || yellowItems.length > 0) {
+    html += `<div class="report-section"><h3>액션 아이템 로드맵</h3>`;
+    let actionNum = 1;
+    redItems.forEach(([key]) => {
+      html += `<div class="action-item red">
+        <div class="action-num">${actionNum++}</div>
+        <div class="action-content">
+          <div class="title">[긴급] ${secNames[key] || key}</div>
+          <div class="desc">${getGapDetail(key)} — 즉각 시정 조치 필요 (법적 제재 위험)</div>
+        </div>
+      </div>`;
+    });
+    yellowItems.forEach(([key]) => {
+      html += `<div class="action-item yellow">
+        <div class="action-num">${actionNum++}</div>
+        <div class="action-content">
+          <div class="title">[권고] ${secNames[key] || key}</div>
+          <div class="desc">${getGapDetail(key)} — 개선 계획 수립 및 단계적 조치 권장</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  } else if (total > 0) {
+    html += `<div class="report-section"><h3>액션 아이템</h3><div style="background:var(--green-bg);padding:16px;border-radius:8px;color:var(--green);font-weight:600">분석된 모든 항목이 법정 기준을 충족합니다. 정기적인 재검토를 권장합니다.</div></div>`;
+  }
+
+  html += `<div style="font-size:11px;color:var(--muted);margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px">
+    ⚠ 본 분석은 입력된 데이터를 기반으로 한 참고용 자료입니다. 실제 컴플라이언스 결정은 반드시 현지 노동법 전문 법률가의 검토를 거치시기 바랍니다.
+  </div>`;
+
+  document.getElementById('reportContent').innerHTML = html;
+  document.getElementById('reportModal').classList.add('visible');
+}
+
+function getGapDetail(key) {
+  const el = document.getElementById('gap-' + key + '-detail');
+  return el ? el.textContent : '-';
+}
+
+function closeReport() {
+  document.getElementById('reportModal').classList.remove('visible');
+}
+
+// Close modal on overlay click
+document.getElementById('reportModal').addEventListener('click', function(e) {
+  if (e.target === this) closeReport();
+});
+
+// ========== INIT: Load from storage ==========
+window.addEventListener('load', function() {
+  const saved = localStorage.getItem('china_bj_compliance');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      const confirmLoad = confirm('저장된 데이터가 있습니다. 불러오시겠습니까?\n저장 시각: ' + (data.timestamp ? new Date(data.timestamp).toLocaleString('ko-KR') : '알 수 없음'));
+      if (confirmLoad) {
+        Object.keys(data).forEach(k => {
+          const el = document.getElementById(k);
+          if (el && data[k] !== undefined) el.value = data[k];
+        });
+        ['analyzeWH','analyzeAL','analyzeWage','analyzeTerm','analyzeMat','analyzeSI','analyzeCT'].forEach(fn => {
+          try { window[fn](); } catch(ex) {}
+        });
+      }
+    } catch(e) {}
+  }
+});
+</script>
+</body>
+</html>

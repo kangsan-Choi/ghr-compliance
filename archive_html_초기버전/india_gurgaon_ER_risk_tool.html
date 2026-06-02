@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인도(구르가온) ER 리스크 진단 도구 | India Gurgaon Employee Relations Risk Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#212529;font-size:14px}
+:root{--red:#DC3545;--yellow:#FFC107;--green:#28A745;--gray:#6C757D;--blue:#0056b3;--light-blue:#e8f0fe;--border:#dee2e6;--white:#fff;--dark:#343a40;--saffron:#FF9933;--india-green:#138808;--navy:#000080}
+.header{background:linear-gradient(135deg,#FF9933 0%,#FFFFFF 50%,#138808 100%);color:#000080;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:3px solid #000080}
+.header-left h1{font-size:22px;font-weight:700;margin-bottom:4px;color:#000080;text-shadow:0 1px 2px rgba(255,255,255,.6)}
+.header-left p{font-size:12px;color:#1a1a2e;opacity:.9}
+.header-right{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-white{background:#fff;color:#000080;border:1px solid #000080}
+.btn-white:hover{background:#e8ecef}
+.btn-outline{background:rgba(255,255,255,.7);color:#000080;border:1px solid #000080}
+.btn-outline:hover{background:#fff}
+.dashboard{background:#fff;border-bottom:1px solid var(--border);padding:16px 32px;display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.stat-box{text-align:center;min-width:80px}
+.stat-num{font-size:28px;font-weight:800;line-height:1}
+.stat-label{font-size:11px;color:var(--gray);margin-top:2px}
+.stat-red .stat-num{color:var(--red)}
+.stat-yellow .stat-num{color:#d39e00}
+.stat-green .stat-num{color:var(--green)}
+.stat-blue .stat-num{color:var(--blue)}
+.divider{width:1px;height:48px;background:var(--border)}
+.progress-wrap{flex:1;min-width:200px}
+.progress-label{font-size:12px;color:var(--gray);margin-bottom:6px;display:flex;justify-content:space-between}
+.progress-bar{height:12px;background:#e9ecef;border-radius:8px;overflow:hidden}
+.progress-fill{height:100%;border-radius:8px;transition:width .5s;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
+.main{max-width:1200px;margin:0 auto;padding:24px 16px}
+.section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
+.section-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.section-header:hover{background:#f8f9fa}
+.section-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700}
+.section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-badge{font-size:11px;padding:3px 8px;border-radius:12px;font-weight:600}
+.badge-red{background:#fde8ea;color:var(--red)}
+.badge-yellow{background:#fff8e1;color:#d39e00}
+.badge-green{background:#e8f5e9;color:var(--green)}
+.badge-gray{background:#f1f3f5;color:var(--gray)}
+.collapse-icon{font-size:12px;color:var(--gray);transition:transform .2s}
+.collapsed .collapse-icon{transform:rotate(-90deg)}
+.section-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section-body.collapsed{display:none}
+.col-legal{background:#f8f9fa;border-radius:8px;padding:16px;border-left:4px solid var(--blue)}
+.col-input{background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border)}
+.col-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);margin-bottom:12px;letter-spacing:.5px}
+.legal-item{margin-bottom:12px}
+.legal-item-label{font-size:12px;color:var(--gray);margin-bottom:3px}
+.legal-item-value{font-size:14px;font-weight:600;color:#212529}
+.legal-item-jp{font-size:11px;color:#888;margin-top:2px;font-style:italic}
+.legal-link{font-size:11px;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:4px}
+.legal-link:hover{text-decoration:underline}
+.field-group{margin-bottom:14px}
+.field-label{font-size:12px;font-weight:600;color:#495057;margin-bottom:5px;display:block}
+.field-label .required{color:var(--red);margin-left:2px}
+input[type=number],input[type=text],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,86,179,.1)}
+input.gap-red,select.gap-red{border-color:var(--red);background:#fff8f8}
+input.gap-yellow,select.gap-yellow{border-color:var(--yellow);background:#fffdf0}
+input.gap-green,select.gap-green{border-color:var(--green);background:#f0fff4}
+.gap-result{margin-top:16px;grid-column:1/-1;border-radius:8px;padding:14px 16px;display:none}
+.gap-result.show{display:block}
+.gap-result.red{background:#fde8ea;border-left:4px solid var(--red)}
+.gap-result.yellow{background:#fff8e1;border-left:4px solid var(--yellow)}
+.gap-result.green{background:#e8f5e9;border-left:4px solid var(--green)}
+.gap-result .gap-title{font-weight:700;font-size:13px;margin-bottom:6px}
+.gap-result.red .gap-title{color:var(--red)}
+.gap-result.yellow .gap-title{color:#d39e00}
+.gap-result.green .gap-title{color:var(--green)}
+.gap-result ul{margin-left:16px}
+.gap-result ul li{font-size:13px;margin-bottom:3px}
+.timeline{padding:0 20px 20px}
+.timeline-item{display:flex;gap:16px;margin-bottom:16px;position:relative}
+.timeline-item::before{content:'';position:absolute;left:14px;top:28px;bottom:-16px;width:2px;background:var(--border)}
+.timeline-item:last-child::before{display:none}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-weight:700;z-index:1}
+.tl-done{background:#e8f5e9;color:var(--green)}
+.tl-active{background:#fff8e1;color:#d39e00}
+.tl-pending{background:#f1f3f5;color:var(--gray)}
+.tl-content{flex:1;padding-top:4px}
+.tl-date{font-size:11px;color:var(--gray);margin-bottom:3px}
+.tl-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:12px;color:#555;line-height:1.6}
+.tl-check{margin-top:6px;background:#f8f9fa;border-radius:6px;padding:8px 12px;font-size:12px}
+.tl-check strong{display:block;margin-bottom:4px;color:var(--dark)}
+.status-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+.sb-done{background:#e8f5e9;color:var(--green)}
+.sb-active{background:#fff8e1;color:#d39e00}
+.sb-pending{background:#e8f0fe;color:var(--blue)}
+.other-item{background:#f8f9fa;border-radius:8px;padding:14px;margin-bottom:12px;border:1px solid var(--border)}
+.other-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:5px;border:1px solid var(--border);background:#fff;cursor:pointer}
+.btn-sm:hover{background:#f1f3f5}
+.btn-danger-sm{border-color:var(--red);color:var(--red)}
+.btn-danger-sm:hover{background:#fde8ea}
+.keyword-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.keyword-tag{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s}
+.keyword-tag.risk-high{background:#fde8ea;color:var(--red);border-color:#f5c6cb}
+.keyword-tag.risk-medium{background:#fff8e1;color:#d39e00;border-color:#ffeeba}
+.keyword-tag.risk-low{background:#e8f5e9;color:var(--green);border-color:#c3e6cb}
+.keyword-tag:hover{opacity:.8}
+.review-result{background:#fff;border-radius:8px;border:1px solid var(--border);padding:14px;margin-top:12px;display:none}
+.review-result.show{display:block}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;justify-content:center;align-items:flex-start;padding:40px 16px;overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:18px;font-weight:700}
+.modal-body{padding:24px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray)}
+.report-table{width:100%;border-collapse:collapse;margin-top:16px}
+.report-table th{background:#f8f9fa;padding:10px 12px;text-align:left;font-size:12px;border:1px solid var(--border)}
+.report-table td{padding:10px 12px;font-size:13px;border:1px solid var(--border);vertical-align:top}
+.report-table tr.tr-red td{background:#fff8f8}
+.report-table tr.tr-yellow td{background:#fffdf0}
+.report-table tr.tr-green td{background:#f0fff4}
+.traffic-dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.dot-red{background:var(--red)}
+.dot-yellow{background:var(--yellow)}
+.dot-green{background:var(--green)}
+.action-item{background:#f8f9fa;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:4px solid var(--border)}
+.action-item.pri-high{border-left-color:var(--red)}
+.action-item.pri-med{border-left-color:var(--yellow)}
+.action-item.pri-low{border-left-color:var(--green)}
+.save-bar{background:#fff;border-top:1px solid var(--border);padding:16px 32px;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;z-index:100;box-shadow:0 -4px 12px rgba(0,0,0,.06)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#004494}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#1e7e34}
+.btn-secondary{background:var(--gray);color:#fff}
+.btn-secondary:hover{background:#545b62}
+.toast{position:fixed;bottom:80px;right:24px;background:#343a40;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.alert-banner{background:#fff8e1;border-left:4px solid var(--yellow);padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:12px;color:#856404}
+.alert-banner strong{color:#664d03}
+@media(max-width:768px){
+  .section-body{grid-template-columns:1fr}
+  .header{padding:16px}
+  .main{padding:12px 8px}
+  .dashboard{padding:12px 16px;gap:16px}
+}
+@media print{
+  .save-bar,.header-right,.btn{display:none!important}
+  .section-body.collapsed{display:grid!important}
+  .modal-overlay{display:none!important}
+  body{background:#fff}
+  .section{box-shadow:none;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>인도(구르가온) ER 리스크 진단 도구</h1>
+    <p>India Gurgaon (Haryana) Employee Relations Risk Diagnostic Tool &nbsp;|&nbsp; 기준일: 2026년 5월 기준 시행 법령 &nbsp;|&nbsp; 생성: <span id="genDate"></span></p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="exportJSON()">JSON 내보내기</button>
+    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">JSON 불러오기</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn btn-white" onclick="window.print()">PDF 출력</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="stat-box stat-red"><div class="stat-num" id="cntRed">0</div><div class="stat-label">긴급 RED</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-yellow"><div class="stat-num" id="cntYellow">0</div><div class="stat-label">권고 YELLOW</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-green"><div class="stat-num" id="cntGreen">0</div><div class="stat-label">준수 GREEN</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-blue"><div class="stat-num" id="cntTotal">0</div><div class="stat-label">분석 항목</div></div>
+  <div class="divider"></div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>준수율</span><span id="compRate">-%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="main">
+
+<div class="alert-banner">
+  <strong>※ 4대 노동코드(Labour Codes) 시행 현황:</strong> Code on Wages 2019 / IR Code 2020 / Social Security Code 2020 / OSH Code 2020 — 중앙정부 단계적 통보, 다수 州가 Rules 제정 완료. Haryana는 4개 코드 모두 Draft Rules 공표 완료. 실제 시행일은 中央政府 통보 시점 기준이며, 본 도구는 <b>현행 法(Act) 기준</b>으로 점검하되 신코드 영향을 병기합니다.
+</div>
+
+<!-- ===== SECTION 1: 정리해고·해고 ===== -->
+<div class="section" id="sec1">
+  <div class="section-header" onclick="toggleSection('sec1')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fde8ea">⚖️</div>
+      <span>섹션 1 — 정리해고·해고 절차 | Retrenchment & Termination</span>
+      <span class="section-badge badge-gray" id="badge-sec1">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec1">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">해고 예고 (Workman, &lt;100 employees)</div><div class="legal-item-value">1개월 사전 통지 또는 1개월분 임금 지급</div><div class="legal-item-jp">Industrial Disputes Act, 1947 §25F</div></div>
+      <div class="legal-item"><div class="legal-item-label">정리해고 보상금 (Retrenchment Compensation)</div><div class="legal-item-value">근속 1년당 15일분 평균임금 (1년 미만 단수 6개월 이상 시 1년 간주)</div><div class="legal-item-jp">ID Act §25F(b)</div></div>
+      <div class="legal-item"><div class="legal-item-label">사전 정부 승인 의무 (Chapter V-B)</div><div class="legal-item-value">상시 근로자 100인 이상 사업장 — 정부(Haryana Labour Dept.) 사전 승인 + 3개월 통지 / IR Code 2020 시행 시 기준 <b>300인 이상</b>으로 상향</div><div class="legal-item-jp">ID Act §25N / IR Code 2020 §77</div></div>
+      <div class="legal-item"><div class="legal-item-label">해고 순서 (Last In, First Out)</div><div class="legal-item-value">동일 직종 내 가장 마지막 입사자부터 정리해고 — 위반 시 부당해고로 복직·임금소급 명령 가능</div><div class="legal-item-jp">ID Act §25G</div></div>
+      <div class="legal-item"><div class="legal-item-label">재고용 우선권</div><div class="legal-item-value">정리해고 후 동일 자리 신규 채용 시 해고자 우선 재고용 통지 의무</div><div class="legal-item-jp">ID Act §25H</div></div>
+      <div class="legal-item"><div class="legal-item-label">Workman 정의 (적용 범위)</div><div class="legal-item-value">관리·감독직(월급 ₹10,000 초과 supervisory) 및 임원은 제외. 일반 사무·기술·생산직은 'Workman'으로 ID Act 보호 대상</div><div class="legal-item-jp">ID Act §2(s)</div></div>
+      <a class="legal-link" href="https://labour.gov.in/labour-codes" target="_blank">India Labour Codes 포털 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">사업장 상시 근로자 수<span class="required">*</span></label>
+        <input type="number" id="ret_headcount" min="1" max="100000" placeholder="예: 250" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">정리해고 시 통지 기간 (일)</label>
+        <input type="number" id="ret_notice" min="0" max="180" placeholder="예: 30 또는 90" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">정리해고 보상금 (근속 1년당, 일수)</label>
+        <input type="number" id="ret_comp" min="0" max="60" placeholder="예: 15" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">사전 정부 승인 절차</label>
+        <select id="ret_gov" onchange="analyzeSection1()">
+          <option value="">선택하세요</option>
+          <option value="yes">100인 이상 사업장: 정부 사전 승인 절차 운영</option>
+          <option value="under100">100인 미만 — 통지·보상만 적용</option>
+          <option value="no">100인 이상이나 절차 미운영</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">해고 순서(LIFO) 및 재고용 우선권 규정</label>
+        <select id="ret_lifo" onchange="analyzeSection1()">
+          <option value="">선택하세요</option>
+          <option value="yes">규정·운영 완비</option>
+          <option value="partial">규정만 있고 운영 미흡</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec1"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: 노동조합·단체교섭 ===== -->
+<div class="section" id="sec2">
+  <div class="section-header" onclick="toggleSection('sec2')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e8f0fe">🤝</div>
+      <span>섹션 2 — 노동조합·단체교섭 | Trade Unions & Collective Bargaining</span>
+      <span class="section-badge badge-gray" id="badge-sec2">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec2">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">노조 등록 요건</div><div class="legal-item-value">최소 7명 + 사업장 근로자 10% 또는 100명 중 적은 수의 동의</div><div class="legal-item-jp">Trade Unions Act, 1926 §4</div></div>
+      <div class="legal-item"><div class="legal-item-label">Sole Negotiating Union (IR Code)</div><div class="legal-item-value">근로자 51% 이상 지지 노조가 단독교섭권 / 미달 시 Negotiating Council 구성 (20% 이상 노조)</div><div class="legal-item-jp">IR Code 2020 §14</div></div>
+      <div class="legal-item"><div class="legal-item-label">파업 사전 통지 (Public Utility 외)</div><div class="legal-item-value">14일 전 사전 서면 통지 (Public Utility는 6주 전) — 통지 위반 시 파업 불법</div><div class="legal-item-jp">ID Act §22 / IR Code §62 (전 사업장으로 확대)</div></div>
+      <div class="legal-item"><div class="legal-item-label">직장폐쇄(Lockout)</div><div class="legal-item-value">동일 사전 통지 의무 / 정리해고 절차 외 일방적 lockout 불법</div><div class="legal-item-jp">ID Act §22·24</div></div>
+      <div class="legal-item"><div class="legal-item-label">부당노동행위 (Unfair Labour Practices)</div><div class="legal-item-value">노조 가입 이유 차별·해고 금지 / 위반 시 형사처벌 가능</div><div class="legal-item-jp">ID Act 5th Schedule / IR Code §84</div></div>
+      <a class="legal-link" href="https://labour.gov.in/" target="_blank">Ministry of Labour & Employment ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">사내 등록 노동조합 여부</label>
+        <select id="tu_exist" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="no_union">노조 없음</option>
+          <option value="single">단일 노조</option>
+          <option value="multi">복수 노조</option>
+          <option value="external">외부 정치노조(CITU/AITUC/INTUC 등) 가입</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">단체교섭 채널·정례 회의</label>
+        <select id="tu_cb" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="formal">공식 CB 채널 + 정례 회의 운영</option>
+          <option value="adhoc">필요 시 임시 회의</option>
+          <option value="none">없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">최근 12개월 파업·태업·시위 발생</label>
+        <select id="tu_strike" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="none">없음</option>
+          <option value="one">1회</option>
+          <option value="multi">2회 이상</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">근로자 고충처리 위원회(Grievance Redressal Committee)</label>
+        <select id="tu_grc" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="yes">20인 이상 사업장 — 위원회 구성·운영</option>
+          <option value="partial">구성만 했고 운영 미흡</option>
+          <option value="no">미구성</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec2"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: 징계·국내조사 ===== -->
+<div class="section" id="sec3">
+  <div class="section-header" onclick="toggleSection('sec3')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fff8e1">🔎</div>
+      <span>섹션 3 — 징계·국내조사 | Discipline & Domestic Inquiry</span>
+      <span class="section-badge badge-gray" id="badge-sec3">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec3">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">취업규칙(Standing Orders) 의무</div><div class="legal-item-value">상시 근로자 100인 이상 사업장 — Model Standing Orders 또는 Certified Standing Orders 보유 필수 / IR Code 시행 시 <b>300인 이상</b>으로 상향</div><div class="legal-item-jp">Industrial Employment (Standing Orders) Act, 1946 / IR Code §28</div></div>
+      <div class="legal-item"><div class="legal-item-label">국내조사 절차 (Domestic Inquiry)</div><div class="legal-item-value">① 서면 Charge Sheet 교부 ② 답변 기회 ③ 공정한 Inquiry Officer 임명 ④ 증인 신문·반대신문 권리 ⑤ Inquiry Report 후 처분 — Principles of Natural Justice 준수 필수</div><div class="legal-item-jp">판례법리 (Workmen v. Firestone Tyre, 1973 SC 등)</div></div>
+      <div class="legal-item"><div class="legal-item-label">Misconduct 정의</div><div class="legal-item-value">취업규칙에 명시되어야 효력 — 명시 없는 사유로 해고 시 부당해고</div><div class="legal-item-jp">Standing Orders Act Schedule</div></div>
+      <div class="legal-item"><div class="legal-item-label">정지(Suspension) 임금</div><div class="legal-item-value">조사 중 정지 시 Subsistence Allowance: 최초 90일 50%, 이후 75%</div><div class="legal-item-jp">Model Standing Orders / IR Code Schedule I</div></div>
+      <div class="legal-item"><div class="legal-item-label">부당해고 시 구제</div><div class="legal-item-value">Labour Court / Industrial Tribunal 신청 → 복직 + 임금 소급 명령 가능 (₹수년치 부담)</div><div class="legal-item-jp">ID Act §11A</div></div>
+      <a class="legal-link" href="https://labour.gov.in/" target="_blank">Industrial Employment Act 원문 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">Standing Orders 인증·보유 현황<span class="required">*</span></label>
+        <select id="di_so" onchange="analyzeSection3()">
+          <option value="">선택하세요</option>
+          <option value="certified">Certified Standing Orders 보유·게시</option>
+          <option value="model">Model Standing Orders 적용</option>
+          <option value="hb">사내 핸드북만 운영</option>
+          <option value="no">없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Misconduct 사유 명시 (서면 규정)</label>
+        <select id="di_misconduct" onchange="analyzeSection3()">
+          <option value="">선택하세요</option>
+          <option value="yes">상세 명시 완료</option>
+          <option value="partial">일부만 명시</option>
+          <option value="no">미명시</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">최근 12개월 징계해고 건수</label>
+        <input type="number" id="di_term_count" min="0" max="1000" placeholder="예: 3" oninput="analyzeSection3()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">국내조사(Domestic Inquiry) 절차 운영</label>
+        <select id="di_proc" onchange="analyzeSection3()">
+          <option value="">선택하세요</option>
+          <option value="full">Charge Sheet → 조사관 → Inquiry Report 전 절차</option>
+          <option value="partial">일부 절차만</option>
+          <option value="verbal">서면 없이 구두 조치</option>
+          <option value="na">해당 없음(미발생)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Subsistence Allowance 지급 규정</label>
+        <select id="di_subs" onchange="analyzeSection3()">
+          <option value="">선택하세요</option>
+          <option value="yes">법정대로 50%/75% 지급 규정</option>
+          <option value="lower">법정 미달 비율</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec3"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: POSH ===== -->
+<div class="section" id="sec4">
+  <div class="section-header" onclick="toggleSection('sec4')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#f3e5f5">🛡️</div>
+      <span>섹션 4 — POSH (직장 내 성희롱 방지) | Sexual Harassment Prevention</span>
+      <span class="section-badge badge-gray" id="badge-sec4">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec4">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">Internal Complaints Committee (ICC)</div><div class="legal-item-value">상시 근로자 10인 이상 사업장 — ICC 의무 구성 (위반 시 최초 ₹50,000 과태료 / 재범 시 사업 면허 취소 가능)</div><div class="legal-item-jp">POSH Act 2013 §4 / §26</div></div>
+      <div class="legal-item"><div class="legal-item-label">ICC 구성 요건</div><div class="legal-item-value">위원장(여성 senior level) 1인 + 사내 위원 2인 + 외부 위원(NGO/법률전문가) 1인. 위원 중 여성 과반수</div><div class="legal-item-jp">POSH Act §4(2)</div></div>
+      <div class="legal-item"><div class="legal-item-label">진정 처리 기한</div><div class="legal-item-value">진정일로부터 90일 이내 조사 완료 / 10일 이내 사용자에게 보고서 제출</div><div class="legal-item-jp">POSH Act §11(4) / §13(1)</div></div>
+      <div class="legal-item"><div class="legal-item-label">교육·예방 의무</div><div class="legal-item-value">정기적 인식 제고 교육·워크숍 / 신규 입사자 오리엔테이션 / 정책 게시</div><div class="legal-item-jp">POSH Act §19</div></div>
+      <div class="legal-item"><div class="legal-item-label">연간 보고서 (Annual Report)</div><div class="legal-item-value">매년 ICC 활동·진정 건수·조치를 District Officer에게 제출 + 사용자 연간 보고서 게시</div><div class="legal-item-jp">POSH Act §21 / §22</div></div>
+      <div class="legal-item"><div class="legal-item-label">2023 SC 판결 (Aureliano Fernandes v. Goa)</div><div class="legal-item-value">대법원: POSH 미준수 사업장에 대해 District/State Officer 직접 조사 권한 강화, 中央政府에 컴플라이언스 점검 명령</div><div class="legal-item-jp">Supreme Court 2023.05.12</div></div>
+      <a class="legal-link" href="https://wcd.nic.in/act/sexual-harassment-women-workplace-prevention-prohibition-and-redressal-act-2013" target="_blank">POSH Act 원문 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">사업장 상시 근로자 수<span class="required">*</span></label>
+        <input type="number" id="posh_headcount" min="1" max="100000" placeholder="예: 150" oninput="analyzeSection4()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">ICC 구성 여부</label>
+        <select id="posh_icc" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="full">완전 구성 (위원장 여성 + 외부위원 + 여성 과반수)</option>
+          <option value="partial">구성하였으나 요건 일부 미충족</option>
+          <option value="no">미구성</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">POSH 정책 문서·게시 여부</label>
+        <select id="posh_policy" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="yes">정책 작성 + 사내 게시 + 직원 배포</option>
+          <option value="partial">정책 있으나 게시·배포 미흡</option>
+          <option value="no">정책 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">최근 12개월 POSH 교육 실시</label>
+        <select id="posh_training" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="all">전 직원 + ICC 위원 별도 교육</option>
+          <option value="employee">직원 교육만</option>
+          <option value="icc">ICC 위원 교육만</option>
+          <option value="no">미실시</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">연간 보고서 District Officer 제출</label>
+        <select id="posh_annual" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="yes">정기 제출 중</option>
+          <option value="late">기한 후 제출</option>
+          <option value="no">미제출</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">최근 12개월 접수된 진정 건수</label>
+        <input type="number" id="posh_complaints" min="0" max="1000" placeholder="예: 1" oninput="analyzeSection4()">
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec4"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: 임금 컴플라이언스 ===== -->
+<div class="section" id="sec5">
+  <div class="section-header" onclick="toggleSection('sec5')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e8f5e9">💰</div>
+      <span>섹션 5 — 임금·최저임금·보너스 | Wage Compliance</span>
+      <span class="section-badge badge-gray" id="badge-sec5">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec5">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard) — Haryana 2026 기준</div>
+      <div class="legal-item"><div class="legal-item-label">Haryana 최저임금 (Gurgaon Zone A, 2026.01 개정)</div><div class="legal-item-value">미숙련(Unskilled) 월 ₹11,576 / 반숙련 ₹12,154 / 숙련 ₹13,394 / 사무직(Clerical) ₹12,932 — 반기별(1/7월) 물가연동 개정</div><div class="legal-item-jp">Haryana Min Wages Notification / Minimum Wages Act, 1948</div></div>
+      <div class="legal-item"><div class="legal-item-label">임금 지급 기한</div><div class="legal-item-value">상시 1,000인 미만 사업장: 매월 7일 이내 / 1,000인 이상: 매월 10일 이내</div><div class="legal-item-jp">Payment of Wages Act, 1936 §5</div></div>
+      <div class="legal-item"><div class="legal-item-label">초과근무 임금 (Overtime)</div><div class="legal-item-value">정상 임금의 <b>2배</b> (1일 9시간 또는 주 48시간 초과분)</div><div class="legal-item-jp">Factories Act §59 / Code on Wages §14</div></div>
+      <div class="legal-item"><div class="legal-item-label">상여금 (Statutory Bonus)</div><div class="legal-item-value">월급 ₹21,000 이하 근로자에게 최소 8.33% ~ 최대 20% (회계연도 종료 후 8개월 이내 지급)</div><div class="legal-item-jp">Payment of Bonus Act, 1965 §10·§19</div></div>
+      <div class="legal-item"><div class="legal-item-label">동일가치노동 동일임금</div><div class="legal-item-value">남녀 동일·유사 노동 동일 임금 — 위반 시 ₹10,000~50,000 벌금</div><div class="legal-item-jp">Equal Remuneration Act, 1976 / Code on Wages §3</div></div>
+      <div class="legal-item"><div class="legal-item-label">임금 명세서(Wage Slip)</div><div class="legal-item-value">매월 서면 또는 전자 명세서 교부 의무 / 기본급·수당·공제 항목별 명시</div><div class="legal-item-jp">Code on Wages §50</div></div>
+      <a class="legal-link" href="https://hrylabour.gov.in/" target="_blank">Haryana Labour Dept. ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">현행 최저 월급여 (미숙련 기준, ₹)<span class="required">*</span></label>
+        <input type="number" id="wage_min" min="0" max="100000" placeholder="예: 11576" oninput="analyzeSection5()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">초과근무 할증율 (배수)</label>
+        <input type="number" id="wage_ot" min="1" max="5" step="0.1" placeholder="예: 2.0" oninput="analyzeSection5()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">상여금(Bonus) 지급 정책</label>
+        <select id="wage_bonus" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">대상자 전원 8.33% 이상 지급</option>
+          <option value="partial">일부 대상자만 지급</option>
+          <option value="no">미지급</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">임금 지급일 (매월 일자)</label>
+        <input type="number" id="wage_payday" min="1" max="31" placeholder="예: 5" oninput="analyzeSection5()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">임금명세서(Wage Slip) 교부</label>
+        <select id="wage_slip" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">매월 전 직원 교부 (서면/전자)</option>
+          <option value="partial">일부에만 교부</option>
+          <option value="no">미교부</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">동일가치노동 동일임금 점검</label>
+        <select id="wage_equal" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">정기 점검·격차 검토 실시</option>
+          <option value="no">미점검</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec5"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 6: 사회보장 ===== -->
+<div class="section" id="sec6">
+  <div class="section-header" onclick="toggleSection('sec6')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e3f2fd">🏥</div>
+      <span>섹션 6 — 사회보장 (EPF·ESI·Gratuity) | Social Security</span>
+      <span class="section-badge badge-gray" id="badge-sec6">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec6">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">EPF (Employees' Provident Fund)</div><div class="legal-item-value">20인 이상 사업장 의무 가입 / 사업주 12% + 근로자 12% (기본급+DA 기준, ceiling ₹15,000) / 사업주 12% 중 8.33%는 EPS(연금)로 이관</div><div class="legal-item-jp">EPF & MP Act, 1952</div></div>
+      <div class="legal-item"><div class="legal-item-label">ESI (Employees' State Insurance)</div><div class="legal-item-value">월급여 <b>₹21,000 이하</b> 근로자 의무 가입 (장애인 ₹25,000) / 사업주 3.25% + 근로자 0.75%</div><div class="legal-item-jp">ESI Act, 1948</div></div>
+      <div class="legal-item"><div class="legal-item-label">Gratuity (퇴직금)</div><div class="legal-item-value">10인 이상 사업장 / 5년 이상 근속 시 퇴직 시 지급 (산재·사망 시 5년 미만도 지급) / 마지막 월급 × 15일/26 × 근속연수 (상한 ₹20 lakh, 정부직원 ₹25 lakh)</div><div class="legal-item-jp">Payment of Gratuity Act, 1972</div></div>
+      <div class="legal-item"><div class="legal-item-label">Gratuity 지급 기한</div><div class="legal-item-value">퇴직·사망일로부터 30일 이내 / 미지급 시 10% 이자 + 형사처벌(₹10,000~₹20,000)</div><div class="legal-item-jp">Payment of Gratuity Act §7</div></div>
+      <div class="legal-item"><div class="legal-item-label">노동복지기금 (Labour Welfare Fund)</div><div class="legal-item-value">Haryana LWF: 6월·12월 반기별, 근로자 ₹31, 사업주 ₹62 (2024 개정)</div><div class="legal-item-jp">Haryana Labour Welfare Fund Act, 1965</div></div>
+      <div class="legal-item"><div class="legal-item-label">신코드 (Code on Social Security 2020)</div><div class="legal-item-value">EPF·ESI·Gratuity·Maternity Benefit 등 9개법 통합. 플랫폼·긱 근로자 사회보장 확대. 시행 시 Gratuity 자격 1년 단축 가능성</div><div class="legal-item-jp">Code on Social Security, 2020</div></div>
+      <a class="legal-link" href="https://www.epfindia.gov.in/" target="_blank">EPFO 공식 ↗</a> &nbsp; <a class="legal-link" href="https://www.esic.gov.in/" target="_blank">ESIC 공식 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">EPF 가입·납부 상태<span class="required">*</span></label>
+        <select id="ss_epf" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="full">전 대상자 등록 + 매월 정기 납부</option>
+          <option value="partial">일부 미등록 또는 납부 지연</option>
+          <option value="no">미가입</option>
+          <option value="exempt">대상 아님 (20인 미만)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">ESI 가입·납부 상태</label>
+        <select id="ss_esi" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="full">대상자(₹21,000 이하) 전원 가입·납부</option>
+          <option value="partial">일부 누락</option>
+          <option value="no">미가입</option>
+          <option value="exempt">전원 ₹21,000 초과</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Gratuity 충당·지급 체계</label>
+        <select id="ss_gratuity" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="lic">LIC Group Gratuity Trust 가입</option>
+          <option value="provision">사내 충당금 적립</option>
+          <option value="payg">발생 시 지급(PAYG)</option>
+          <option value="no">규정·체계 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">최근 12개월 Gratuity 지급 지연 사례</label>
+        <select id="ss_gratuity_delay" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="none">없음</option>
+          <option value="one">1회</option>
+          <option value="multi">2회 이상</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Haryana LWF 납부</label>
+        <select id="ss_lwf" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="yes">반기별 정기 납부</option>
+          <option value="no">미납부</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">계약직(Contract Labour) 사회보장 책임</label>
+        <select id="ss_contract" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="audit">월별 Principal Employer 감사 + 입금증 확인</option>
+          <option value="trust">계약사 자체 운영(감사 없음)</option>
+          <option value="na">계약직 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec6"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 7: 근로시간·휴가·모성보호 ===== -->
+<div class="section" id="sec7">
+  <div class="section-header" onclick="toggleSection('sec7')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fce4ec">⏱️</div>
+      <span>섹션 7 — 근로시간·휴가·모성보호 | Working Hours, Leave & Maternity</span>
+      <span class="section-badge badge-gray" id="badge-sec7">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec7">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">근로시간 한도 (공장)</div><div class="legal-item-value">1일 9시간 / 주 48시간 / 연속 5시간 후 30분 휴식</div><div class="legal-item-jp">Factories Act, 1948 §51·54·55</div></div>
+      <div class="legal-item"><div class="legal-item-label">근로시간 한도 (사무·상업)</div><div class="legal-item-value">Haryana Shops & Commercial Establishments Act: 1일 9시간 / 주 48시간 / 휴게 시간 30분</div><div class="legal-item-jp">Haryana S&CE Act, 1958</div></div>
+      <div class="legal-item"><div class="legal-item-label">유급 연차 (Earned Leave)</div><div class="legal-item-value">근속 240일 이상 시 1년 후부터 20일당 1일 적립 (공장 약 12~15일/년) / S&CE Act는 1년 근속 후 연 20일</div><div class="legal-item-jp">Factories Act §79 / Haryana S&CE Act §31</div></div>
+      <div class="legal-item"><div class="legal-item-label">유급 휴일 (National & Festival Holidays)</div><div class="legal-item-value">최소 3대 국경일(공화국·독립·간디) + Haryana 통지 축제일 — 통상 연 8~10일</div><div class="legal-item-jp">Haryana Holidays Notification</div></div>
+      <div class="legal-item"><div class="legal-item-label">모성휴가 (Maternity Leave)</div><div class="legal-item-value">26주 유급 (3째 자녀부터 12주) / 입양·대리모 12주 / 80일 이상 근무한 여성 대상</div><div class="legal-item-jp">Maternity Benefit Act, 1961 (2017 개정)</div></div>
+      <div class="legal-item"><div class="legal-item-label">사내 어린이집 (Crèche)</div><div class="legal-item-value">상시 근로자 <b>50인 이상</b> 사업장 — 어린이집 설치·운영 의무</div><div class="legal-item-jp">Maternity Benefit Act §11A</div></div>
+      <div class="legal-item"><div class="legal-item-label">여성 야간근로</div><div class="legal-item-value">Factories Act §66: 원칙 19:00~06:00 금지 (州 허가·안전조치 시 가능) / Haryana는 IT/ITES 등 일정 업종 야간근로 허용 (안전·교통편 의무)</div><div class="legal-item-jp">Factories Act §66 / Haryana 통지</div></div>
+      <a class="legal-link" href="https://hrylabour.gov.in/" target="_blank">Haryana Labour Dept. 통지 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">실제 주간 근로시간 (시간)<span class="required">*</span></label>
+        <input type="number" id="wh_weekly" min="1" max="80" placeholder="예: 45" oninput="analyzeSection7()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">초과근무 추적·기록 방식</label>
+        <select id="wh_ot_track" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="system">시스템 자동 추적</option>
+          <option value="manual">수기 기록</option>
+          <option value="none">관리 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">연차 유급휴가 일수 (1년 근속 후)</label>
+        <input type="number" id="wh_leave" min="0" max="60" placeholder="예: 20" oninput="analyzeSection7()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">모성휴가 정책</label>
+        <select id="wh_mat" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="yes">26주 유급 + 의료수당 ₹3,500</option>
+          <option value="partial">기간·금액 일부 미준수</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">어린이집(Crèche) 운영 (50인 이상 의무)</label>
+        <select id="wh_creche" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="onsite">사내 운영</option>
+          <option value="tieup">제휴 시설 운영</option>
+          <option value="no_req">50인 이상이나 미운영</option>
+          <option value="exempt">50인 미만</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">여성 야간근로 운영</label>
+        <select id="wh_night" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="permit">허가·안전조치(교통편/CCTV/보안) 완비</option>
+          <option value="partial">운영 중 안전조치 미흡</option>
+          <option value="none">야간근로 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec7"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 8: 외국인 고용·지역민 채용 ===== -->
+<div class="section" id="sec8">
+  <div class="section-header" onclick="toggleSection('sec8')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fff3e0">🌏</div>
+      <span>섹션 8 — 외국인 고용·지역민 채용 | Foreign Employment & Local Quota</span>
+      <span class="section-badge badge-gray" id="badge-sec8">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec8">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">Employment Visa 요건</div><div class="legal-item-value">연봉 USD 25,000 이상 (전문 셰프·외국어 강사 등 일부 면제) / 1년 단위 갱신 / FRRO 등록 필수 (입국 14일 이내)</div><div class="legal-item-jp">MHA Visa Manual / FRRO Regulations</div></div>
+      <div class="legal-item"><div class="legal-item-label">한·인도 사회보장협정 (CoC)</div><div class="legal-item-value">2011.11.01 발효 — 한국 본사 파견자는 Certificate of Coverage 보유 시 인도 EPF 면제 (최장 60개월)</div><div class="legal-item-jp">India-Korea SSA / EPFO Circular</div></div>
+      <div class="legal-item"><div class="legal-item-label">PAN·소득세 원천징수</div><div class="legal-item-value">외국인 직원 PAN 발급 + 인도 거주자(183일+) 시 글로벌 소득 과세 / 비거주자도 인도 원천소득 30% 원천징수 (DTAA 적용 가능)</div><div class="legal-item-jp">Income Tax Act 1961 / Korea-India DTAA</div></div>
+      <div class="legal-item"><div class="legal-item-label">Haryana 지역민 75% 채용법 — <b>위헌 무효</b></div><div class="legal-item-value">Haryana State Employment of Local Candidates Act, 2020 (월급여 ₹30,000 이하 75% Haryana 출신 채용 의무) → <b>2023.11.17 Punjab & Haryana 高等法院 위헌 판결</b>로 무효. SC stay 신청 기각 (2024). 단, 정치적 압력은 지속 — 모니터링 권고</div><div class="legal-item-jp">Haryana Act 22 of 2020 (struck down)</div></div>
+      <div class="legal-item"><div class="legal-item-label">Apprentices Act</div><div class="legal-item-value">근로자 30인 이상 사업장 — Apprentice 2.5~15% 배치 의무 (Haryana 통지 기준)</div><div class="legal-item-jp">Apprentices Act, 1961 (2014 개정)</div></div>
+      <a class="legal-link" href="https://www.mha.gov.in/" target="_blank">MHA Foreigners Division ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">한국인 주재원·외국인 직원 수</label>
+        <input type="number" id="fe_expat" min="0" max="500" placeholder="예: 5" oninput="analyzeSection8()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Employment Visa·FRRO 등록 관리</label>
+        <select id="fe_visa" onchange="analyzeSection8()">
+          <option value="">선택하세요</option>
+          <option value="full">전원 적격 비자 + FRRO 등록·갱신 관리</option>
+          <option value="partial">일부 누락 또는 갱신 지연</option>
+          <option value="no">관리 체계 없음</option>
+          <option value="na">외국인 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">한·인도 사회보장협정(CoC) 활용</label>
+        <select id="fe_coc" onchange="analyzeSection8()">
+          <option value="">선택하세요</option>
+          <option value="yes">파견자 CoC 보유 + EPF 면제 신청 완료</option>
+          <option value="partial">일부만 신청</option>
+          <option value="no">미신청 (EPF 이중 부담 중)</option>
+          <option value="na">해당 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Apprentice 채용 비율</label>
+        <select id="fe_appr" onchange="analyzeSection8()">
+          <option value="">선택하세요</option>
+          <option value="meet">통지 기준 충족</option>
+          <option value="partial">미달</option>
+          <option value="no">미운영</option>
+          <option value="exempt">대상 아님</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Haryana 지역민 채용 정책 (위헌 후 대응)</label>
+        <select id="fe_local" onchange="analyzeSection8()">
+          <option value="">선택하세요</option>
+          <option value="monitor">법령 무효 인지 + 정치적 동향 모니터링</option>
+          <option value="comply">법령 무효 후에도 자발적 75% 유지</option>
+          <option value="unknown">정책 인지·대응 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec8"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 9: 개정법령 타임라인 ===== -->
+<div class="section" id="sec9">
+  <div class="section-header" onclick="toggleSection('sec9')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fce4ec">📰</div>
+      <span>섹션 9 — 최신 개정법령 타임라인 | Recent Amendments Timeline</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="timeline" id="body-sec9">
+
+    <div style="height:16px"></div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2017.04.01 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">Maternity Benefit (Amendment) Act, 2017 | 모성휴가 26주로 확대</div>
+        <div class="tl-desc">기존 12주 → 26주 (1·2째 자녀) 유급 확대. 50인 이상 사업장 어린이집(Crèche) 설치 의무화. 입양모·대리모 12주 휴가.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 모성휴가 정책서 26주 반영 / 50인 이상 사업장 Crèche 설치·제휴 시설 운영 / 의료수당 ₹3,500 지급 여부</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2020.09.28 제정완료 / 시행 단계적<span class="status-badge sb-done">제정완료</span></div>
+        <div class="tl-title">4대 노동코드 제정 | Four Labour Codes Enacted</div>
+        <div class="tl-desc">29개 노동법령을 4개 코드로 통합: ① Code on Wages 2019 ② Industrial Relations Code 2020 ③ Code on Social Security 2020 ④ OSH Code 2020. Haryana는 4개 코드 모두 Draft Rules 공표 완료(2021~2022). 중앙정부 통보 시점에 따라 단계적 시행.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> IR Code 시행 시 Chapter V-B(해고 정부승인) 기준 100인→300인 상향 / Standing Orders 기준도 100인→300인 / 단일 노조 51% 룰 / Wage Code의 'Wages' 정의 통일(기본급 50% 이상 의무화)</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2023.05.12 SC 판결<span class="status-badge sb-done">판결확정</span></div>
+        <div class="tl-title">Aureliano Fernandes v. State of Goa | POSH 강제이행 강화</div>
+        <div class="tl-desc">대법원 — POSH Act 시행 10년이 지났음에도 미준수 사업장 다수임을 지적, 中央·州·District 당국에 강제 점검 명령. ICC 구성·교육·연간 보고서 미이행 시 사업면허 취소까지 가능. 2024~2025년 Haryana State POSH Helpline 확대 운영.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> ICC 위원 임기(3년) 갱신 / 외부 위원 NGO 자격 검증 / 진정 처리 90일 기한 / 연간 보고서 District Officer 제출 / 전 직원 정기 교육 기록 보존</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2023.11.17 P&H HC 판결<span class="status-badge sb-done">위헌무효</span></div>
+        <div class="tl-title">Haryana 75% 지역민 채용법 위헌 | Local Candidates Act struck down</div>
+        <div class="tl-desc">Punjab & Haryana 高等法院 — Haryana State Employment of Local Candidates Act 2020을 위헌으로 무효 판결 (헌법 §14 평등권·§19(1)(g) 직업선택권 위반). 2024년 1월 SC도 stay 거부. 현재 시행 불가능하나 정치권에서 재입법 시도 가능성 존재.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 75% 지역민 의무 정책 폐지 가능 / 단, 정치적 압력·CSR 차원의 자발적 지역민 채용 비율 모니터링 권고 / 재입법 시 대응 시나리오 사전 검토</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2024.08 시행<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">EPFO Higher Pension Option 후속조치 | 고용주 EPS 기여 정산</div>
+        <div class="tl-desc">2022 SC 판결(EPS Higher Pension) 후속으로 EPFO가 2024년부터 고용주에 추가 EPS 기여분 정산 통지 발송. 적격 직원(2014.09 이전 가입자 등)이 선택 시 사업주는 1.16% 추가 부담 가능.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 적격 직원 리스트 확인 / 추가 기여 부담분 회계 충당 / EPFO 통지 응답 기한 준수</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2025.01 적용 (Phase-1)<span class="status-badge sb-done">단계적 시행</span></div>
+        <div class="tl-title">Digital Personal Data Protection Rules, 2025 | DPDP Rules 공표</div>
+        <div class="tl-desc">DPDP Act 2023 시행을 위한 Rules 초안 2025.01 공표 후 단계적 적용. HR 데이터(채용·평가·급여·건강정보)는 'Personal Data'에 해당 — Data Principal 동의 획득, 보존 기한 명확화, Significant Data Fiduciary 지정 가능성, 정보주체 권리(접근·정정·삭제) 보장 필요.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 채용·인사·복리후생 시스템의 동의 획득 절차 정비 / 외주 처리자(HRMS, Payroll Vendor)와의 DPA 체결 / 데이터 침해 시 72시간 내 Data Protection Board 신고 절차</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2026.01.01 개정<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">Haryana 최저임금 반기 개정 (2026 H1) | Minimum Wages Revision</div>
+        <div class="tl-desc">Haryana Labour Department 반기별 물가연동 개정 — Gurgaon Zone A 미숙련 ₹11,576, 반숙련 ₹12,154, 숙련 ₹13,394, 사무직 ₹12,932 (월급여 기준). 다음 개정 예정일 2026.07.01.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 시간제·계약직 시급 환산 점검 (월 26일×9시간 기준) / 도급사 작업자 임금도 Principal Employer 책임 / 2026.07 차기 개정 대비 임금예산 충당</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-active">!</div>
+      <div class="tl-content">
+        <div class="tl-date">2026년 하반기 (예상)<span class="status-badge sb-active">시행예정</span></div>
+        <div class="tl-title">4대 노동코드 통합 시행 가능성 | Labour Codes Operationalization</div>
+        <div class="tl-desc">2025년 다수 州가 Rules 통보 완료, 중앙정부도 시행 통보 단계. 2026년 회계연도 내 4개 코드 동시 시행 가능성이 거론되며, IR Code 시행 즉시 Chapter V-B 기준 100인→300인, Standing Orders 기준 동시 상향. Wage Code 'Wages' 정의(기본급+DA가 총임금 50% 이상)로 EPF·Gratuity 부담 <b>상승</b> 예상.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 'Wages' 재정의 시 EPF·ESI·Gratuity 부담 증가 시뮬레이션 / Allowance 비중이 50% 초과인 경우 임금구조 재설계 / 300인 미만이면 정부승인 면제(자유로운 정리해고 가능) — 인력계획 전략 재검토</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-pending">?</div>
+      <div class="tl-content">
+        <div class="tl-date">2026~2027 (검토중)<span class="status-badge sb-pending">심의중</span></div>
+        <div class="tl-title">Gratuity 자격 기간 단축 검토 | Gratuity Eligibility Reduction</div>
+        <div class="tl-desc">정부 — Gratuity 자격을 5년에서 <b>1년</b>으로 단축하는 안 검토 중. Code on Social Security 시행 통보 시 함께 발효 가능성. 시행 시 단기 근속자 퇴직금 부담이 크게 증가.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> Gratuity 충당금 산식 변경 시뮬레이션 / LIC Group Gratuity Trust 가입 검토 / 1년 자격 시 High Attrition 부서 인건비 영향 분석</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-pending">?</div>
+      <div class="tl-content">
+        <div class="tl-date">2026~2027 (검토중)<span class="status-badge sb-pending">심의중</span></div>
+        <div class="tl-title">Haryana 75% 지역민 채용 재입법 시도 가능성 | Re-enactment Watch</div>
+        <div class="tl-desc">2023년 위헌 판결 후에도 Haryana 政府가 재입법 또는 행정명령 형태의 우회 시도 가능성. 2025년 일부 政府발주 사업에서 비공식 권장 사례 발생 보고. 정치 사이클에 따라 압력 변화 — 지속 모니터링 필요.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> Haryana Labour Dept. 공식 통지 모니터링 / CSR·자발적 지역민 채용 비율 데이터 보유 / 거래처 채용 정책 조회 대응 시나리오</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SECTION 10: 기타 사항 ===== -->
+<div class="section" id="sec10">
+  <div class="section-header" onclick="toggleSection('sec10')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fff3e0">📌</div>
+      <span>섹션 10 — 기타 사항·자유 입력 | Other Items / Free Input</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec10" style="display:block;grid-template-columns:1fr">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <p style="font-size:13px;color:var(--gray)">법인 고유 제도, 특수 계약 유형, 현지 고문 의견 등을 자유롭게 입력하세요. "검토 요청" 버튼으로 키워드 기반 리스크를 확인할 수 있습니다.</p>
+        <button class="btn btn-sm" onclick="addOtherItem()" style="flex-shrink:0;margin-left:12px">+ 항목 추가</button>
+      </div>
+      <div id="otherItems"></div>
+      <div style="margin-top:16px">
+        <p style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:8px">자주 등장하는 ER 리스크 키워드 (클릭 시 해당 항목에 자동 삽입)</p>
+        <div class="keyword-tags">
+          <span class="keyword-tag risk-high" onclick="insertKeyword('Contract Labour(도급 근로자) 운영 현황 및 Principal Employer 책임')">Contract Labour (도급)</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('구두해고 또는 조사 절차 없는 해고 사례 (Without Domestic Inquiry)')">조사 없는 해고</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('ICC 미구성 또는 외부 위원 부재 (POSH non-compliance)')">ICC 미구성</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('Gratuity 미적립 또는 LIC Group Trust 미가입')">Gratuity 미적립</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('파업·태업 사전 통지 없이 발생 / 노조 인정 거부')">파업·노조 분쟁</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('재택근무(WFH/Hybrid) 정책 및 OSH·근로시간 추적')">재택근무 (WFH)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('성과연동 변동급(VPA/Variable Pay) 비중 — Wages 정의 영향')">변동급여 (Variable Pay)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('Moonlighting(부업) 허용 범위 및 경업금지 조항')">Moonlighting (부업)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('Non-Compete 조항 — 인도 Contract Act §27 무효 판례')">Non-Compete (경업금지)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('PIP (Performance Improvement Plan) 및 성과해고 절차')">PIP·성과해고</span>
+          <span class="keyword-tag risk-low" onclick="insertKeyword('ESOP·RSU 지급 규정 및 양도제한·실적조건')">ESOP/RSU</span>
+          <span class="keyword-tag risk-low" onclick="insertKeyword('Notice Period Buyout (예고 매수) 정책 및 세무 처리')">Notice Buyout</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="save-bar">
+  <button class="btn btn-secondary" onclick="clearAll()">전체 초기화</button>
+  <button class="btn btn-outline" style="background:#fff;border:1px solid var(--border);color:#212529" onclick="saveDraft()">임시저장</button>
+  <button class="btn btn-primary" onclick="generateReport()">저장 및 종합 ER 리스크 리포트 생성</button>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>종합 ER 리스크 진단 리포트 — 인도 구르가온(Haryana)</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="reportBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// INIT
+document.getElementById('genDate').textContent = new Date().toLocaleDateString('ko-KR');
+loadFromStorage();
+addOtherItem();
+
+// SECTION TOGGLE
+function toggleSection(id){
+  const body = document.getElementById('body-'+id);
+  const sec = document.getElementById(id);
+  if(!body) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  sec.querySelector('.collapse-icon').style.transform = isCollapsed ? 'rotate(-90deg)' : '';
+}
+
+// DASHBOARD
+const results = {};
+function updateDashboard(){
+  let r=0,y=0,g=0;
+  Object.values(results).forEach(v=>{if(v==='red')r++;else if(v==='yellow')y++;else if(v==='green')g++;});
+  const total = r+y+g;
+  document.getElementById('cntRed').textContent=r;
+  document.getElementById('cntYellow').textContent=y;
+  document.getElementById('cntGreen').textContent=g;
+  document.getElementById('cntTotal').textContent=total;
+  const rate = total>0 ? Math.round(g/total*100) : 0;
+  document.getElementById('compRate').textContent = total>0 ? rate+'%' : '-%';
+  document.getElementById('progressFill').style.width = rate+'%';
+}
+
+function setResult(secId, status){
+  results[secId] = status;
+  const badge = document.getElementById('badge-'+secId);
+  if(!badge) return;
+  badge.className = 'section-badge';
+  if(status==='red'){badge.classList.add('badge-red');badge.textContent='긴급 RED';}
+  else if(status==='yellow'){badge.classList.add('badge-yellow');badge.textContent='권고 YELLOW';}
+  else if(status==='green'){badge.classList.add('badge-green');badge.textContent='준수 GREEN';}
+  else{badge.classList.add('badge-gray');badge.textContent='미입력';}
+  updateDashboard();
+}
+
+function showGap(secId, status, title, items){
+  const el = document.getElementById('gap-'+secId);
+  if(!el) return;
+  el.className = 'gap-result show '+status;
+  const icons = {red:'🔴',yellow:'🟡',green:'🟢'};
+  el.innerHTML = '<div class="gap-title">'+icons[status]+' '+title+'</div><ul>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
+}
+
+// SECTION 1: 정리해고
+function analyzeSection1(){
+  const hc = parseFloat(document.getElementById('ret_headcount').value);
+  const notice = parseFloat(document.getElementById('ret_notice').value);
+  const comp = parseFloat(document.getElementById('ret_comp').value);
+  const gov = document.getElementById('ret_gov').value;
+  const lifo = document.getElementById('ret_lifo').value;
+  if(!hc && !gov) { setResult('sec1',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(!isNaN(hc)){
+    if(hc >= 100){
+      goods.push('상시 근로자 '+hc+'명 — Chapter V-B 적용 사업장 (정부 사전승인 필수, IR Code 시행 시 300인 미만은 면제)');
+      if(gov === 'no') issues.push('100인 이상이나 정리해고 정부 사전승인 절차 미운영 — ID Act §25N 위반, 해고 무효 및 형사처벌 위험');
+      else if(gov === 'under100') issues.push('100인 이상인데 'under100' 응답 — 입력 재확인 필요');
+      else if(gov === 'yes') goods.push('정부 승인 절차 운영 중');
+    } else {
+      goods.push('상시 근로자 '+hc+'명 — Chapter V-B 미적용 (통지·보상만)');
+    }
+  }
+  if(!isNaN(notice)){
+    if(hc >= 100 && notice < 90) warnings.push('통지 기간 '+notice+'일 — 100인 이상 사업장은 3개월(90일) 사전 통지 의무 (ID Act §25N)');
+    else if(notice < 30) issues.push('통지 기간 '+notice+'일 — 법정 최소 1개월(30일) 미달 (ID Act §25F)');
+    else goods.push('통지 기간 '+notice+'일 — 법정 기준 충족');
+  }
+  if(!isNaN(comp)){
+    if(comp < 15) issues.push('정리해고 보상금 근속 1년당 '+comp+'일 — 법정 15일 미달 (ID Act §25F(b))');
+    else goods.push('정리해고 보상금 '+comp+'일/년 — 법정 기준 충족');
+  }
+  if(lifo === 'no') issues.push('해고 순서(LIFO) 및 재고용 우선권 규정 없음 — ID Act §25G·§25H 위반, 부당해고 소송 시 패소 고위험');
+  else if(lifo === 'partial') warnings.push('LIFO·재고용 규정만 있고 운영 미흡 — 분쟁 시 입증 곤란');
+  else if(lifo === 'yes') goods.push('LIFO·재고용 우선권 규정 및 운영 완비');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec1', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec1', status); autoSave();
+}
+
+// SECTION 2: 노동조합
+function analyzeSection2(){
+  const exist = document.getElementById('tu_exist').value;
+  const cb = document.getElementById('tu_cb').value;
+  const strike = document.getElementById('tu_strike').value;
+  const grc = document.getElementById('tu_grc').value;
+  if(!exist) { setResult('sec2',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(exist === 'external') warnings.push('외부 정치노조 가입 — 단체교섭·파업 리스크 상승, 사내 채널 정비 필수');
+  else if(exist === 'multi') warnings.push('복수 노조 — IR Code 51% Sole Negotiating Union 기준 사전 점검 필요');
+  else if(exist === 'single') goods.push('단일 사내 노조 — 안정적 채널');
+  else if(exist === 'no_union') goods.push('노조 없음 — 단, IR Code의 Negotiating Council 구성 가능성 모니터링');
+  if(cb === 'none' && exist !== 'no_union') issues.push('단체교섭 채널 부재 — 노조 있는 사업장에서 CB 거부 시 부당노동행위(ID Act 5th Schedule) 위반');
+  else if(cb === 'adhoc') warnings.push('임시 회의만 운영 — 정례 CB 채널 구축 권고');
+  else if(cb === 'formal') goods.push('공식 CB 채널 + 정례 회의 운영');
+  if(strike === 'multi') issues.push('최근 12개월 파업·시위 2회 이상 — 즉시 노사관계 진단 및 개선조치 필요');
+  else if(strike === 'one') warnings.push('최근 12개월 파업·시위 1회 — 원인 분석 및 재발방지 필요');
+  else if(strike === 'none') goods.push('최근 12개월 파업·시위 없음');
+  if(grc === 'no') issues.push('고충처리위원회(Grievance Redressal Committee) 미구성 — IR Code §4 위반 (20인 이상 의무)');
+  else if(grc === 'partial') warnings.push('GRC 구성만 했고 운영 미흡 — 실제 진정 처리 기록 보존 필요');
+  else if(grc === 'yes') goods.push('GRC 구성·운영 완비');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec2', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec2', status); autoSave();
+}
+
+// SECTION 3: 징계·조사
+function analyzeSection3(){
+  const so = document.getElementById('di_so').value;
+  const mc = document.getElementById('di_misconduct').value;
+  const termCount = parseFloat(document.getElementById('di_term_count').value);
+  const proc = document.getElementById('di_proc').value;
+  const subs = document.getElementById('di_subs').value;
+  if(!so) { setResult('sec3',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(so === 'no') issues.push('Standing Orders·핸드북 모두 없음 — 100인 이상 사업장은 즉시 인증 필수, 미준수 시 ₹5,000 벌금 + 일별 누적');
+  else if(so === 'hb') warnings.push('사내 핸드북만 운영 — 100인 이상은 Certified Standing Orders 인증 권고 (법적 효력 우위)');
+  else if(so === 'model') goods.push('Model Standing Orders 적용');
+  else if(so === 'certified') goods.push('Certified Standing Orders 보유·게시 완료');
+  if(mc === 'no') issues.push('Misconduct 사유 미명시 — 명시 없는 사유로 해고 시 부당해고 무효 위험');
+  else if(mc === 'partial') warnings.push('Misconduct 사유 일부만 명시 — 포괄 기재 권고');
+  else if(mc === 'yes') goods.push('Misconduct 사유 상세 명시');
+  if(proc === 'verbal') issues.push('서면 절차 없이 구두 조치 — Principles of Natural Justice 위반, Labour Court에서 무조건 부당해고 판정');
+  else if(proc === 'partial') warnings.push('국내조사 일부 절차만 운영 — Charge Sheet·Inquiry Officer·반대신문 등 전 단계 정비 필요');
+  else if(proc === 'full') goods.push('국내조사 전 절차 운영 (Charge Sheet → Inquiry → Report)');
+  if(!isNaN(termCount) && termCount >= 5 && (proc === 'verbal' || proc === 'partial')) issues.push('최근 12개월 징계해고 '+termCount+'건이나 절차 미흡 — 다수 부당해고 소송 누적 리스크');
+  if(subs === 'no') warnings.push('Subsistence Allowance 규정 없음 — 정지 중 미지급 시 Labour Court 시정명령');
+  else if(subs === 'lower') issues.push('Subsistence Allowance 법정 미달 — Model Standing Orders 위반');
+  else if(subs === 'yes') goods.push('Subsistence Allowance 법정대로 지급');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec3', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec3', status); autoSave();
+}
+
+// SECTION 4: POSH
+function analyzeSection4(){
+  const hc = parseFloat(document.getElementById('posh_headcount').value);
+  const icc = document.getElementById('posh_icc').value;
+  const policy = document.getElementById('posh_policy').value;
+  const train = document.getElementById('posh_training').value;
+  const annual = document.getElementById('posh_annual').value;
+  const comp = parseFloat(document.getElementById('posh_complaints').value);
+  if(!hc && !icc) { setResult('sec4',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(!isNaN(hc) && hc >= 10){
+    if(icc === 'no') issues.push('10인 이상 사업장이나 ICC 미구성 — POSH Act §26 위반 (₹50,000 과태료 + 재범 시 사업면허 취소)');
+    else if(icc === 'partial') issues.push('ICC 구성하였으나 요건 미충족(외부위원·여성과반수·여성위원장) — 진정 처리 무효화 가능');
+    else if(icc === 'full') goods.push('ICC 완전 구성');
+  } else if(!isNaN(hc) && hc < 10){
+    goods.push('10인 미만 — ICC 의무 면제 (단, Local Complaints Committee 통해 진정 처리 가능)');
+  }
+  if(policy === 'no') issues.push('POSH 정책 문서 없음 — 의무 위반');
+  else if(policy === 'partial') warnings.push('POSH 정책 작성했으나 게시·배포 미흡 — 사내 공지판·인트라넷 게시 + 신규입사자 배포 필요');
+  else if(policy === 'yes') goods.push('POSH 정책 작성·게시·배포 완비');
+  if(train === 'no') issues.push('POSH 교육 미실시 — POSH Act §19 위반, 2023 SC 판결로 강제이행 강화');
+  else if(train === 'employee') warnings.push('직원 교육만 — ICC 위원 별도 심화 교육 필수');
+  else if(train === 'icc') warnings.push('ICC 위원 교육만 — 전 직원 인식 교육 추가 필요');
+  else if(train === 'all') goods.push('전 직원 + ICC 교육 완비');
+  if(annual === 'no') issues.push('연간 보고서 District Officer 미제출 — POSH Act §21 위반');
+  else if(annual === 'late') warnings.push('연간 보고서 기한 후 제출 — 정시 제출 체계 구축 필요');
+  else if(annual === 'yes') goods.push('연간 보고서 정시 제출');
+  if(!isNaN(comp) && comp > 0 && (icc === 'no' || icc === 'partial')){
+    issues.push('진정 '+comp+'건 접수 상태에서 ICC 미구성/요건 미충족 — 즉각 처리 무효화 + 형사 신고 위험');
+  }
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec4', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec4', status); autoSave();
+}
+
+// SECTION 5: 임금
+function analyzeSection5(){
+  const min = parseFloat(document.getElementById('wage_min').value);
+  const ot = parseFloat(document.getElementById('wage_ot').value);
+  const bonus = document.getElementById('wage_bonus').value;
+  const payday = parseFloat(document.getElementById('wage_payday').value);
+  const slip = document.getElementById('wage_slip').value;
+  const eq = document.getElementById('wage_equal').value;
+  if(!min && !ot) { setResult('sec5',null); return; }
+  let issues=[], warnings=[], goods=[];
+  const HARYANA_MIN = 11576;
+  if(!isNaN(min)){
+    if(min < HARYANA_MIN) issues.push('현행 최저 월급여 ₹'+min+' — Haryana Gurgaon Zone A 미숙련 기준 ₹'+HARYANA_MIN+' 미달 (Minimum Wages Act 위반)');
+    else if(min < HARYANA_MIN + 500) warnings.push('현행 ₹'+min+' — 법정 기준 충족 (2026.07 차기 개정 대비 여유 확인 필요)');
+    else goods.push('최저 월급여 ₹'+min+' — 법정 기준 충족');
+  }
+  if(!isNaN(ot)){
+    if(ot < 2) issues.push('초과근무 할증율 '+ot+'배 — 법정 2배 미달 (Factories Act §59 / Code on Wages §14 위반)');
+    else goods.push('초과근무 할증율 '+ot+'배 — 법정 기준 충족');
+  }
+  if(bonus === 'no') issues.push('Statutory Bonus 미지급 — 월급 ₹21,000 이하 대상자 의무, 위반 시 ₹10,000 + 6개월 징역');
+  else if(bonus === 'partial') warnings.push('Bonus 일부 대상자만 지급 — 적격 전원 지급 필요');
+  else if(bonus === 'yes') goods.push('Bonus 8.33% 이상 전원 지급');
+  if(!isNaN(payday)){
+    if(payday > 10) warnings.push('임금 지급일 '+payday+'일 — 1,000인 미만은 매월 7일까지 의무 (Payment of Wages Act §5)');
+    else goods.push('임금 지급일 '+payday+'일 — 법정 기한 내');
+  }
+  if(slip === 'no') issues.push('임금명세서 미교부 — Code on Wages §50 위반');
+  else if(slip === 'partial') warnings.push('일부에만 교부 — 전 직원 매월 교부 필요');
+  else if(slip === 'yes') goods.push('임금명세서 매월 전원 교부');
+  if(eq === 'no') warnings.push('동일가치노동 동일임금 점검 미실시 — Code on Wages §3 위반 리스크');
+  else if(eq === 'yes') goods.push('동일가치노동 동일임금 정기 점검');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec5', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec5', status); autoSave();
+}
+
+// SECTION 6: 사회보장
+function analyzeSection6(){
+  const epf = document.getElementById('ss_epf').value;
+  const esi = document.getElementById('ss_esi').value;
+  const grat = document.getElementById('ss_gratuity').value;
+  const delay = document.getElementById('ss_gratuity_delay').value;
+  const lwf = document.getElementById('ss_lwf').value;
+  const cont = document.getElementById('ss_contract').value;
+  if(!epf) { setResult('sec6',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(epf === 'no') issues.push('EPF 미가입 — EPF Act 위반, 소급 납부 + 12% 연체이자 + 형사처벌 위험');
+  else if(epf === 'partial') issues.push('EPF 일부 미등록 또는 납부 지연 — EPFO 통지·과태료 위험');
+  else if(epf === 'full') goods.push('EPF 전 대상자 등록·정기 납부');
+  else if(epf === 'exempt') goods.push('EPF 대상 아님 (20인 미만)');
+  if(esi === 'no') issues.push('ESI 미가입 — ESI Act 위반, 사고 발생 시 의료비 전액 사용자 부담');
+  else if(esi === 'partial') warnings.push('ESI 일부 누락 — ₹21,000 이하 신규 입사자 즉시 등록 필요');
+  else if(esi === 'full') goods.push('ESI 대상자 전원 가입');
+  else if(esi === 'exempt') goods.push('전원 ESI 한도 초과 — 적용 면제');
+  if(grat === 'no') issues.push('Gratuity 충당·지급 체계 없음 — Payment of Gratuity Act 위반, 부채 누적 회계 리스크');
+  else if(grat === 'payg') warnings.push('Gratuity PAYG 방식 — 일시 대규모 퇴직 시 현금흐름 충격, LIC Group Trust 가입 권고');
+  else if(grat === 'provision') goods.push('Gratuity 사내 충당금 적립 중');
+  else if(grat === 'lic') goods.push('LIC Group Gratuity Trust 가입 — 베스트 프랙티스');
+  if(delay === 'multi') issues.push('Gratuity 지급 지연 2회 이상 — 10% 이자 + 형사처벌(₹10,000~20,000) 누적 위험');
+  else if(delay === 'one') warnings.push('Gratuity 지급 지연 1회 — 30일 기한 관리 체계 강화 필요');
+  else if(delay === 'none') goods.push('Gratuity 지연 사례 없음');
+  if(lwf === 'no') warnings.push('Haryana LWF 미납부 — 반기별(6/12월) 정기 납부 의무');
+  else if(lwf === 'yes') goods.push('Haryana LWF 정기 납부');
+  if(cont === 'trust') warnings.push('계약사 사회보장 자체 운영(감사 없음) — Principal Employer 연대책임, 매월 EPF/ESI 입금증 확인 권고');
+  else if(cont === 'audit') goods.push('Principal Employer 월별 감사 — 베스트 프랙티스');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec6', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec6', status); autoSave();
+}
+
+// SECTION 7: 근로시간·휴가·모성
+function analyzeSection7(){
+  const weekly = parseFloat(document.getElementById('wh_weekly').value);
+  const otTrack = document.getElementById('wh_ot_track').value;
+  const leave = parseFloat(document.getElementById('wh_leave').value);
+  const mat = document.getElementById('wh_mat').value;
+  const creche = document.getElementById('wh_creche').value;
+  const night = document.getElementById('wh_night').value;
+  if(!weekly && !mat) { setResult('sec7',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(!isNaN(weekly)){
+    if(weekly > 48) issues.push('주간 근로 '+weekly+'시간 — 법정 48시간 초과 (Factories §51 / S&CE Act 위반)');
+    else if(weekly > 45) warnings.push('주간 근로 '+weekly+'시간 — 48시간 근접, 초과근무 관리 강화 필요');
+    else goods.push('주간 근로 '+weekly+'시간 — 법정 기준 내');
+  }
+  if(otTrack === 'none') issues.push('초과근무 추적 없음 — OT 임금 미지급 분쟁 시 사용자 입증 불가 (소송 패소 고위험)');
+  else if(otTrack === 'manual') warnings.push('수기 기록 — 자동 시스템 도입 권고');
+  else if(otTrack === 'system') goods.push('시스템 자동 추적');
+  if(!isNaN(leave)){
+    if(leave < 15) warnings.push('연차 '+leave+'일 — S&CE Act 기준(연 20일) 권고치 미달, 단 Factories Act 최소 충족 시 합법');
+    else goods.push('연차 '+leave+'일 — 법정 기준 충족');
+  }
+  if(mat === 'no') issues.push('모성휴가 규정 없음 — Maternity Benefit Act 위반, 형사처벌 가능');
+  else if(mat === 'partial') warnings.push('모성휴가 일부 미준수 — 26주·의료수당 ₹3,500 전체 점검 필요');
+  else if(mat === 'yes') goods.push('모성휴가 26주 + 의료수당 규정 완비');
+  if(creche === 'no_req') issues.push('50인 이상이나 Crèche 미운영 — Maternity Act §11A 위반');
+  else if(creche === 'onsite' || creche === 'tieup') goods.push('Crèche 운영 중');
+  else if(creche === 'exempt') goods.push('Crèche 의무 면제 (50인 미만)');
+  if(night === 'partial') issues.push('여성 야간근로 운영 중 안전조치 미흡 — 교통편·CCTV·보안 의무, 사고 시 형사책임');
+  else if(night === 'permit') goods.push('여성 야간근로 안전조치 완비');
+  else if(night === 'none') goods.push('여성 야간근로 미운영');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec7', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec7', status); autoSave();
+}
+
+// SECTION 8: 외국인·지역민
+function analyzeSection8(){
+  const expat = parseFloat(document.getElementById('fe_expat').value);
+  const visa = document.getElementById('fe_visa').value;
+  const coc = document.getElementById('fe_coc').value;
+  const appr = document.getElementById('fe_appr').value;
+  const local = document.getElementById('fe_local').value;
+  if(!visa && !appr) { setResult('sec8',null); return; }
+  let issues=[], warnings=[], goods=[];
+  if(visa === 'no' && expat > 0) issues.push('외국인 비자·FRRO 등록 관리 체계 없음 — Foreigners Act 위반 (FRRO 미등록 시 ₹30,000 + 추방 가능)');
+  else if(visa === 'partial') warnings.push('비자·FRRO 갱신 일부 누락 — 갱신 1개월 전 알림 체계 필요');
+  else if(visa === 'full') goods.push('비자·FRRO 등록·갱신 관리 완비');
+  else if(visa === 'na') goods.push('외국인 없음 — 해당 없음');
+  if(coc === 'no' && expat > 0) warnings.push('한·인도 SSA의 CoC 미신청 — 파견자 EPF 면제 가능, 회사·개인 모두 이중 부담 손실');
+  else if(coc === 'partial') warnings.push('일부 파견자만 CoC 신청 — 전원 검토 필요');
+  else if(coc === 'yes') goods.push('CoC 보유 + EPF 면제 적용');
+  if(appr === 'no') warnings.push('Apprentice 미운영 — 30인 이상 사업장 의무, 미준수 시 ₹500/월 벌금 + 형사처벌 가능');
+  else if(appr === 'partial') warnings.push('Apprentice 비율 미달 — Haryana 통지 비율 충족 필요');
+  else if(appr === 'meet') goods.push('Apprentice 통지 비율 충족');
+  else if(appr === 'exempt') goods.push('Apprentice 대상 아님');
+  if(local === 'unknown') warnings.push('Haryana 75% 지역민 채용법 인지 없음 — 2023.11 P&H HC 위헌 무효, 그러나 정치 동향 모니터링 필요');
+  else if(local === 'comply') warnings.push('법령 무효 후에도 자발적 75% 유지 — 인재 확보 제약, 정책 적정성 재검토 권고');
+  else if(local === 'monitor') goods.push('법령 무효 인지 + 모니터링 — 적정 대응');
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec8', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec8', status); autoSave();
+}
+
+// OTHER ITEMS
+let otherCount = 0;
+function addOtherItem(){
+  otherCount++;
+  const id = 'other_'+otherCount;
+  const html = `<div class="other-item" id="${id}">
+    <div class="other-item-header">
+      <input type="text" placeholder="제목 (예: Contract Labour 관리 현황)" style="flex:1;margin-right:8px" id="${id}_title" oninput="autoSave()">
+      <button class="btn-sm btn-danger-sm" onclick="document.getElementById('${id}').remove();autoSave()">삭제</button>
+    </div>
+    <textarea rows="3" placeholder="상세 내용을 입력하세요..." id="${id}_content" oninput="autoSave()" style="resize:vertical"></textarea>
+    <div style="margin-top:8px;display:flex;justify-content:flex-end">
+      <button class="btn-sm" style="background:var(--blue);color:#fff;border-color:var(--blue)" onclick="reviewKeywords('${id}')">검토 요청</button>
+    </div>
+    <div class="review-result" id="${id}_review"></div>
+  </div>`;
+  document.getElementById('otherItems').insertAdjacentHTML('beforeend', html);
+}
+
+function insertKeyword(text){
+  const items = document.getElementById('otherItems').querySelectorAll('[id^="other_"][id$="_title"]');
+  if(items.length === 0) addOtherItem();
+  const last = Array.from(items).pop();
+  if(last && !last.value) { last.value = text; autoSave(); return; }
+  addOtherItem();
+  setTimeout(()=>{
+    const newItems = document.getElementById('otherItems').querySelectorAll('[id^="other_"][id$="_title"]');
+    const newLast = Array.from(newItems).pop();
+    if(newLast) { newLast.value = text; autoSave(); }
+  }, 50);
+}
+
+const keywordMap = [
+  {kw:['contract labour','contract labor','도급','계약 근로'], level:'red', msg:'Contract Labour (CLRA Act 1970): 20인 이상 도급사 운영 시 Principal Employer는 ① 도급사 등록증·라이선스 확인 ② 매월 임금·EPF·ESI 납부 감사 ③ 근로조건 의무. 도급사 미준수 시 Principal Employer 연대책임 (소송·과태료 다수 발생).'},
+  {kw:['domestic inquiry','국내조사','조사 없'], level:'red', msg:'국내조사 미준수 해고: Charge Sheet → 답변 기회 → Inquiry Officer 임명 → 증인 신문 → Inquiry Report 절차 누락 시 Labour Court §11A에 따라 자동 부당해고 판정, 복직 + 임금 소급(수년치) 명령 + 사용자 부담 100%.'},
+  {kw:['icc','posh','성희롱'], level:'red', msg:'POSH/ICC: 10인 이상 사업장 ICC 의무. 위반 시 ₹50,000 + 재범 시 사업면허 취소. 외부 위원(NGO) 미지정, 여성 위원장·과반수 미충족 시 진정 처리 자체가 무효화되어 형사 신고로 비화.'},
+  {kw:['gratuity'], level:'red', msg:'Gratuity: 5년 이상 근속자 퇴직 시 30일 이내 지급 의무. 미지급 시 10% 이자 + 형사처벌 ₹10,000~20,000. LIC Group Gratuity Trust 가입으로 부채 관리 + 세제 혜택 권고. 2026~2027 자격기간 1년 단축 가능성 대비 충당금 시뮬레이션 필요.'},
+  {kw:['파업','strike','노조','union'], level:'red', msg:'파업·노조 분쟁: 14일 사전 통지 없는 파업은 불법(ID Act §22). 단, 사용자의 부당노동행위(노조원 차별·해고)는 ID Act 5th Schedule 위반으로 형사처벌. 갈등 발생 시 즉시 외부 노무 전문가·변호사 협의 필수.'},
+  {kw:['wfh','재택','remote','원격'], level:'yellow', msg:'재택·원격근무: 인도는 별도 WFH 법 없으나 OSH Code 적용. 근로시간 추적, OT 임금, 산업재해(WFH 중 사고도 ESI/EC 대상 가능성), 데이터 보호(DPDP Act) 종합 점검. 정책서 명시 + 동의서 권고.'},
+  {kw:['variable','vpa','성과급','변동급'], level:'yellow', msg:'Variable Pay (VPA/Performance Bonus): Code on Wages 시행 시 "Wages" 정의에 따라 변동급 비중이 50% 초과하면 초과분은 자동으로 Wages에 포함 → EPF·Gratuity 부담 증가. 임금구조 사전 시뮬레이션 권고.'},
+  {kw:['moonlight','부업','겸업','side'], level:'yellow', msg:'Moonlighting(부업): 인도 법은 명시적 금지 없음. 단, Shops & Establishments Act에 따라 동시 2 사업장 근무 제한 적용 가능. 고용계약서에 동의·신고 조항 명시 + Conflict of Interest 정책 정비 권고.'},
+  {kw:['non-compete','경업금지'], level:'yellow', msg:'Non-Compete: 인도 Contract Act §27에 따라 <b>퇴직 후</b> 경업금지 조항은 원칙 무효 (Niranjan Shankar Golikari 1967 SC 판례). 단, ① 재직 중 경업금지 ② 영업비밀·기밀 보호 ③ Garden Leave는 유효. 조항 작성 시 변호사 검토 필수.'},
+  {kw:['pip','performance','성과해고'], level:'yellow', msg:'PIP·성과해고: Workman에 해당하는 직원은 PIP 미흡으로도 일방 해고 불가, 국내조사 절차 필요. 관리직(₹10,000 초과 supervisor)도 자연정의 원칙·계약 통지 의무 충족 필요. PIP 기간·평가 기준 서면화 권고.'},
+  {kw:['esop','rsu','stock option'], level:'green', msg:'ESOP/RSU: SEBI ESOP Regulations + Companies Act §62 준수. 인도 거주자 부여 시 행사 시점 시가-행사가가 급여 소득(원천징수). 양도제한·실적조건 명시 권고. FEMA 신고(외국주식) 별도 검토.'},
+  {kw:['notice buyout','예고 매수','notice period'], level:'green', msg:'Notice Buyout: 예고 매수금 회사 부과는 계약 자유 원칙상 유효하나, ① 명시적 합의 ② 합리적 금액(통상 1~3개월분 임금) 필요. 회사가 지급하는 buyout은 직원의 근로소득으로 과세, 회사 비용처리 가능.'},
+];
+
+function reviewKeywords(id){
+  const title = document.getElementById(id+'_title').value || '';
+  const content = document.getElementById(id+'_content').value || '';
+  const text = (title+' '+content).toLowerCase();
+  const reviewEl = document.getElementById(id+'_review');
+  let found = [];
+  keywordMap.forEach(k=>{
+    if(k.kw.some(w=>text.includes(w.toLowerCase()))) found.push(k);
+  });
+  if(found.length === 0){
+    reviewEl.className = 'review-result show';
+    reviewEl.innerHTML = '<p style="color:var(--gray);font-size:13px">등록된 키워드가 감지되지 않았습니다. 내용을 확인해 주세요.</p>';
+    return;
+  }
+  reviewEl.className = 'review-result show';
+  reviewEl.innerHTML = found.map(f=>{
+    const colors={red:'var(--red)',yellow:'#d39e00',green:'var(--green)'};
+    const labels={red:'고위험',yellow:'주의',green:'참고'};
+    return `<div style="margin-bottom:10px;padding:10px 12px;background:#f8f9fa;border-radius:6px;border-left:4px solid ${colors[f.level]}">
+      <span style="font-size:11px;font-weight:700;color:${colors[f.level]}">[${labels[f.level]}]</span>
+      <p style="font-size:12px;margin-top:4px;line-height:1.6">${f.msg}</p>
+    </div>`;
+  }).join('');
+}
+
+// LOCALSTORAGE
+const FIELD_IDS = ['ret_headcount','ret_notice','ret_comp','ret_gov','ret_lifo','tu_exist','tu_cb','tu_strike','tu_grc','di_so','di_misconduct','di_term_count','di_proc','di_subs','posh_headcount','posh_icc','posh_policy','posh_training','posh_annual','posh_complaints','wage_min','wage_ot','wage_bonus','wage_payday','wage_slip','wage_equal','ss_epf','ss_esi','ss_gratuity','ss_gratuity_delay','ss_lwf','ss_contract','wh_weekly','wh_ot_track','wh_leave','wh_mat','wh_creche','wh_night','fe_expat','fe_visa','fe_coc','fe_appr','fe_local'];
+
+function getFormData(){
+  const d = {};
+  FIELD_IDS.forEach(k=>{ const el=document.getElementById(k); if(el) d[k]=el.value; });
+  return d;
+}
+function setFormData(d){
+  if(!d) return;
+  Object.keys(d).forEach(k=>{ const el=document.getElementById(k); if(el) el.value=d[k]; });
+  ['analyzeSection1','analyzeSection2','analyzeSection3','analyzeSection4','analyzeSection5','analyzeSection6','analyzeSection7','analyzeSection8'].forEach(fn=>window[fn]&&window[fn]());
+}
+function autoSave(){ localStorage.setItem('india_gurgaon_er_draft', JSON.stringify(getFormData())); }
+function saveDraft(){ autoSave(); showToast('임시저장 완료'); }
+function loadFromStorage(){
+  const saved = localStorage.getItem('india_gurgaon_er_draft');
+  if(saved){ try{ setFormData(JSON.parse(saved)); }catch(e){} }
+}
+function clearAll(){
+  if(!confirm('입력된 모든 데이터를 초기화하시겠습니까?')) return;
+  localStorage.removeItem('india_gurgaon_er_draft');
+  location.reload();
+}
+function exportJSON(){
+  const data = {meta:{tool:'India Gurgaon ER Risk Diagnostic',date:new Date().toISOString()},form:getFormData()};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'india_gurgaon_ER_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('JSON 내보내기 완료');
+}
+function importJSON(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{ try{ const d=JSON.parse(ev.target.result); setFormData(d.form||d); showToast('JSON 불러오기 완료'); }catch(err){ alert('JSON 파일 형식 오류'); } };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// REPORT
+function generateReport(){
+  autoSave();
+  const secs = [
+    {id:'sec1',name:'정리해고·해고'},
+    {id:'sec2',name:'노동조합·단체교섭'},
+    {id:'sec3',name:'징계·국내조사'},
+    {id:'sec4',name:'POSH (성희롱 방지)'},
+    {id:'sec5',name:'임금·최저임금·보너스'},
+    {id:'sec6',name:'사회보장 (EPF·ESI·Gratuity)'},
+    {id:'sec7',name:'근로시간·휴가·모성보호'},
+    {id:'sec8',name:'외국인·지역민 채용'},
+  ];
+  let r=0,y=0,g=0,u=0;
+  secs.forEach(s=>{ const v=results[s.id]; if(v==='red')r++;else if(v==='yellow')y++;else if(v==='green')g++;else u++; });
+  const total=r+y+g;
+  const rate=total>0?Math.round(g/total*100):0;
+  const dotColors = {red:'#DC3545',yellow:'#FFC107',green:'#28A745',null:'#adb5bd'};
+  const statusLabel = {red:'🔴 긴급',yellow:'🟡 권고',green:'🟢 준수',null:'⬜ 미입력'};
+  const tableRows = secs.map(s=>{
+    const v = results[s.id]||null;
+    const gapEl = document.getElementById('gap-'+s.id);
+    const gapItems = gapEl ? Array.from(gapEl.querySelectorAll('li')).map(l=>l.textContent).join('<br>') : '-';
+    const trClass = v?'tr-'+v:'';
+    return `<tr class="${trClass}"><td>${s.name}</td><td><span class="traffic-dot" style="background:${dotColors[v]}"></span> ${statusLabel[v]||'미입력'}</td><td style="font-size:12px">${gapItems||'-'}</td></tr>`;
+  }).join('');
+  const actions = [];
+  secs.forEach(s=>{
+    const v=results[s.id];
+    if(v==='red'||v==='yellow'){
+      const gapEl = document.getElementById('gap-'+s.id);
+      if(gapEl){
+        Array.from(gapEl.querySelectorAll('li')).forEach(li=>{
+          const text = li.textContent;
+          if(v==='red') actions.push({pri:'high',area:s.name,item:text});
+          else actions.push({pri:'med',area:s.name,item:text});
+        });
+      }
+    }
+  });
+  const otherSummary = [];
+  document.querySelectorAll('#otherItems .other-item').forEach(el=>{
+    const titleInput = el.querySelector('input[type=text]');
+    const contentInput = el.querySelector('textarea');
+    if(titleInput && titleInput.value){
+      otherSummary.push(`<li><b>${titleInput.value}</b>${contentInput && contentInput.value ? ' — '+contentInput.value : ''}</li>`);
+    }
+  });
+  const otherHtml = otherSummary.length>0 ? `<h3 style="font-size:14px;margin:20px 0 10px">기타 입력 사항</h3><ul style="font-size:13px;padding-left:20px">${otherSummary.join('')}</ul>` : '';
+  const actionHtml = actions.length>0 ? actions.map(a=>`
+    <div class="action-item pri-${a.pri}">
+      <div style="font-size:11px;font-weight:700;color:${a.pri==='high'?'var(--red)':'#d39e00'};margin-bottom:4px">
+        ${a.pri==='high'?'[즉시 조치]':'[개선 권고]'} — ${a.area}
+      </div>
+      <div style="font-size:13px">${a.item}</div>
+    </div>`).join('') : '<p style="color:var(--gray);font-size:13px">액션 아이템이 없습니다. 모든 항목을 입력하고 분석하세요.</p>';
+  document.getElementById('reportBody').innerHTML = `
+    <div style="background:#f8f9fa;border-radius:8px;padding:16px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:12px;color:var(--dark)">Executive Summary — Gurgaon ER Risk Profile</h3>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--green)">${rate}%</div><div style="font-size:12px;color:var(--gray)">종합 준수율</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--red)">${r}</div><div style="font-size:12px;color:var(--gray)">긴급 (RED)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:#d39e00">${y}</div><div style="font-size:12px;color:var(--gray)">권고 (YELLOW)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--green)">${g}</div><div style="font-size:12px;color:var(--gray)">준수 (GREEN)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--gray)">${u}</div><div style="font-size:12px;color:var(--gray)">미입력</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--gray);margin-top:12px">분석 기준일: ${new Date().toLocaleDateString('ko-KR')} | 기준 법령: 인도 노동법(2026.05 기준) + Haryana 州 통지 + 4대 노동코드 시행 단계</p>
+    </div>
+    <h3 style="font-size:14px;margin-bottom:10px">영역별 ER 리스크 현황</h3>
+    <table class="report-table"><thead><tr><th>영역</th><th>상태</th><th>분석 내용</th></tr></thead><tbody>${tableRows}</tbody></table>
+    <h3 style="font-size:14px;margin:20px 0 10px">액션 아이템 로드맵</h3>
+    ${actionHtml}
+    ${otherHtml}
+    <p style="font-size:11px;color:var(--gray);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+      ※ 본 분석은 참고 목적으로만 활용하시고, 법적 판단은 반드시 현지 노무 전문가(Labour Law Advocate / Chartered Accountant)의 확인을 받으시기 바랍니다.<br>
+      ※ 주요 출처: <a href="https://labour.gov.in/" target="_blank" style="color:var(--blue)">Ministry of Labour & Employment</a> · <a href="https://hrylabour.gov.in/" target="_blank" style="color:var(--blue)">Haryana Labour Dept.</a> · <a href="https://www.epfindia.gov.in/" target="_blank" style="color:var(--blue)">EPFO</a> · <a href="https://www.esic.gov.in/" target="_blank" style="color:var(--blue)">ESIC</a>
+    </p>
+  `;
+  document.getElementById('reportModal').classList.add('show');
+}
+function closeModal(){ document.getElementById('reportModal').classList.remove('show'); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+document.getElementById('reportModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+</script>
+</body>
+</html>

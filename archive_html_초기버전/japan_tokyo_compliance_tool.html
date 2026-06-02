@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일본(도쿄) 노동법 컴플라이언스 분석 도구 | Japan Labor Compliance Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#212529;font-size:14px}
+:root{--red:#DC3545;--yellow:#FFC107;--green:#28A745;--gray:#6C757D;--blue:#0056b3;--light-blue:#e8f0fe;--border:#dee2e6;--white:#fff;--dark:#343a40}
+/* HEADER */
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.header-left h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.header-left p{font-size:12px;opacity:.8}
+.header-right{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-white{background:#fff;color:#1a1a2e}
+.btn-white:hover{background:#e8ecef}
+.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.btn-outline:hover{background:rgba(255,255,255,.1)}
+/* DASHBOARD */
+.dashboard{background:#fff;border-bottom:1px solid var(--border);padding:16px 32px;display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.stat-box{text-align:center;min-width:80px}
+.stat-num{font-size:28px;font-weight:800;line-height:1}
+.stat-label{font-size:11px;color:var(--gray);margin-top:2px}
+.stat-red .stat-num{color:var(--red)}
+.stat-yellow .stat-num{color:#d39e00}
+.stat-green .stat-num{color:var(--green)}
+.stat-blue .stat-num{color:var(--blue)}
+.divider{width:1px;height:48px;background:var(--border)}
+.progress-wrap{flex:1;min-width:200px}
+.progress-label{font-size:12px;color:var(--gray);margin-bottom:6px;display:flex;justify-content:space-between}
+.progress-bar{height:12px;background:#e9ecef;border-radius:8px;overflow:hidden}
+.progress-fill{height:100%;border-radius:8px;transition:width .5s;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:24px 16px}
+/* SECTION */
+.section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:16px;overflow:hidden}
+.section-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.section-header:hover{background:#f8f9fa}
+.section-title{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700}
+.section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-badge{font-size:11px;padding:3px 8px;border-radius:12px;font-weight:600}
+.badge-red{background:#fde8ea;color:var(--red)}
+.badge-yellow{background:#fff8e1;color:#d39e00}
+.badge-green{background:#e8f5e9;color:var(--green)}
+.badge-gray{background:#f1f3f5;color:var(--gray)}
+.collapse-icon{font-size:12px;color:var(--gray);transition:transform .2s}
+.collapsed .collapse-icon{transform:rotate(-90deg)}
+.section-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section-body.collapsed{display:none}
+/* COMPARISON */
+.col-legal{background:#f8f9fa;border-radius:8px;padding:16px;border-left:4px solid var(--blue)}
+.col-input{background:#fff;border-radius:8px;padding:16px;border:1px solid var(--border)}
+.col-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);margin-bottom:12px;letter-spacing:.5px}
+.legal-item{margin-bottom:12px}
+.legal-item-label{font-size:12px;color:var(--gray);margin-bottom:3px}
+.legal-item-value{font-size:14px;font-weight:600;color:#212529}
+.legal-item-jp{font-size:11px;color:#888;margin-top:2px;font-style:italic}
+.legal-link{font-size:11px;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:4px}
+.legal-link:hover{text-decoration:underline}
+/* INPUT FIELDS */
+.field-group{margin-bottom:14px}
+.field-label{font-size:12px;font-weight:600;color:#495057;margin-bottom:5px;display:block}
+.field-label .required{color:var(--red);margin-left:2px}
+input[type=number],input[type=text],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,86,179,.1)}
+input.gap-red,select.gap-red{border-color:var(--red);background:#fff8f8}
+input.gap-yellow,select.gap-yellow{border-color:var(--yellow);background:#fffdf0}
+input.gap-green,select.gap-green{border-color:var(--green);background:#f0fff4}
+/* GAP RESULT */
+.gap-result{margin-top:16px;grid-column:1/-1;border-radius:8px;padding:14px 16px;display:none}
+.gap-result.show{display:block}
+.gap-result.red{background:#fde8ea;border-left:4px solid var(--red)}
+.gap-result.yellow{background:#fff8e1;border-left:4px solid var(--yellow)}
+.gap-result.green{background:#e8f5e9;border-left:4px solid var(--green)}
+.gap-result .gap-title{font-weight:700;font-size:13px;margin-bottom:6px}
+.gap-result.red .gap-title{color:var(--red)}
+.gap-result.yellow .gap-title{color:#d39e00}
+.gap-result.green .gap-title{color:var(--green)}
+.gap-result ul{margin-left:16px}
+.gap-result ul li{font-size:13px;margin-bottom:3px}
+/* TIMELINE */
+.timeline{padding:0 20px 20px}
+.timeline-item{display:flex;gap:16px;margin-bottom:16px;position:relative}
+.timeline-item::before{content:'';position:absolute;left:14px;top:28px;bottom:-16px;width:2px;background:var(--border)}
+.timeline-item:last-child::before{display:none}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-weight:700;z-index:1}
+.tl-done{background:#e8f5e9;color:var(--green)}
+.tl-active{background:#fff8e1;color:#d39e00}
+.tl-pending{background:#f1f3f5;color:var(--gray)}
+.tl-content{flex:1;padding-top:4px}
+.tl-date{font-size:11px;color:var(--gray);margin-bottom:3px}
+.tl-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:12px;color:#555;line-height:1.6}
+.tl-check{margin-top:6px;background:#f8f9fa;border-radius:6px;padding:8px 12px;font-size:12px}
+.tl-check strong{display:block;margin-bottom:4px;color:var(--dark)}
+.status-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+.sb-done{background:#e8f5e9;color:var(--green)}
+.sb-active{background:#fff8e1;color:#d39e00}
+.sb-pending{background:#e8f0fe;color:var(--blue)}
+/* OTHER SECTION */
+.other-item{background:#f8f9fa;border-radius:8px;padding:14px;margin-bottom:12px;border:1px solid var(--border)}
+.other-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:5px;border:1px solid var(--border);background:#fff;cursor:pointer}
+.btn-sm:hover{background:#f1f3f5}
+.btn-danger-sm{border-color:var(--red);color:var(--red)}
+.btn-danger-sm:hover{background:#fde8ea}
+.keyword-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.keyword-tag{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s}
+.keyword-tag.risk-high{background:#fde8ea;color:var(--red);border-color:#f5c6cb}
+.keyword-tag.risk-medium{background:#fff8e1;color:#d39e00;border-color:#ffeeba}
+.keyword-tag.risk-low{background:#e8f5e9;color:var(--green);border-color:#c3e6cb}
+.keyword-tag:hover{opacity:.8}
+.review-result{background:#fff;border-radius:8px;border:1px solid var(--border);padding:14px;margin-top:12px;display:none}
+.review-result.show{display:block}
+/* REPORT MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;justify-content:center;align-items:flex-start;padding:40px 16px;overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:900px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:18px;font-weight:700}
+.modal-body{padding:24px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray)}
+.report-table{width:100%;border-collapse:collapse;margin-top:16px}
+.report-table th{background:#f8f9fa;padding:10px 12px;text-align:left;font-size:12px;border:1px solid var(--border)}
+.report-table td{padding:10px 12px;font-size:13px;border:1px solid var(--border);vertical-align:top}
+.report-table tr.tr-red td{background:#fff8f8}
+.report-table tr.tr-yellow td{background:#fffdf0}
+.report-table tr.tr-green td{background:#f0fff4}
+.traffic-dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.dot-red{background:var(--red)}
+.dot-yellow{background:var(--yellow)}
+.dot-green{background:var(--green)}
+.action-item{background:#f8f9fa;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:4px solid var(--border)}
+.action-item.pri-high{border-left-color:var(--red)}
+.action-item.pri-med{border-left-color:var(--yellow)}
+.action-item.pri-low{border-left-color:var(--green)}
+/* SAVE BAR */
+.save-bar{background:#fff;border-top:1px solid var(--border);padding:16px 32px;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;z-index:100;box-shadow:0 -4px 12px rgba(0,0,0,.06)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#004494}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#1e7e34}
+.btn-secondary{background:var(--gray);color:#fff}
+.btn-secondary:hover{background:#545b62}
+/* TOAST */
+.toast{position:fixed;bottom:80px;right:24px;background:#343a40;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:768px){
+  .section-body{grid-template-columns:1fr}
+  .header{padding:16px}
+  .main{padding:12px 8px}
+  .dashboard{padding:12px 16px;gap:16px}
+}
+@media print{
+  .save-bar,.header-right,.btn{display:none!important}
+  .section-body.collapsed{display:grid!important}
+  .modal-overlay{display:none!important}
+  body{background:#fff}
+  .section{box-shadow:none;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>일본(도쿄) 노동법 컴플라이언스 분석 도구</h1>
+    <p>Japan (Tokyo) Labor Law Compliance Interactive Tool &nbsp;|&nbsp; 기준일: 2025-2026년 시행 법령 &nbsp;|&nbsp; 생성: <span id="genDate"></span></p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="exportJSON()">JSON 내보내기</button>
+    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">JSON 불러오기</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn btn-white" onclick="window.print()">PDF 출력</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="stat-box stat-red"><div class="stat-num" id="cntRed">0</div><div class="stat-label">긴급 RED</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-yellow"><div class="stat-num" id="cntYellow">0</div><div class="stat-label">권고 YELLOW</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-green"><div class="stat-num" id="cntGreen">0</div><div class="stat-label">준수 GREEN</div></div>
+  <div class="divider"></div>
+  <div class="stat-box stat-blue"><div class="stat-num" id="cntTotal">0</div><div class="stat-label">분석 항목</div></div>
+  <div class="divider"></div>
+  <div class="progress-wrap">
+    <div class="progress-label"><span>준수율</span><span id="compRate">-%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ===== SECTION 1: 근로시간 ===== -->
+<div class="section" id="sec1">
+  <div class="section-header" onclick="toggleSection('sec1')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e8f0fe">⏱</div>
+      <span>섹션 1 — 근로시간 | 労働時間</span>
+      <span class="section-badge badge-gray" id="badge-sec1">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec1">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">법정 근로시간</div><div class="legal-item-value">1일 8시간 / 주 40시간</div><div class="legal-item-jp">労働基準法 第32条</div></div>
+      <div class="legal-item"><div class="legal-item-label">36협정 시간외 일반 한도</div><div class="legal-item-value">월 45시간 / 연 360시간</div><div class="legal-item-jp">労基法 第36条 第4項</div></div>
+      <div class="legal-item"><div class="legal-item-label">36협정 특별조항 상한 (절대)</div><div class="legal-item-value">월 100시간 미만 / 연 720시간 이하<br>2~6개월 평균 80시간 이하</div><div class="legal-item-jp">労基法 第36条 第5·6項 (2019.04 시행)</div></div>
+      <div class="legal-item"><div class="legal-item-label">휴식 시간</div><div class="legal-item-value">6h 초과 시 45분 / 8h 초과 시 60분 이상</div><div class="legal-item-jp">労基法 第34条</div></div>
+      <div class="legal-item"><div class="legal-item-label">법정 휴일</div><div class="legal-item-value">주 1일 이상 (4주 4일 이상)</div><div class="legal-item-jp">労基法 第35条</div></div>
+      <a class="legal-link" href="https://elaws.e-gov.go.jp/document?lawid=322AC0000000049" target="_blank">e-Gov 労働基準法 원문 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">실제 소정근로시간 (주간, 시간)<span class="required">*</span></label>
+        <input type="number" id="wt_weekly" min="1" max="60" placeholder="예: 40" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">36협정 체결 여부</label>
+        <select id="wt_36" onchange="analyzeSection1()">
+          <option value="">선택하세요</option>
+          <option value="yes_special">체결 (특별조항 포함)</option>
+          <option value="yes_normal">체결 (일반조항만)</option>
+          <option value="no">미체결</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">월 평균 시간외 근로 (시간)</label>
+        <input type="number" id="wt_monthly_ot" min="0" max="200" placeholder="예: 30" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">연간 시간외 근로 최대치 (시간)</label>
+        <input type="number" id="wt_annual_ot" min="0" max="2000" placeholder="예: 300" oninput="analyzeSection1()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">근로시간 관리 방식</label>
+        <select id="wt_mgmt" onchange="analyzeSection1()">
+          <option value="">선택하세요</option>
+          <option value="system">시스템 타임카드</option>
+          <option value="manual">수기 기록</option>
+          <option value="pc">PC 로그</option>
+          <option value="none">별도 관리 없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec1"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: 연차휴가 ===== -->
+<div class="section" id="sec2">
+  <div class="section-header" onclick="toggleSection('sec2')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e8f5e9">📅</div>
+      <span>섹션 2 — 연차유급휴가 | 年次有給休暇</span>
+      <span class="section-badge badge-gray" id="badge-sec2">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec2">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">부여 일수 (6개월 계속근무)</div><div class="legal-item-value">10일 (최대 20일, 근속 6.5년 이상)</div><div class="legal-item-jp">労基法 第39条 第1·2項</div></div>
+      <div class="legal-item"><div class="legal-item-label">연 5일 취득 의무</div><div class="legal-item-value">10일 이상 부여 근로자에게 연 5일 이상 취득 의무화 — 위반 시 1인당 30만 엔 이하 벌금</div><div class="legal-item-jp">労基法 第39条 第7·8項 (2019.04 시행)</div></div>
+      <div class="legal-item"><div class="legal-item-label">취득 방식</div><div class="legal-item-value">근로자 시계지정 원칙 / 계획연차 / 사용자 시계지정 가능</div><div class="legal-item-jp">労基法 第39条 第4·5·6項</div></div>
+      <div class="legal-item"><div class="legal-item-label">관리 의무</div><div class="legal-item-value">유급휴가 관리부 작성·3년간 보존</div><div class="legal-item-jp">労基法 第108条</div></div>
+      <a class="legal-link" href="https://www.mhlw.go.jp/content/000463186.pdf" target="_blank">후생노동성 리플렛 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">신입 부여 일수 (6개월 후)<span class="required">*</span></label>
+        <input type="number" id="al_days" min="0" max="40" placeholder="예: 10" oninput="analyzeSection2()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">연 5일 취득 관리 여부</label>
+        <select id="al_5day" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="managed">취득 의무 관리 중</option>
+          <option value="partial">일부 대상만 관리</option>
+          <option value="no">미관리</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">평균 실 취득률 (%)</label>
+        <input type="number" id="al_rate" min="0" max="100" placeholder="예: 70" oninput="analyzeSection2()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">유급휴가 관리부 작성 여부</label>
+        <select id="al_ledger" onchange="analyzeSection2()">
+          <option value="">선택하세요</option>
+          <option value="yes">작성·보존 중</option>
+          <option value="no">미작성</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec2"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: 급여·임금 ===== -->
+<div class="section" id="sec3">
+  <div class="section-header" onclick="toggleSection('sec3')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fff8e1">💴</div>
+      <span>섹션 3 — 급여·최저임금 | 賃金・最低賃金</span>
+      <span class="section-badge badge-gray" id="badge-sec3">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec3">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">도쿄도 최저임금 (2025.10.03~)</div><div class="legal-item-value">시급 1,226엔 (전년 대비 63엔 인상)</div><div class="legal-item-jp">最低賃金法 / 東京都地域別最低賃金</div></div>
+      <div class="legal-item"><div class="legal-item-label">시간외 할증 (월 60시간 이내)</div><div class="legal-item-value">25% 이상</div><div class="legal-item-jp">労基法 第37条 第1項</div></div>
+      <div class="legal-item"><div class="legal-item-label">시간외 할증 (월 60시간 초과)</div><div class="legal-item-value">50% 이상 (2023.04~ 중소기업도 적용)</div><div class="legal-item-jp">労基法 第37条 第1項 但書</div></div>
+      <div class="legal-item"><div class="legal-item-label">심야 할증 (22:00~05:00)</div><div class="legal-item-value">25% 이상 (시간외+심야 중복 시 50%+25%=75%)</div><div class="legal-item-jp">労基法 第37条 第4項</div></div>
+      <div class="legal-item"><div class="legal-item-label">법정 휴일 할증</div><div class="legal-item-value">35% 이상</div><div class="legal-item-jp">労基法 第37条 第1項</div></div>
+      <div class="legal-item"><div class="legal-item-label">임금 지급 원칙</div><div class="legal-item-value">통화·직접·전액·매월 1회 이상·일정 기일 지급</div><div class="legal-item-jp">労基法 第24条</div></div>
+      <a class="legal-link" href="https://jsite.mhlw.go.jp/tokyo-roudoukyoku/news_topics/houdou/20230901chinginka_00001.html" target="_blank">도쿄도 최저임금 안내 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">최저임금 적용 대상 최저 시급 (엔)<span class="required">*</span></label>
+        <input type="number" id="wage_min" min="0" max="5000" placeholder="예: 1226" oninput="analyzeSection3()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">월 60시간 이내 시간외 할증율 (%)</label>
+        <input type="number" id="wage_ot1" min="0" max="100" placeholder="예: 25" oninput="analyzeSection3()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">월 60시간 초과 시간외 할증율 (%)</label>
+        <input type="number" id="wage_ot2" min="0" max="100" placeholder="예: 50" oninput="analyzeSection3()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">고정잔업대(みなし残業) 제도 운영</label>
+        <select id="wage_fixed_ot" onchange="analyzeSection3()">
+          <option value="">선택하세요</option>
+          <option value="no">미운영</option>
+          <option value="yes_compliant">운영 중 (명시 + 초과분 추가 지급)</option>
+          <option value="yes_issue">운영 중 (초과분 미지급 또는 명시 불분명)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">임금 지급일 (매월)</label>
+        <input type="number" id="wage_payday" min="1" max="31" placeholder="예: 25" oninput="analyzeSection3()">
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec3"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: 해고·고용종료 ===== -->
+<div class="section" id="sec4">
+  <div class="section-header" onclick="toggleSection('sec4')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fde8ea">📋</div>
+      <span>섹션 4 — 해고·고용종료 | 解雇・雇用終了</span>
+      <span class="section-badge badge-gray" id="badge-sec4">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec4">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">해고 예고</div><div class="legal-item-value">30일 이상 사전 예고 또는 30일분 이상 평균임금 지급</div><div class="legal-item-jp">労基法 第20条</div></div>
+      <div class="legal-item"><div class="legal-item-label">해고권 남용 법리</div><div class="legal-item-value">객관적·합리적 이유 없는 해고는 무효 (사회통념상 상당성 필요)</div><div class="legal-item-jp">労働契約法 第16条</div></div>
+      <div class="legal-item"><div class="legal-item-label">해고 금지 기간</div><div class="legal-item-value">업무상 부상·질병 요양 기간 + 30일 / 출산 전후 기간 + 30일</div><div class="legal-item-jp">労基法 第19条</div></div>
+      <div class="legal-item"><div class="legal-item-label">정리해고 4요건</div><div class="legal-item-value">① 인원삭감 필요성 ② 해고회피 노력 ③ 피해고자 선정 합리성 ④ 충분한 협의</div><div class="legal-item-jp">判例법리 (最高裁)</div></div>
+      <div class="legal-item"><div class="legal-item-label">유기계약 중도 해고</div><div class="legal-item-value">부득이한 사유 없으면 원칙 불가</div><div class="legal-item-jp">労働契約法 第17条</div></div>
+      <a class="legal-link" href="https://www.mhlw.go.jp/seisakunitsuite/bunya/koyou_roudou/roudouseisaku/chushoukigyou/keiyakushuryo_rule.html" target="_blank">후생노동성 고용종료 가이드 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">해고 예고 기간 (일)<span class="required">*</span></label>
+        <input type="number" id="dis_notice" min="0" max="90" placeholder="예: 30" oninput="analyzeSection4()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">해고 예고수당 지급 규정</label>
+        <select id="dis_allowance" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="yes">규정 있음 (30일 미만 시 지급)</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">취업규칙 내 해고 사유 명시</label>
+        <select id="dis_reason" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="yes">명시되어 있음</option>
+          <option value="partial">일부만 명시</option>
+          <option value="no">미명시</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">정리해고 절차 규정 보유</label>
+        <select id="dis_reduct" onchange="analyzeSection4()">
+          <option value="">선택하세요</option>
+          <option value="yes">4요건 충족 절차 규정 보유</option>
+          <option value="partial">일부 절차만</option>
+          <option value="no">없음</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec4"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: 출산·육아·개호 ===== -->
+<div class="section" id="sec5">
+  <div class="section-header" onclick="toggleSection('sec5')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#f3e5f5">👶</div>
+      <span>섹션 5 — 출산·육아·개호휴업 | 育児・介護休業</span>
+      <span class="section-badge badge-gray" id="badge-sec5">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec5">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">산전산후 휴업</div><div class="legal-item-value">산전 6주 (다태아 14주) + 산후 8주 (강제 6주)</div><div class="legal-item-jp">労基法 第65条</div></div>
+      <div class="legal-item"><div class="legal-item-label">육아휴업 (통상)</div><div class="legal-item-value">원칙 자녀 1세까지 (최대 2세까지 연장 가능)</div><div class="legal-item-jp">育児介護休業法 第5条</div></div>
+      <div class="legal-item"><div class="legal-item-label">출생시 육아휴업 (파파육휴)</div><div class="legal-item-value">출생 후 8주 이내 최대 4주 (2회 분할 취득 가능)</div><div class="legal-item-jp">育介法 第9条の2 (2022.10 신설)</div></div>
+      <div class="legal-item"><div class="legal-item-label">2025.04 개정: 유연근무 조치</div><div class="legal-item-value">3세~취학 전 자녀: 5가지 중 2가지 이상 조치 의무 (테레워크, 단시간, 시간 변경 등)</div><div class="legal-item-jp">育介法 改正 (2025.04 시행)</div></div>
+      <div class="legal-item"><div class="legal-item-label">개호휴업</div><div class="legal-item-value">대상 가족 1인당 93일 (3회 분할 가능)</div><div class="legal-item-jp">育介法 第11条</div></div>
+      <div class="legal-item"><div class="legal-item-label">취득률 공표의무 (1000인 이상)</div><div class="legal-item-value">남성 육아휴업 취득률 공표 의무</div><div class="legal-item-jp">育介法 第22条の2</div></div>
+      <a class="legal-link" href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000130583.html" target="_blank">후생노동성 육개법 안내 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">산전산후 휴업 규정</label>
+        <select id="mat_leave" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">법정대로 규정 및 운영</option>
+          <option value="partial">일부 미흡</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">육아휴업 규정 및 운영</label>
+        <select id="child_leave" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">법정 이상 규정·운영</option>
+          <option value="legal">법정 기준 충족</option>
+          <option value="partial">일부 미흡</option>
+          <option value="no">규정 없음</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">출생시 육아휴업(파파육휴) 규정</label>
+        <select id="papa_leave" onchange="analyzeSection5()">
+          <option value="">선택하세요</option>
+          <option value="yes">규정·취업규칙 반영 완료</option>
+          <option value="partial">규정은 있으나 취업규칙 미반영</option>
+          <option value="no">미규정</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">2025.04 유연근무 조치 (해당 시)</label>
+        <select id="flex_measures" onchange="analyzeSection5()">
+          <option value="">해당 없음 / 선택</option>
+          <option value="yes">2가지 이상 조치 완료</option>
+          <option value="partial">1가지만</option>
+          <option value="no">미준비</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec5"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 6: 사회보험 ===== -->
+<div class="section" id="sec6">
+  <div class="section-header" onclick="toggleSection('sec6')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e8f5e9">🏥</div>
+      <span>섹션 6 — 사회보험 | 社会保険</span>
+      <span class="section-badge badge-gray" id="badge-sec6">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec6">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard) — 2025년도 기준</div>
+      <div class="legal-item"><div class="legal-item-label">건강보험료율 (도쿄도 협회건강보험 2025.03~)</div><div class="legal-item-value">9.91% (사업주 4.955% / 근로자 4.955%)</div><div class="legal-item-jp">健康保険法</div></div>
+      <div class="legal-item"><div class="legal-item-label">후생연금 보험료율</div><div class="legal-item-value">18.30% (사업주 9.15% / 근로자 9.15%)</div><div class="legal-item-jp">厚生年金保険法 (2017.09~ 고정)</div></div>
+      <div class="legal-item"><div class="legal-item-label">개호보험료율 (40세 이상 2025년도~)</div><div class="legal-item-value">1.59% (사업주 0.795% / 근로자 0.795%)</div><div class="legal-item-jp">介護保険法</div></div>
+      <div class="legal-item"><div class="legal-item-label">고용보험료율 (일반사업 2025.04~)</div><div class="legal-item-value">근로자 0.55% / 사업주 0.90% (합계 1.45%)</div><div class="legal-item-jp">雇用保険法</div></div>
+      <div class="legal-item"><div class="legal-item-label">산재보험</div><div class="legal-item-value">사업주 전액 부담 (업종별 상이)</div><div class="legal-item-jp">労働者災害補償保険法</div></div>
+      <a class="legal-link" href="https://www.mhlw.go.jp/content/001401966.pdf" target="_blank">2025년도 고용보험료율 공시 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">사회보험 가입 현황</label>
+        <select id="si_status" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="all">전 보험 적법 가입</option>
+          <option value="partial">일부 미가입 (아르바이트·파트 등)</option>
+          <option value="no">주요 보험 미가입</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">건강보험료 근로자 부담율 (%)</label>
+        <input type="number" id="si_health" min="0" max="20" step="0.01" placeholder="예: 4.955" oninput="analyzeSection6()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">후생연금 근로자 부담율 (%)</label>
+        <input type="number" id="si_pension" min="0" max="20" step="0.01" placeholder="예: 9.15" oninput="analyzeSection6()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">단시간 근로자(파트) 사회보험 적용</label>
+        <select id="si_part" onchange="analyzeSection6()">
+          <option value="">선택하세요</option>
+          <option value="yes">법정 기준대로 적용</option>
+          <option value="partial">일부 누락</option>
+          <option value="no">적용 안 함</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec6"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 7: 근로계약 ===== -->
+<div class="section" id="sec7">
+  <div class="section-header" onclick="toggleSection('sec7')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#e3f2fd">📝</div>
+      <span>섹션 7 — 근로계약·노동조건 통지 | 労働契約・労働条件明示</span>
+      <span class="section-badge badge-gray" id="badge-sec7">미입력</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec7">
+    <div class="col-legal">
+      <div class="col-title">법정 기준 (Legal Standard)</div>
+      <div class="legal-item"><div class="legal-item-label">노동조건 서면 명시 의무</div><div class="legal-item-value">고용 시 및 갱신 시 필수 항목 서면 (또는 전자) 교부</div><div class="legal-item-jp">労基法 第15条 / 施行規則 第5条</div></div>
+      <div class="legal-item"><div class="legal-item-label">2024.04 신규 명시 사항</div><div class="legal-item-value">① 취업 장소·업무의 변경 범위 ② 갱신 상한 유무·내용 ③ 무기전환 신청 기회 ④ 무기전환 후 노동조건</div><div class="legal-item-jp">労基法施行規則 改正 (2024.04 시행)</div></div>
+      <div class="legal-item"><div class="legal-item-label">유기계약 무기전환 (5년 룰)</div><div class="legal-item-value">동일 사업주와 5년 초과 유기계약 후 근로자 신청 시 무기계약으로 전환</div><div class="legal-item-jp">労働契約法 第18条</div></div>
+      <div class="legal-item"><div class="legal-item-label">취업규칙 작성·신고 의무</div><div class="legal-item-value">상시 10인 이상 사업장: 취업규칙 작성·노동기준감독서 신고 의무</div><div class="legal-item-jp">労基法 第89·90条</div></div>
+      <a class="legal-link" href="https://www.mhlw.go.jp/stf/newpage_32105.html" target="_blank">2024년 노동조건 명시 개정 안내 ↗</a>
+    </div>
+    <div class="col-input">
+      <div class="col-title">현행 제도 입력</div>
+      <div class="field-group">
+        <label class="field-label">노동조건 통지서 교부 현황<span class="required">*</span></label>
+        <select id="ct_notice" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="yes_2024">2024.04 개정 포함 전 항목 교부</option>
+          <option value="yes_old">구 양식 교부 (2024 개정 미반영)</option>
+          <option value="partial">일부 근로자에게만 교부</option>
+          <option value="no">미교부</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">취업규칙 작성·최신화 여부</label>
+        <select id="ct_rules" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="yes">최신 법령 반영 완료</option>
+          <option value="partial">일부 미반영</option>
+          <option value="no">없음 또는 오래된 버전</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">유기계약 5년 룰 관리 현황</label>
+        <select id="ct_fixed" onchange="analyzeSection7()">
+          <option value="">유기계약 없음 / 선택</option>
+          <option value="managed">5년 도달 전 통지·관리 중</option>
+          <option value="partial">일부 대상만 관리</option>
+          <option value="no">미관리</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">전자 교부 대응 여부</label>
+        <select id="ct_digital" onchange="analyzeSection7()">
+          <option value="">선택하세요</option>
+          <option value="yes">근로자 동의 하에 전자 교부</option>
+          <option value="paper">서면만</option>
+        </select>
+      </div>
+    </div>
+    <div class="gap-result" id="gap-sec7"></div>
+  </div>
+</div>
+
+<!-- ===== SECTION 8: 개정법령 타임라인 ===== -->
+<div class="section" id="sec8">
+  <div class="section-header" onclick="toggleSection('sec8')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fce4ec">📰</div>
+      <span>섹션 8 — 최신 개정법령 타임라인 | 最新法改正</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="timeline" id="body-sec8">
+
+    <div style="height:16px"></div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2023.04.01 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">중소기업 월 60시간 초과 시간외 할증율 50% 적용 | 中小企業 割増賃金率引上げ</div>
+        <div class="tl-desc">대기업에 이어 중소기업도 월 60시간 초과 시간외 근로에 대해 50% 이상의 할증 임금 지급 의무 적용. 유예 조치 완전 폐지.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 급여 시스템의 할증율 설정 확인 / 60시간 초과 추적 관리 체제 구비 여부</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2024.04.01 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">건설업·운송업·의사 시간외 상한 규제 적용 | 適用猶予業種への上限規制</div>
+        <div class="tl-desc">건설·트럭·버스·택시·의사에 대한 시간외 상한 규제 유예 종료. 각 업종별 특례 상한 적용 개시. (2019년 시행된 일반 사업장 규제가 이들 업종에도 확대)</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 해당 업종 종사자의 36협정 재검토 필요 / 건설업 연 720시간, 의사 연 960시간 등 업종별 상한 확인</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2024.04.01 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">노동조건 명시 규칙 개정 | 労働条件明示ルール改正</div>
+        <div class="tl-desc">취업 장소·업무의 변경 범위 명시, 유기계약 갱신 상한 명시, 무기전환 신청 기회 및 전환 후 노동조건 명시 의무화.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 노동조건 통지서 양식 2024년판으로 업데이트 완료 여부 / 유기계약자 갱신 시 신규 양식 사용 여부</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2025.04.01 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">육아개호휴업법 개정 (1차) | 育児介護休業法 改正</div>
+        <div class="tl-desc">① 자녀 간호 휴가 대상 확대 (초등학교 3년 수료까지) ② 소정외 근로 제한 대상을 취학 전까지 확대 ③ 3세~취학 전 자녀 양육 근로자에게 5가지 유연근무 중 2가지 이상 조치 의무화.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 취업규칙·육아개호 규정 2025.04 개정 내용 반영 여부 / 유연근무 제도 5가지 중 2가지 이상 정비 여부</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-content">
+        <div class="tl-date">2025.10.03 시행완료<span class="status-badge sb-done">시행완료</span></div>
+        <div class="tl-title">도쿄도 최저임금 1,226엔으로 인상 | 東京都最低賃金 1,226円</div>
+        <div class="tl-desc">도쿄도 지역별 최저임금이 1,163엔에서 63엔 인상된 1,226엔으로 개정. 전국 평균 최저임금 1,055엔 (목표 1,000엔 달성, 전 도도부현 1,000엔 돌파).</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 파트·아르바이트 시급 1,226엔 이상 확인 / 고정잔업대 운영 시 시간외 포함 단가 재계산 필요</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-active">!</div>
+      <div class="tl-content">
+        <div class="tl-date">2025.10 (예정)<span class="status-badge sb-active">시행예정</span></div>
+        <div class="tl-title">육아개호휴업법 개정 (2차) | 育児介護休業法 第2次改正</div>
+        <div class="tl-desc">개호휴업·개호 단시간 근무 등 제도 개선. 개호를 이유로 한 이직 방지를 위한 고용 환경 정비 의무 강화.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 개호 관련 취업규칙 개정 준비 / 관련 근로자 주지 방법 검토</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-pending">?</div>
+      <div class="tl-content">
+        <div class="tl-date">2026년 이후 (심의중)<span class="status-badge sb-pending">심의중</span></div>
+        <div class="tl-title">노동기준법 대폭 개정안 | 労働基準法 大幅改正 (提出見送り)</div>
+        <div class="tl-desc">2026년 국회 제출 예정이었으나 2025.12에 제출 유예 결정. ① 주 44시간 특례 폐지 (전 업종 주 40시간 통일) ② 연속근무 상한 규제 신설 ③ 과반수대표자 선출 절차 법제화 ④ "연결되지 않을 권리" 가이드라인 책정 검토 중.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 특례 44시간 사업장은 40시간으로의 이행 준비 검토 / 36협정 과반수 대표 선출 절차 점검</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-dot tl-pending">?</div>
+      <div class="tl-content">
+        <div class="tl-date">2026년 이후 (검토중)<span class="status-badge sb-pending">검토중</span></div>
+        <div class="tl-title">도쿄도 최저임금 추가 인상 예정 | 最低賃金さらなる引上げ</div>
+        <div class="tl-desc">정부 목표 2030년대 중반 최저임금 1,500엔 수준. 2026년도 인상폭은 2026년 여름 심의 후 결정 예정. 매년 50~60엔 이상 인상 추세 지속 예상.</div>
+        <div class="tl-check"><strong>HR 체크포인트:</strong> 연도별 임금 예산 계획 시 최저임금 인상분 반영 / 파트 타임 시급 재검토 일정 수립</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SECTION 9: 기타 사항 ===== -->
+<div class="section" id="sec9">
+  <div class="section-header" onclick="toggleSection('sec9')">
+    <div class="section-title">
+      <div class="section-icon" style="background:#fff3e0">📌</div>
+      <span>섹션 9 — 기타 사항·자유 입력 | その他・自由記入</span>
+    </div>
+    <span class="collapse-icon">▼</span>
+  </div>
+  <div class="section-body" id="body-sec9" style="display:block;grid-template-columns:1fr">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <p style="font-size:13px;color:var(--gray)">법인 고유 제도, 특수 계약 유형, 현지 고문 의견 등을 자유롭게 입력하세요. "검토 요청" 버튼으로 키워드 기반 리스크를 확인할 수 있습니다.</p>
+        <button class="btn btn-sm" onclick="addOtherItem()" style="flex-shrink:0;margin-left:12px">+ 항목 추가</button>
+      </div>
+      <div id="otherItems"></div>
+      <div style="margin-top:16px">
+        <p style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:8px">자주 등장하는 리스크 키워드 (클릭 시 해당 항목에 자동 삽입)</p>
+        <div class="keyword-tags">
+          <span class="keyword-tag risk-high" onclick="insertKeyword('고정잔업대(固定残業代/みなし残業) 운영 현황')">고정잔업대 (固定残業代)</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('하라스먼트(ハラスメント) 방지 규정 및 상담 창구')">하라스먼트 (ハラスメント)</span>
+          <span class="keyword-tag risk-high" onclick="insertKeyword('파견 근로자(派遣社員) 운영 및 파견법 준수 현황')">파견 (派遣)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('재택근무(テレワーク) 규정 및 비용 보조 현황')">재택근무 (テレワーク)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('비정규직(非正規) 균등·균형 대우 및 동일노동동일임금 대응')">비정규직 (非正規)</span>
+          <span class="keyword-tag risk-medium" onclick="insertKeyword('부업·겸업(副業・兼業) 허용 범위 및 관리 방침')">부업 (副業)</span>
+          <span class="keyword-tag risk-low" onclick="insertKeyword('성과급·상여금(賞与) 산정 기준 및 지급 규정')">상여금 (賞与)</span>
+          <span class="keyword-tag risk-low" onclick="insertKeyword('퇴직금(退職金) 제도 유무 및 산정 방법')">퇴직금 (退職金)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="save-bar">
+  <button class="btn btn-secondary" onclick="clearAll()">전체 초기화</button>
+  <button class="btn btn-outline" style="background:#fff;border:1px solid var(--border);color:#212529" onclick="saveDraft()">임시저장</button>
+  <button class="btn btn-primary" onclick="generateReport()">저장 및 종합 갭 분석 리포트 생성</button>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>종합 갭 분석 리포트 — 일본(도쿄) 노동법 컴플라이언스</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="reportBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================
+// INIT
+// ============================
+document.getElementById('genDate').textContent = new Date().toLocaleDateString('ko-KR');
+loadFromStorage();
+addOtherItem(); // default one item
+
+// ============================
+// SECTION TOGGLE
+// ============================
+function toggleSection(id){
+  const body = document.getElementById('body-'+id);
+  const sec = document.getElementById(id);
+  if(!body) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  sec.querySelector('.collapse-icon').style.transform = isCollapsed ? 'rotate(-90deg)' : '';
+}
+
+// ============================
+// DASHBOARD UPDATE
+// ============================
+const results = {}; // secId -> 'red'|'yellow'|'green'|null
+
+function updateDashboard(){
+  let r=0,y=0,g=0;
+  Object.values(results).forEach(v=>{if(v==='red')r++;else if(v==='yellow')y++;else if(v==='green')g++;});
+  const total = r+y+g;
+  document.getElementById('cntRed').textContent=r;
+  document.getElementById('cntYellow').textContent=y;
+  document.getElementById('cntGreen').textContent=g;
+  document.getElementById('cntTotal').textContent=total;
+  const rate = total>0 ? Math.round(g/total*100) : 0;
+  document.getElementById('compRate').textContent = total>0 ? rate+'%' : '-%';
+  document.getElementById('progressFill').style.width = rate+'%';
+}
+
+function setResult(secId, status, badgeEl){
+  results[secId] = status;
+  const badge = document.getElementById('badge-'+secId);
+  if(!badge) return;
+  badge.className = 'section-badge';
+  if(status==='red'){badge.classList.add('badge-red');badge.textContent='긴급 RED';}
+  else if(status==='yellow'){badge.classList.add('badge-yellow');badge.textContent='권고 YELLOW';}
+  else if(status==='green'){badge.classList.add('badge-green');badge.textContent='준수 GREEN';}
+  else{badge.classList.add('badge-gray');badge.textContent='미입력';}
+  updateDashboard();
+}
+
+function showGap(secId, status, title, items){
+  const el = document.getElementById('gap-'+secId);
+  if(!el) return;
+  el.className = 'gap-result show '+status;
+  const icons = {red:'🔴',yellow:'🟡',green:'🟢'};
+  el.innerHTML = '<div class="gap-title">'+icons[status]+' '+title+'</div><ul>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
+}
+
+// ============================
+// SECTION 1: 근로시간
+// ============================
+function analyzeSection1(){
+  const weekly = parseFloat(document.getElementById('wt_weekly').value);
+  const agreement = document.getElementById('wt_36').value;
+  const monthlyOt = parseFloat(document.getElementById('wt_monthly_ot').value);
+  const annualOt = parseFloat(document.getElementById('wt_annual_ot').value);
+  const mgmt = document.getElementById('wt_mgmt').value;
+
+  if(!weekly && !agreement) { setResult('sec1',null); return; }
+
+  let issues = [], warnings = [], goods = [];
+
+  if(weekly > 40) issues.push('소정근로시간 주 '+weekly+'시간 — 법정 40시간 초과 (労基法 第32条 위반)');
+  else if(weekly <= 40 && weekly > 0) goods.push('소정근로시간 '+weekly+'시간/주 — 법정 기준 준수');
+
+  if(agreement === 'no') issues.push('36협정 미체결 — 시간외·휴일 근무 시 즉시 법위반');
+  else if(agreement === 'yes_normal') warnings.push('36협정 일반조항만 체결 — 특별사정 발생 시 특별조항 추가 검토 권고');
+  else if(agreement === 'yes_special') goods.push('36협정 특별조항 포함 체결');
+
+  if(!isNaN(monthlyOt)){
+    if(monthlyOt >= 100) issues.push('월 시간외 '+monthlyOt+'시간 — 절대 상한(100시간 미만) 위반 또는 위반 리스크');
+    else if(monthlyOt > 80) warnings.push('월 시간외 '+monthlyOt+'시간 — 2~6개월 평균 80시간 이하 상한 초과 리스크');
+    else if(monthlyOt > 45) warnings.push('월 시간외 '+monthlyOt+'시간 — 일반 한도(45시간) 초과, 특별조항 적용 여부 확인 필요');
+    else if(monthlyOt > 0) goods.push('월 시간외 '+monthlyOt+'시간 — 일반 한도 내');
+  }
+
+  if(!isNaN(annualOt)){
+    if(annualOt > 720) issues.push('연간 시간외 '+annualOt+'시간 — 절대 상한(720시간) 초과');
+    else if(annualOt > 360) warnings.push('연간 시간외 '+annualOt+'시간 — 일반 한도(360시간) 초과, 특별조항 적용 여부 확인');
+    else if(annualOt > 0) goods.push('연간 시간외 '+annualOt+'시간 — 일반 한도 내');
+  }
+
+  if(mgmt === 'none') issues.push('근로시간 관리 방법 없음 — 법적 관리 의무 위반 (労安衛法 第66条の8の3)');
+  else if(mgmt === 'manual') warnings.push('수기 기록 — 객관적 기록 방법(타임카드·PC 로그 등) 도입 권고');
+
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  let title = issues.length>0?'긴급 조치 필요 항목 있음':warnings.length>0?'개선 권고 사항 있음':'법정 기준 준수';
+  showGap('sec1', status, title, [...issues, ...warnings, ...goods]);
+  setResult('sec1', status);
+  autoSave();
+}
+
+// ============================
+// SECTION 2: 연차휴가
+// ============================
+function analyzeSection2(){
+  const days = parseFloat(document.getElementById('al_days').value);
+  const fiveDay = document.getElementById('al_5day').value;
+  const rate = parseFloat(document.getElementById('al_rate').value);
+  const ledger = document.getElementById('al_ledger').value;
+
+  if(!days && !fiveDay) { setResult('sec2',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+
+  if(!isNaN(days)){
+    if(days < 10) issues.push('신입 부여 일수 '+days+'일 — 법정 최소 10일에 미달 (労基法 第39条 위반)');
+    else goods.push('부여 일수 '+days+'일 — 법정 기준(최소 10일) 충족');
+  }
+
+  if(fiveDay === 'no') issues.push('연 5일 취득 의무 미관리 — 대상 근로자 1인당 30만 엔 이하 벌금 위험');
+  else if(fiveDay === 'partial') warnings.push('일부 대상만 관리 — 전 대상 근로자(연 10일 이상 부여자)로 확대 필요');
+  else if(fiveDay === 'managed') goods.push('연 5일 취득 관리 체계 구비');
+
+  if(!isNaN(rate)){
+    if(rate < 50) warnings.push('취득률 '+rate+'% — 일본 전국 평균(약 65%) 크게 하회, 시계지정 등 적극적 조치 필요');
+    else if(rate < 70) warnings.push('취득률 '+rate+'% — 개선 여지 있음 (정부 목표: 70% 이상)');
+    else goods.push('취득률 '+rate+'% — 양호');
+  }
+
+  if(ledger === 'no') warnings.push('유급휴가 관리부 미작성 — 3년간 보존 의무 위반 (労基法 第108条)');
+  else if(ledger === 'yes') goods.push('유급휴가 관리부 작성·보존 중');
+
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec2', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec2', status);
+  autoSave();
+}
+
+// ============================
+// SECTION 3: 급여
+// ============================
+function analyzeSection3(){
+  const minWage = parseFloat(document.getElementById('wage_min').value);
+  const ot1 = parseFloat(document.getElementById('wage_ot1').value);
+  const ot2 = parseFloat(document.getElementById('wage_ot2').value);
+  const fixedOt = document.getElementById('wage_fixed_ot').value;
+  const payday = parseFloat(document.getElementById('wage_payday').value);
+
+  if(!minWage && !ot1) { setResult('sec3',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+  const TOKYO_MIN = 1226;
+
+  if(!isNaN(minWage)){
+    if(minWage < TOKYO_MIN) issues.push('현행 최저 시급 '+minWage+'엔 — 도쿄도 최저임금 '+TOKYO_MIN+'엔 미달 (最低賃金法 위반)');
+    else if(minWage < TOKYO_MIN + 50) warnings.push('현행 최저 시급 '+minWage+'엔 — 법정 기준 충족 (2026년도 인상 대비 여유 확인 권고)');
+    else goods.push('최저 시급 '+minWage+'엔 — 법정 기준 충족');
+  }
+
+  if(!isNaN(ot1)){
+    if(ot1 < 25) issues.push('월 60시간 이내 시간외 할증율 '+ot1+'% — 법정 최저 25% 미달 (労基法 第37条 위반)');
+    else goods.push('시간외 할증율(60h 이내) '+ot1+'% — 법정 기준 충족');
+  }
+
+  if(!isNaN(ot2)){
+    if(ot2 < 50) issues.push('월 60시간 초과 시간외 할증율 '+ot2+'% — 법정 50% 미달 (2023.04 개정 위반)');
+    else goods.push('시간외 할증율(60h 초과) '+ot2+'% — 법정 기준 충족');
+  }
+
+  if(fixedOt === 'yes_issue') issues.push('고정잔업대 운영 중이나 초과분 미지급 또는 명시 불분명 — 임금 체불 및 소송 고위험');
+  else if(fixedOt === 'yes_compliant') goods.push('고정잔업대 운영 — 초과분 추가 지급 및 명시 완료');
+  else if(fixedOt === 'no') goods.push('고정잔업대 미운영');
+
+  if(!isNaN(payday) && (payday < 1 || payday > 31)) warnings.push('임금 지급일 설정 확인 필요');
+
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec3', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec3', status);
+  autoSave();
+}
+
+// ============================
+// SECTION 4: 해고
+// ============================
+function analyzeSection4(){
+  const notice = parseFloat(document.getElementById('dis_notice').value);
+  const allowance = document.getElementById('dis_allowance').value;
+  const reason = document.getElementById('dis_reason').value;
+  const reduct = document.getElementById('dis_reduct').value;
+
+  if(!notice && !allowance) { setResult('sec4',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+
+  if(!isNaN(notice)){
+    if(notice < 30) issues.push('해고 예고 기간 '+notice+'일 — 법정 30일 미달 (労基法 第20条 위반, 차액분 예고수당 지급 필요)');
+    else goods.push('해고 예고 기간 '+notice+'일 — 법정 기준 충족');
+  }
+
+  if(allowance === 'no') warnings.push('해고 예고수당 지급 규정 없음 — 예고 일수 부족 시 지급 의무 발생, 규정 명시 권고');
+  else if(allowance === 'yes') goods.push('해고 예고수당 규정 보유');
+
+  if(reason === 'no') issues.push('취업규칙 내 해고 사유 미명시 — 해고 효력 분쟁 고위험');
+  else if(reason === 'partial') warnings.push('해고 사유 일부만 명시 — 포괄적 기재 권고');
+  else if(reason === 'yes') goods.push('취업규칙 해고 사유 명시 완료');
+
+  if(reduct === 'no') warnings.push('정리해고 절차 규정 없음 — 사업 축소 시 절차 분쟁 위험');
+  else if(reduct === 'partial') warnings.push('정리해고 절차 일부만 규정 — 4요건 전체 반영 권고');
+  else if(reduct === 'yes') goods.push('정리해고 4요건 절차 규정 보유');
+
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec4', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec4', status);
+  autoSave();
+}
+
+// ============================
+// SECTION 5: 육아
+// ============================
+function analyzeSection5(){
+  const mat = document.getElementById('mat_leave').value;
+  const child = document.getElementById('child_leave').value;
+  const papa = document.getElementById('papa_leave').value;
+  const flex = document.getElementById('flex_measures').value;
+
+  if(!mat && !child) { setResult('sec5',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+
+  if(mat === 'no') issues.push('산전산후 휴업 규정 없음 — 법 위반, 즉시 취업규칙 반영 필요');
+  else if(mat === 'partial') warnings.push('산전산후 휴업 일부 미흡 — 法 제65조 요건 전체 충족 확인 필요');
+  else if(mat === 'yes') goods.push('산전산후 휴업 규정·운영 준수');
+
+  if(child === 'no') issues.push('육아휴업 규정 없음 — 育児介護休業法 위반');
+  else if(child === 'partial') warnings.push('육아휴업 규정 일부 미흡');
+  else goods.push('육아휴업 규정·운영 준수');
+
+  if(papa === 'no') issues.push('출생시 육아휴업(파파육휴) 미규정 — 2022.10 시행 법정 의무 (위반 시 행정지도 및 공표 대상)');
+  else if(papa === 'partial') warnings.push('파파육휴 규정 있으나 취업규칙 미반영 — 조속한 반영 필요');
+  else if(papa === 'yes') goods.push('파파육휴 규정 및 취업규칙 반영 완료');
+
+  if(flex === 'partial') warnings.push('3세~취학 전 유연근무 조치 1가지만 — 2025.04 개정으로 2가지 이상 의무화');
+  else if(flex === 'no') issues.push('3세~취학 전 유연근무 조치 미준비 — 2025.04 개정 의무 위반');
+  else if(flex === 'yes') goods.push('유연근무 2가지 이상 조치 완료');
+
+  let status = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec5', status, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec5', status);
+  autoSave();
+}
+
+// ============================
+// SECTION 6: 사회보험
+// ============================
+function analyzeSection6(){
+  const status = document.getElementById('si_status').value;
+  const health = parseFloat(document.getElementById('si_health').value);
+  const pension = parseFloat(document.getElementById('si_pension').value);
+  const part = document.getElementById('si_part').value;
+
+  if(!status) { setResult('sec6',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+
+  if(status === 'no') issues.push('주요 사회보험 미가입 — 법적 가입 의무 위반, 소급 납부 및 과태료 위험');
+  else if(status === 'partial') warnings.push('일부 근로자 사회보험 미가입 — 적용 기준(주 20시간 이상 등) 재검토 필요');
+  else goods.push('전 보험 적법 가입');
+
+  if(!isNaN(health)){
+    const TOKYO_HEALTH = 4.955;
+    if(health < TOKYO_HEALTH - 0.1) warnings.push('건강보험 근로자 부담율 '+health+'% — 2025년 도쿄 기준('+TOKYO_HEALTH+'%) 확인 필요');
+    else goods.push('건강보험료율 확인됨 ('+health+'%)');
+  }
+
+  if(!isNaN(pension)){
+    if(pension < 9.15 - 0.01) warnings.push('후생연금 근로자 부담율 '+pension+'% — 법정(9.15%) 미달 확인 필요');
+    else goods.push('후생연금 보험료율 확인됨 ('+pension+'%)');
+  }
+
+  if(part === 'no') issues.push('파트·단시간 근로자 사회보험 미적용 — 주 20시간 이상 등 요건 해당자는 강제 적용 대상');
+  else if(part === 'partial') warnings.push('파트 사회보험 일부 누락 — 적용 기준 재점검 필요');
+  else if(part === 'yes') goods.push('단시간 근로자 사회보험 적용 기준 준수');
+
+  let res = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec6', res, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec6', res);
+  autoSave();
+}
+
+// ============================
+// SECTION 7: 근로계약
+// ============================
+function analyzeSection7(){
+  const notice = document.getElementById('ct_notice').value;
+  const rules = document.getElementById('ct_rules').value;
+  const fixed = document.getElementById('ct_fixed').value;
+  const digital = document.getElementById('ct_digital').value;
+
+  if(!notice) { setResult('sec7',null); return; }
+
+  let issues=[], warnings=[], goods=[];
+
+  if(notice === 'no') issues.push('노동조건 통지서 미교부 — 労基法 第15条 위반 (30만 엔 이하 벌금)');
+  else if(notice === 'yes_old') warnings.push('구 양식 사용 중 — 2024.04 개정 필수 기재사항(변경 범위, 갱신 상한, 무기전환 등) 미반영');
+  else if(notice === 'partial') issues.push('일부 근로자에게만 교부 — 전 근로자 교부 의무 위반');
+  else if(notice === 'yes_2024') goods.push('2024.04 개정 포함 전 항목 교부 완료');
+
+  if(rules === 'no') warnings.push('취업규칙 없음 또는 오래된 버전 — 10인 이상 사업장은 작성·신고 의무 (労基法 第89条)');
+  else if(rules === 'partial') warnings.push('취업규칙 최신 법령 미반영 — 2022~2025년 개정 사항 업데이트 필요');
+  else if(rules === 'yes') goods.push('취업규칙 최신화 완료');
+
+  if(fixed === 'no') warnings.push('유기계약 5년 룰 미관리 — 5년 도달 시 무기전환 신청 의무 발생, 사전 통지 체계 필요');
+  else if(fixed === 'partial') warnings.push('유기계약 5년 룰 일부 대상만 관리 — 전 유기계약자 대상으로 확대 필요');
+  else if(fixed === 'managed') goods.push('유기계약 5년 룰 관리 체계 구비');
+
+  let res = issues.length>0?'red':warnings.length>0?'yellow':'green';
+  showGap('sec7', res, issues.length>0?'긴급 조치 필요':warnings.length>0?'개선 권고':'준수', [...issues,...warnings,...goods]);
+  setResult('sec7', res);
+  autoSave();
+}
+
+// ============================
+// OTHER ITEMS (SECTION 9)
+// ============================
+let otherCount = 0;
+function addOtherItem(){
+  otherCount++;
+  const id = 'other_'+otherCount;
+  const html = `<div class="other-item" id="${id}">
+    <div class="other-item-header">
+      <input type="text" placeholder="제목 (예: 재택근무 수당 지급 기준)" style="flex:1;margin-right:8px" id="${id}_title" oninput="autoSave()">
+      <button class="btn-sm btn-danger-sm" onclick="document.getElementById('${id}').remove();autoSave()">삭제</button>
+    </div>
+    <textarea rows="3" placeholder="상세 내용을 입력하세요..." id="${id}_content" oninput="autoSave()" style="resize:vertical"></textarea>
+    <div style="margin-top:8px;display:flex;justify-content:flex-end">
+      <button class="btn-sm" style="background:var(--blue);color:#fff;border-color:var(--blue)" onclick="reviewKeywords('${id}')">검토 요청</button>
+    </div>
+    <div class="review-result" id="${id}_review"></div>
+  </div>`;
+  document.getElementById('otherItems').insertAdjacentHTML('beforeend', html);
+}
+
+function insertKeyword(text){
+  // find last item or create new
+  const items = document.getElementById('otherItems').querySelectorAll('[id^="other_"][id$="_title"]');
+  if(items.length === 0) addOtherItem();
+  const last = Array.from(items).pop();
+  if(last && !last.value) {
+    last.value = text;
+    autoSave();
+    return;
+  }
+  addOtherItem();
+  setTimeout(()=>{
+    const newItems = document.getElementById('otherItems').querySelectorAll('[id^="other_"][id$="_title"]');
+    const newLast = Array.from(newItems).pop();
+    if(newLast) { newLast.value = text; autoSave(); }
+  }, 50);
+}
+
+const keywordMap = [
+  {kw:['고정잔업','みなし残業','固定残業'], level:'red', msg:'고정잔업대(固定残業代): 최고재판소 판례상 ①명시적 합의 ②지급 임금 구분 명확 ③초과분 별도 지급 3요건 필요. 미충족 시 차액 청구 및 노사 분쟁 고위험.'},
+  {kw:['하라스먼트','ハラスメント','파워하라','セクハラ'], level:'red', msg:'파워하라(パワーハラスメント): 2022.04 중소기업 포함 전 사업장 방지 조치 의무화 (労働施策総合推進法). 상담 창구 설치, 취업규칙 기재, 재발방지 절차 미비 시 행정지도 대상.'},
+  {kw:['파견','派遣'], level:'red', msg:'파견법(労働者派遣法): 동일직무 3년 파견 상한, 직접 고용 신청 의무, 동일 노동 동일 임금(均等·均衡待遇) 준수 필요. 파견 계약서·허가증 확인 필수.'},
+  {kw:['재택','テレワーク','원격'], level:'yellow', msg:'テレワーク: 2021 후생노동성 텔레워크 가이드라인 개정. 재택 중 근로시간 관리·중간관리·안전위생 대책 필요. 통신비·광열비 보조 규정 미비 시 노무 분쟁 원인 가능.'},
+  {kw:['비정규','非正規','파트타임','パート'], level:'yellow', msg:'동일노동동일임금(同一労働同一賃金): 2020년 파트타임·유기고용 노동법 시행. 기본급·수당·복리후생 격차에 합리적 이유 없으면 위법. 비교 대상 근로자와의 대우 차이 설명 의무.'},
+  {kw:['부업','副業','겸업','兼業'], level:'yellow', msg:'부업·겸업(副業·兼業): 후생노동성 모델 취업규칙 2018년 개정으로 원칙 허용. 복수 고용 시 근로시간 통산(通算) 규칙으로 36협정·법정 상한 관리 복잡화. 허용 범위와 신고 의무 명확히 규정 필요.'},
+  {kw:['상여','賞与','성과급'], level:'green', msg:'상여금(賞与): 법적 지급 의무 없으나, 취업규칙·고용계약에 지급 기준 기재 시 지급 의무 발생. 성과 미달 시 감액 기준도 명시 필요.'},
+  {kw:['퇴직금','退職金'], level:'green', msg:'퇴직금(退職金): 법적 의무 아니나 지급 규정이 있으면 지급 의무 발생 (労基法 第89条 취업규칙 필수 기재사항). 중소기업 퇴직금 공제제도(中退共) 활용 검토 가능.'},
+];
+
+function reviewKeywords(id){
+  const title = document.getElementById(id+'_title').value || '';
+  const content = document.getElementById(id+'_content').value || '';
+  const text = (title+' '+content).toLowerCase();
+  const reviewEl = document.getElementById(id+'_review');
+  let found = [];
+  keywordMap.forEach(k=>{
+    if(k.kw.some(w=>text.includes(w.toLowerCase()))) found.push(k);
+  });
+  if(found.length === 0){
+    reviewEl.className = 'review-result show';
+    reviewEl.innerHTML = '<p style="color:var(--gray);font-size:13px">등록된 키워드가 감지되지 않았습니다. 내용을 확인해 주세요.</p>';
+    return;
+  }
+  reviewEl.className = 'review-result show';
+  reviewEl.innerHTML = found.map(f=>{
+    const colors={red:'var(--red)',yellow:'#d39e00',green:'var(--green)'};
+    const labels={red:'고위험',yellow:'주의',green:'참고'};
+    return `<div style="margin-bottom:10px;padding:10px 12px;background:#f8f9fa;border-radius:6px;border-left:4px solid ${colors[f.level]}">
+      <span style="font-size:11px;font-weight:700;color:${colors[f.level]}">[${labels[f.level]}]</span>
+      <p style="font-size:12px;margin-top:4px;line-height:1.6">${f.msg}</p>
+    </div>`;
+  }).join('');
+}
+
+// ============================
+// LOCALSTORAGE
+// ============================
+function getFormData(){
+  return {
+    wt_weekly: document.getElementById('wt_weekly').value,
+    wt_36: document.getElementById('wt_36').value,
+    wt_monthly_ot: document.getElementById('wt_monthly_ot').value,
+    wt_annual_ot: document.getElementById('wt_annual_ot').value,
+    wt_mgmt: document.getElementById('wt_mgmt').value,
+    al_days: document.getElementById('al_days').value,
+    al_5day: document.getElementById('al_5day').value,
+    al_rate: document.getElementById('al_rate').value,
+    al_ledger: document.getElementById('al_ledger').value,
+    wage_min: document.getElementById('wage_min').value,
+    wage_ot1: document.getElementById('wage_ot1').value,
+    wage_ot2: document.getElementById('wage_ot2').value,
+    wage_fixed_ot: document.getElementById('wage_fixed_ot').value,
+    wage_payday: document.getElementById('wage_payday').value,
+    dis_notice: document.getElementById('dis_notice').value,
+    dis_allowance: document.getElementById('dis_allowance').value,
+    dis_reason: document.getElementById('dis_reason').value,
+    dis_reduct: document.getElementById('dis_reduct').value,
+    mat_leave: document.getElementById('mat_leave').value,
+    child_leave: document.getElementById('child_leave').value,
+    papa_leave: document.getElementById('papa_leave').value,
+    flex_measures: document.getElementById('flex_measures').value,
+    si_status: document.getElementById('si_status').value,
+    si_health: document.getElementById('si_health').value,
+    si_pension: document.getElementById('si_pension').value,
+    si_part: document.getElementById('si_part').value,
+    ct_notice: document.getElementById('ct_notice').value,
+    ct_rules: document.getElementById('ct_rules').value,
+    ct_fixed: document.getElementById('ct_fixed').value,
+    ct_digital: document.getElementById('ct_digital').value,
+  };
+}
+
+function setFormData(d){
+  if(!d) return;
+  Object.keys(d).forEach(k=>{
+    const el = document.getElementById(k);
+    if(el) el.value = d[k];
+  });
+  ['analyzeSection1','analyzeSection2','analyzeSection3','analyzeSection4','analyzeSection5','analyzeSection6','analyzeSection7'].forEach(fn=>window[fn]&&window[fn]());
+}
+
+function autoSave(){
+  localStorage.setItem('japan_compliance_draft', JSON.stringify(getFormData()));
+}
+
+function saveDraft(){
+  autoSave();
+  showToast('임시저장 완료');
+}
+
+function loadFromStorage(){
+  const saved = localStorage.getItem('japan_compliance_draft');
+  if(saved) { try{ setFormData(JSON.parse(saved)); }catch(e){} }
+}
+
+function clearAll(){
+  if(!confirm('입력된 모든 데이터를 초기화하시겠습니까?')) return;
+  localStorage.removeItem('japan_compliance_draft');
+  location.reload();
+}
+
+function exportJSON(){
+  const data = {meta:{tool:'Japan Tokyo Labor Compliance',date:new Date().toISOString()},form:getFormData()};
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'japan_compliance_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('JSON 내보내기 완료');
+}
+
+function importJSON(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{ try{ const d=JSON.parse(ev.target.result); setFormData(d.form||d); showToast('JSON 불러오기 완료'); }catch(err){ alert('JSON 파일 형식 오류'); } };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ============================
+// REPORT GENERATION
+// ============================
+function generateReport(){
+  autoSave();
+  const secs = [
+    {id:'sec1',name:'근로시간'},
+    {id:'sec2',name:'연차유급휴가'},
+    {id:'sec3',name:'급여·최저임금'},
+    {id:'sec4',name:'해고·고용종료'},
+    {id:'sec5',name:'육아·개호휴업'},
+    {id:'sec6',name:'사회보험'},
+    {id:'sec7',name:'근로계약·노동조건 통지'},
+  ];
+
+  let r=0,y=0,g=0,u=0;
+  secs.forEach(s=>{
+    const v=results[s.id];
+    if(v==='red')r++;else if(v==='yellow')y++;else if(v==='green')g++;else u++;
+  });
+  const total=r+y+g;
+  const rate=total>0?Math.round(g/total*100):0;
+
+  const dotColors = {red:'#DC3545',yellow:'#FFC107',green:'#28A745',null:'#adb5bd'};
+  const statusLabel = {red:'🔴 긴급',yellow:'🟡 권고',green:'🟢 준수',null:'⬜ 미입력'};
+
+  const tableRows = secs.map(s=>{
+    const v = results[s.id]||null;
+    const gapEl = document.getElementById('gap-'+s.id);
+    const gapItems = gapEl ? Array.from(gapEl.querySelectorAll('li')).map(l=>l.textContent).join('<br>') : '-';
+    const trClass = v?'tr-'+v:'';
+    return `<tr class="${trClass}"><td>${s.name}</td><td><span class="traffic-dot" style="background:${dotColors[v]}"></span> ${statusLabel[v]||'미입력'}</td><td style="font-size:12px">${gapItems||'-'}</td></tr>`;
+  }).join('');
+
+  const actions = [];
+  secs.forEach(s=>{
+    const v=results[s.id];
+    if(v==='red'||v==='yellow'){
+      const gapEl = document.getElementById('gap-'+s.id);
+      if(gapEl){
+        Array.from(gapEl.querySelectorAll('li')).forEach(li=>{
+          const text = li.textContent;
+          if(v==='red') actions.push({pri:'high',area:s.name,item:text});
+          else actions.push({pri:'med',area:s.name,item:text});
+        });
+      }
+    }
+  });
+
+  const actionHtml = actions.length>0 ? actions.map(a=>`
+    <div class="action-item pri-${a.pri}">
+      <div style="font-size:11px;font-weight:700;color:${a.pri==='high'?'var(--red)':'#d39e00'};margin-bottom:4px">
+        ${a.pri==='high'?'[즉시 조치]':'[개선 권고]'} — ${a.area}
+      </div>
+      <div style="font-size:13px">${a.item}</div>
+    </div>`).join('') : '<p style="color:var(--gray);font-size:13px">액션 아이템이 없습니다. 모든 항목을 입력하고 분석하세요.</p>';
+
+  document.getElementById('reportBody').innerHTML = `
+    <div style="background:#f8f9fa;border-radius:8px;padding:16px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:12px;color:var(--dark)">Executive Summary</h3>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--green)">${rate}%</div><div style="font-size:12px;color:var(--gray)">종합 준수율</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--red)">${r}</div><div style="font-size:12px;color:var(--gray)">긴급 (RED)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:#d39e00">${y}</div><div style="font-size:12px;color:var(--gray)">권고 (YELLOW)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--green)">${g}</div><div style="font-size:12px;color:var(--gray)">준수 (GREEN)</div></div>
+        <div style="text-align:center"><div style="font-size:32px;font-weight:800;color:var(--gray)">${u}</div><div style="font-size:12px;color:var(--gray)">미입력</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--gray);margin-top:12px">분석 기준일: ${new Date().toLocaleDateString('ko-KR')} | 기준 법령: 2025-2026년 시행 일본 노동법 (도쿄도 기준)</p>
+    </div>
+    <h3 style="font-size:14px;margin-bottom:10px">영역별 컴플라이언스 현황</h3>
+    <table class="report-table"><thead><tr><th>영역</th><th>상태</th><th>분석 내용</th></tr></thead><tbody>${tableRows}</tbody></table>
+    <h3 style="font-size:14px;margin:20px 0 10px">액션 아이템 로드맵</h3>
+    ${actionHtml}
+    <p style="font-size:11px;color:var(--gray);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+      ※ 본 분석은 참고 목적으로만 활용하시고, 법적 판단은 반드시 현지 사회보험노무사(社会保険労務士) 또는 노동법 전문 변호사의 확인을 받으시기 바랍니다.<br>
+      ※ 법령 원문: <a href="https://elaws.e-gov.go.jp/" target="_blank" style="color:var(--blue)">e-Gov 法令検索</a>
+    </p>
+  `;
+
+  document.getElementById('reportModal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('reportModal').classList.remove('show');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// close modal on overlay click
+document.getElementById('reportModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+</script>
+</body>
+</html>

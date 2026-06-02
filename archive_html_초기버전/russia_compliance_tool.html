@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>러시아 노동법 컴플라이언스 도구 | Russia Labor Compliance Tool 2026</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body {
+  font-family: 'Malgun Gothic', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  background: #f0f2f5;
+  color: #212529;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #0d2137 100%);
+  color: #fff;
+  padding: 24px 32px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header-title { display: flex; align-items: center; gap: 14px; }
+.flag { font-size: 2rem; line-height: 1; }
+.header-title h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+.header-title p { font-size: 0.82rem; color: #a0b8cc; margin-top: 2px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-success { background: #28a745; color: #fff; }
+.btn-warning { background: #ffc107; color: #212529; }
+.btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-outline { background: transparent; color: #2563eb; border: 1.5px solid #2563eb; }
+.btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+
+/* ===== MAIN LAYOUT ===== */
+.main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 60px; }
+
+/* ===== DASHBOARD SUMMARY ===== */
+.dashboard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+}
+.dashboard-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s;
+}
+.stat-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 0.78rem; color: #6c757d; font-weight: 500; }
+.stat-compliant .stat-number { color: #28a745; }
+.stat-advisory .stat-number { color: #ffc107; }
+.stat-critical .stat-number { color: #dc3545; }
+.stat-pending .stat-number { color: #6c757d; }
+.stat-rate .stat-number { color: #2563eb; }
+
+.progress-section { margin-top: 4px; }
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #495057;
+}
+.progress-bar-wrap {
+  background: #e9ecef;
+  border-radius: 99px;
+  height: 14px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease, background 0.3s;
+  min-width: 2px;
+}
+
+/* ===== LEGEND ===== */
+.legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.80rem;
+  color: #495057;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e9ecef;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-red { background: #dc3545; }
+.dot-yellow { background: #ffc107; }
+.dot-green { background: #28a745; }
+.dot-gray { background: #6c757d; }
+
+/* ===== SECTIONS ===== */
+.section {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+.section-header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  background: #fafbfc;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.15s;
+  gap: 12px;
+}
+.section-header:hover { background: #f0f4f8; }
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.section-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.section-meta { min-width: 0; }
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.section-subtitle {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 1px;
+}
+.section-status-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.section-toggle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.section-toggle.open { transform: rotate(180deg); }
+.section-body { padding: 24px; display: none; }
+.section-body.open { display: block; }
+
+/* ===== TWO-COLUMN GRID ===== */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ===== LAW PANEL ===== */
+.panel {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  height: 100%;
+}
+.panel-law { border-left: 4px solid #1a3a5c; }
+.panel-input { border-left: 4px solid #2563eb; }
+.panel-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-law .panel-title { color: #1a3a5c; }
+.panel-input .panel-title { color: #2563eb; }
+
+.law-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+.law-article {
+  background: #1a3a5c;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.law-text { font-size: 0.84rem; color: #343a40; line-height: 1.5; }
+.law-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #2563eb;
+  text-decoration: none;
+}
+.law-link:hover { text-decoration: underline; }
+.law-note {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fff3cd;
+  border-radius: 5px;
+  border-left: 3px solid #ffc107;
+}
+
+/* ===== INPUT FIELDS ===== */
+.field-group { margin-bottom: 14px; }
+.field-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #343a40;
+  margin-bottom: 5px;
+}
+.field-required { color: #dc3545; margin-left: 3px; }
+.field-input, .field-select {
+  width: 100%;
+  padding: 9px 13px;
+  border: 1.5px solid #ced4da;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: #fff;
+  color: #212529;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236c757d' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.field-input:focus, .field-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+.field-hint {
+  font-size: 0.74rem;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
+/* ===== STATUS BADGE ===== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge-compliant { background: #d1fae5; color: #155724; }
+.badge-advisory  { background: #fff3cd; color: #856404; }
+.badge-critical  { background: #f8d7da; color: #721c24; }
+.badge-pending   { background: #e9ecef; color: #495057; }
+
+/* ===== GAP RESULT PANEL ===== */
+.gap-result {
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  border: 1.5px solid transparent;
+  transition: all 0.3s;
+}
+.gap-result.compliant {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #155724;
+}
+.gap-result.advisory {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #78350f;
+}
+.gap-result.critical {
+  background: #fff1f2;
+  border-color: #fca5a5;
+  color: #7f1d1d;
+}
+.gap-result.pending {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #6c757d;
+}
+.gap-result-header {
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+.gap-result-body { line-height: 1.6; }
+.gap-result-body ul { padding-left: 18px; margin-top: 6px; }
+.gap-result-body li { margin-bottom: 3px; }
+.gap-section {
+  border-top: 1px solid rgba(0,0,0,0.07);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+.gap-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+/* ===== SECTION COLOR THEMES ===== */
+.icon-workhours { background: #dbeafe; }
+.icon-salary    { background: #dcfce7; }
+.icon-leave     { background: #fef3c7; }
+.icon-termination { background: #fee2e2; }
+.icon-maternity { background: #fce7f3; }
+.icon-insurance { background: #ede9fe; }
+.icon-contract  { background: #f0fdf4; }
+
+/* ===== INFO BOXES ===== */
+.info-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.80rem;
+  color: #1e40af;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.warn-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #78350f;
+  margin-bottom: 12px;
+}
+
+/* ===== UTILITY ===== */
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.divider { border: none; border-top: 1px solid #e9ecef; margin: 20px 0; }
+.text-muted { color: #6c757d; font-size: 0.80rem; }
+.fw-bold { font-weight: 700; }
+.tag {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.70rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+.tag-new { background: #dcfce7; color: #166534; }
+.tag-warn { background: #fee2e2; color: #991b1b; }
+
+/* ===== FINAL REPORT ===== */
+.final-report {
+  display: none;
+  background: #fff;
+  border-radius: 12px;
+  margin-top: 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  border: 2px solid #1a3a5c;
+  overflow: hidden;
+}
+.final-report.visible { display: block; }
+.final-report-header {
+  background: linear-gradient(135deg, #1a3a5c 0%, #0d2137 100%);
+  color: #fff;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.final-report-header h2 { font-size: 1.15rem; font-weight: 700; }
+.final-report-body { padding: 24px 28px; }
+.final-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.final-stat {
+  text-align: center;
+  padding: 18px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+}
+.final-stat-num { font-size: 2.2rem; font-weight: 800; line-height: 1.1; margin-bottom: 4px; }
+.final-stat-label { font-size: 0.8rem; color: #495057; font-weight: 500; }
+.final-stat.green { background: #f0fdf4; border-color: #86efac; }
+.final-stat.green .final-stat-num { color: #28a745; }
+.final-stat.yellow { background: #fffbeb; border-color: #fde68a; }
+.final-stat.yellow .final-stat-num { color: #e6a200; }
+.final-stat.red { background: #fff1f2; border-color: #fca5a5; }
+.final-stat.red .final-stat-num { color: #dc3545; }
+.final-stat.blue { background: #eff6ff; border-color: #93c5fd; }
+.final-stat.blue .final-stat-num { color: #2563eb; }
+.final-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.84rem; }
+.final-table th {
+  background: #f1f5f9;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: #1a3a5c;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+}
+.final-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  line-height: 1.5;
+}
+.final-table tr:hover td { background: #f8fafc; }
+.final-table .status-cell { text-align: center; white-space: nowrap; }
+.final-actions {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+.final-actions h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.action-list { list-style: none; padding: 0; }
+.action-list li {
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.action-list li.critical-item { background: #fff1f2; border-left: 4px solid #dc3545; }
+.action-list li.advisory-item { background: #fffbeb; border-left: 4px solid #ffc107; }
+.action-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+.no-gaps-msg {
+  text-align: center;
+  padding: 32px;
+  color: #28a745;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+/* ===== AMENDMENT TIMELINE ===== */
+.amendment-timeline { padding: 0; list-style: none; }
+.amendment-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e9ecef;
+  align-items: flex-start;
+}
+.amendment-item:last-child { border-bottom: none; }
+.amendment-date {
+  flex-shrink: 0;
+  width: 110px;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.amendment-date.past { background: #dbeafe; color: #1e40af; }
+.amendment-date.upcoming { background: #fef3c7; color: #92400e; }
+.amendment-date.recent { background: #dcfce7; color: #166534; }
+.amendment-content { flex: 1; }
+.amendment-title { font-weight: 700; font-size: 0.88rem; color: #1a3a5c; margin-bottom: 4px; }
+.amendment-desc { font-size: 0.82rem; color: #495057; line-height: 1.5; }
+.amendment-check {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fffbeb;
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+  font-size: 0.80rem;
+  color: #78350f;
+}
+
+/* ===== CUSTOM POLICY SECTION ===== */
+.custom-entry {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.custom-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.custom-entry-num {
+  background: #2563eb;
+  color: #fff;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.custom-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 14px;
+  border: 1.5px solid #ced4da;
+  border-radius: 7px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.custom-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+.custom-review {
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  display: none;
+}
+.custom-review.visible { display: block; }
+.custom-review.ok { background: #f0fdf4; border: 1px solid #86efac; color: #155724; }
+.custom-review.warn { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+.custom-review.risk { background: #fff1f2; border: 1px solid #fca5a5; color: #7f1d1d; }
+.btn-remove-entry {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.btn-remove-entry:hover { color: #dc3545; background: #fee2e2; }
+.btn-add-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #eff6ff;
+  border: 1.5px dashed #93c5fd;
+  border-radius: 8px;
+  color: #2563eb;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-add-entry:hover { background: #dbeafe; border-color: #2563eb; }
+.btn-review-custom {
+  margin-top: 12px;
+  padding: 10px 24px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-review-custom:hover { filter: brightness(1.1); }
+
+.submit-bar {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 28px;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.submit-bar-info { font-size: 0.88rem; color: #495057; line-height: 1.5; }
+.submit-bar-info strong { color: #1a3a5c; }
+.btn-submit {
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #1a3a5c 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  letter-spacing: 0.3px;
+}
+.btn-submit:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.4); }
+.btn-submit:active { transform: translateY(0); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; filter: none; transform: none; }
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+  font-size: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 32px;
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .header { position: static; background: #1a3a5c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .header-actions { display: none; }
+  .section-body { display: block !important; }
+  .section-toggle { display: none; }
+  .section-header { cursor: default; }
+  body { background: #fff; font-size: 11pt; }
+  .main { padding: 0; max-width: 100%; }
+  .section { box-shadow: none; break-inside: avoid; }
+  .two-col { grid-template-columns: 1fr 1fr; }
+  .btn { display: none !important; }
+  .footer { display: block !important; }
+  .gap-result.critical  { background: #fff1f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .gap-result.advisory  { background: #fffbeb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .gap-result.compliant { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .final-report.visible { display: block !important; break-before: page; }
+  .final-report-header { background: #1a3a5c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .final-stat { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .submit-bar { display: none !important; }
+  .action-list li.critical-item { background: #fff1f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .action-list li.advisory-item { background: #fffbeb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ===== FILE INPUT HIDDEN ===== */
+#jsonFileInput { display: none; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1a3a5c;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="flag">🇷🇺</span>
+      <div>
+        <h1>러시아 노동법 컴플라이언스 도구</h1>
+        <p>Russia Labor Compliance Interactive Tool &nbsp;|&nbsp; 기준: ТК РФ 2026 &nbsp;|&nbsp; МРОТ 27,093 RUB</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary btn-sm" onclick="uploadJSON()">JSON 불러오기</button>
+      <button class="btn btn-secondary btn-sm" onclick="downloadJSON()">JSON 저장</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearAll()">초기화</button>
+      <button class="btn btn-warning btn-sm" onclick="window.print()">PDF 출력</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="jsonFileInput" accept=".json" onchange="handleJSONUpload(event)">
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+    <div class="dashboard-title">
+      <span>📊</span> 실시간 컴플라이언스 현황 대시보드
+      <span class="text-muted" style="margin-left:auto;font-size:0.75rem;" id="lastUpdated">마지막 업데이트: —</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card stat-rate">
+        <div class="stat-number" id="statRate">—%</div>
+        <div class="stat-label">전체 준수율</div>
+      </div>
+      <div class="stat-card stat-compliant">
+        <div class="stat-number" id="statGreen">0</div>
+        <div class="stat-label">준수 항목</div>
+      </div>
+      <div class="stat-card stat-advisory">
+        <div class="stat-number" id="statYellow">0</div>
+        <div class="stat-label">개선 권고</div>
+      </div>
+      <div class="stat-card stat-critical">
+        <div class="stat-number" id="statRed">0</div>
+        <div class="stat-label">긴급 조치 필요</div>
+      </div>
+      <div class="stat-card stat-pending">
+        <div class="stat-number" id="statGray">13</div>
+        <div class="stat-label">미입력 항목</div>
+      </div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-label">
+        <span>입력 완료율 &amp; 준수율</span>
+        <span id="progressPct">0 / 13 항목 입력됨</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%;background:#6c757d;"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot dot-green"></span> 준수 (Соблюдается)</div>
+      <div class="legend-item"><span class="legend-dot dot-yellow"></span> 부분준수 / 개선 권고 (Рекомендация)</div>
+      <div class="legend-item"><span class="legend-dot dot-red"></span> 미준수 / 긴급 조치 (Нарушение)</div>
+      <div class="legend-item"><span class="legend-dot dot-gray"></span> 미입력 (Не заполнено)</div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 1: 근로시간 ===== -->
+  <div class="section" id="sec-workhours">
+    <div class="section-header" onclick="toggleSection('workhours')">
+      <div class="section-header-left">
+        <div class="section-icon icon-workhours">⏱️</div>
+        <div class="section-meta">
+          <div class="section-title">근로시간 (Рабочее время)</div>
+          <div class="section-subtitle">ТК РФ ст.91, 99, 152 &nbsp;|&nbsp; 표준 40시간/주, 초과 연 120h, 수당 1.5×/2×</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-workhours"></div>
+      <span class="section-toggle open" id="toggle-workhours">▼</span>
+    </div>
+    <div class="section-body open" id="body-workhours">
+      <div class="info-box">
+        ТК РФ ст.91: 표준 근로시간은 주 40시간을 초과할 수 없습니다. ст.99: 초과근무는 연간 120시간 한도 (현재 정부 240시간 확대 법안 심의 중, 시행 전). ст.152 (2024.09.01 개정): 수당 산정 기준에 모든 수당·인센티브 포함 의무.
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.91</span>
+            <div class="law-text">주당 근로시간 최대 <strong>40시간</strong> (Нормальная продолжительность рабочего времени не может превышать 40 часов в неделю)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.99</span>
+            <div class="law-text">초과근무 연간 한도 <strong>120시간</strong> / 2일 연속 4시간 초과 금지 (수당 별도)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.152</span>
+            <div class="law-text">초과근무 수당: 최초 2시간 <strong>1.5배</strong> 이상, 이후 <strong>2배</strong> 이상 (2024.09.01 개정: 기본급+모든 수당 포함 기준)<span class="tag tag-new">2024.09 개정</span></div>
+          </div>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/d3a35d47f8a9568c5ad1ac4e0e8d2b0a2f1c3e4f/" target="_blank">📄 КонсультантПлюс — ст.91 원문</a><br>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ 전체 원문</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_weekly_hours">주당 근로시간 (часов в неделю)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_weekly_hours" min="1" max="80" placeholder="40" oninput="evaluate()">
+            <div class="field-hint">소수점 불가. 표준 사무직 기준 40 입력</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_overtime_pay">초과근무 수당 배율 (Ставка сверхурочных)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_overtime_pay" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">1.5배 이후 2배 (법정 기준 충족)</option>
+              <option value="partial">1.5배만 적용 (이후도 동일)</option>
+              <option value="critical">미지급 / 없음</option>
+              <option value="other">기타 (기준 불명확)</option>
+            </select>
+            <div class="field-hint">2024.09.01 개정: 기본급에 모든 수당 포함하여 산정</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_overtime_base">수당 산정 기준 (База расчёта)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_overtime_base" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">기본급 + 모든 수당 포함 (법정)</option>
+              <option value="critical">기본급만 적용 (개정 전 방식)</option>
+              <option value="na">초과근무 없음</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-workhours" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: 급여 ===== -->
+  <div class="section" id="sec-salary">
+    <div class="section-header" onclick="toggleSection('salary')">
+      <div class="section-header-left">
+        <div class="section-icon icon-salary">💰</div>
+        <div class="section-meta">
+          <div class="section-title">급여 (Заработная плата)</div>
+          <div class="section-subtitle">ТК РФ ст.133, 136 &nbsp;|&nbsp; МРОТ 27,093 RUB (2026), 월 2회 이상 지급</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-salary"></div>
+      <span class="section-toggle open" id="toggle-salary">▼</span>
+    </div>
+    <div class="section-body open" id="body-salary">
+      <div class="info-box">
+        ТК РФ ст.136: 급여는 <strong>월 2회 이상</strong> 지급해야 하며, 전반기분은 당월 16~말일, 후반기분은 익월 1~15일 지급. 지연 시 CBR 기준금리 1/300 이자 배상 의무 (ст.236). ст.133: 모든 근로자의 임금은 연방 МРОТ 이상.
+      </div>
+      <div class="warn-box">
+        ⚠️ <strong>2026년 МРОТ:</strong> 27,093 RUB/월 (연방, Federal Law No.429-FZ 2025.11.28). 모스크바 지역 최저임금은 별도 협약으로 더 높을 수 있습니다.
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.136</span>
+            <div class="law-text">급여 지급 주기: <strong>월 2회 이상</strong>, 각 지급일 간격 최대 15일 이하</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.133</span>
+            <div class="law-text">연방 최저임금(МРОТ) <strong>27,093 RUB/월</strong> 이상 (2026.01.01~)<span class="tag tag-new">2026 기준</span></div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.236</span>
+            <div class="law-text">급여 지연 시 CBR 기준금리 1/300 × 지연일수 이자 의무 지급 (2024.01.30 개정)</div>
+          </div>
+          <a class="law-link" href="https://acsour.com/en/news-and-articles/tpost/udoa6btm71-minimum-wage-to-increase-to-27093-rubles" target="_blank">📄 МРОТ 2026 상세 (Acsour)</a><br>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ 원문</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_pay_frequency">급여 지급 주기 (Периодичность выплат)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_pay_frequency" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">월 2회 (법정 기준 충족)</option>
+              <option value="compliant_plus">주 1회 이상 (법정 기준 초과 충족)</option>
+              <option value="critical">월 1회 (법정 위반)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_mrot">최저임금(МРОТ) 준수 여부<span class="field-required">*</span></label>
+            <select class="field-select" id="f_mrot" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 전 직원 27,093 RUB 이상 (2026)</option>
+              <option value="advisory">확인 필요 (일부 직원 미확인)</option>
+              <option value="critical">아니오 (미준수 직원 존재)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_delay_interest">급여 지연 이자 정책 (ст.236)</label>
+            <select class="field-select" id="f_delay_interest" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">지연 없음 (정시 지급)</option>
+              <option value="advisory">정책은 있으나 미적용 경우 있음</option>
+              <option value="critical">정책 없음 / 이자 미지급</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-salary" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 3: 연차휴가 ===== -->
+  <div class="section" id="sec-leave">
+    <div class="section-header" onclick="toggleSection('leave')">
+      <div class="section-header-left">
+        <div class="section-icon icon-leave">🏖️</div>
+        <div class="section-meta">
+          <div class="section-title">연차휴가 (Ежегодный отпуск)</div>
+          <div class="section-subtitle">ТК РФ ст.115, 122, 125 &nbsp;|&nbsp; 최소 28역일, 1회 14일 이상 연속 사용</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-leave"></div>
+      <span class="section-toggle open" id="toggle-leave">▼</span>
+    </div>
+    <div class="section-body open" id="body-leave">
+      <div class="info-box">
+        ТК РФ ст.115: 연차휴가 최소 <strong>28역일(calendar days)</strong>. ст.125: 분할 사용 시 최소 1회는 <strong>14일 이상 연속</strong>이어야 함. ст.122: 최초 휴가는 6개월 근속 후 부여. 미사용 휴가는 소멸 불가 (ст.127: 퇴직 시 정산).
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.115</span>
+            <div class="law-text">연간 유급 휴가 최소 <strong>28역일</strong> (일부 직종 추가 부여)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.125</span>
+            <div class="law-text">분할 시 최소 1구간 <strong>14일 이상 연속</strong> 의무. 나머지는 협의하여 분할 가능</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.127</span>
+            <div class="law-text">퇴직 시 미사용 휴가 <strong>전액 현금 정산</strong> 의무 (소멸 불가)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.122</span>
+            <div class="law-text">최초 휴가권: 입사 후 <strong>6개월</strong> 근속 시 발생</div>
+          </div>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ 원문 (ст.115~128)</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_leave_days">연차 부여 일수 (дней отпуска)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_leave_days" min="1" max="60" placeholder="28" oninput="evaluate()">
+            <div class="field-hint">최소 28역일. 초과 부여는 회사 재량</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_leave_split">14일 연속 사용 보장 여부 (ст.125)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_leave_split" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 최소 14일 연속 보장</option>
+              <option value="advisory">정책 불명확 / 확인 필요</option>
+              <option value="critical">미보장 (전면 분할 사용)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_leave_carryover">미사용 휴가 처리 방침</label>
+            <select class="field-select" id="f_leave_carryover" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">이월 허용 + 퇴직 시 전액 정산</option>
+              <option value="advisory">이월 제한 (단, 정산은 준수)</option>
+              <option value="critical">소멸 처리 (법적 금지)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-leave" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 4: 해고·감원 ===== -->
+  <div class="section" id="sec-termination">
+    <div class="section-header" onclick="toggleSection('termination')">
+      <div class="section-header-left">
+        <div class="section-icon icon-termination">📋</div>
+        <div class="section-meta">
+          <div class="section-title">해고 및 감원 (Увольнение и сокращение)</div>
+          <div class="section-subtitle">ТК РФ ст.178, 180, 261 &nbsp;|&nbsp; 60일 예고, 퇴직금 1~3개월, 보호 대상자</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-termination"></div>
+      <span class="section-toggle open" id="toggle-termination">▼</span>
+    </div>
+    <div class="section-body open" id="body-termination">
+      <div class="info-box">
+        ТК РФ ст.180: 감원(сокращение) 및 청산(ликвидация) 시 근로자에게 최소 <strong>60일 전</strong> 서면 예고 의무. ст.178: 퇴직금(выходное пособие) <strong>평균임금 1개월분</strong>, 구직 중 최대 2~3개월 지원금 추가. ст.261: 임산부, 만 3세 미만 자녀 모 등은 해고 금지.
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.180</span>
+            <div class="law-text">감원·청산 예고: 최소 <strong>60일 전</strong> 서면 통보 (Предупреждение за 2 месяца)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.178</span>
+            <div class="law-text">퇴직금: 평균월급 <strong>1개월분</strong> 기본 지급 + 구직 기간 최대 2개월 추가 (지역 고용센터 등록 시 3개월까지)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.261</span>
+            <div class="law-text"><strong>해고 금지 대상:</strong> 임산부, 만 3세 미만 자녀 모, 14세 미만 자녀 편부·편모 등</div>
+          </div>
+          <a class="law-link" href="https://gratanet.com/publications/gils-employment-law-russia" target="_blank">📄 Grata International — Russia Employment Law</a><br>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ 원문</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_notice_days">감원 예고기간 (일) (срок уведомления)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_notice_days" min="0" max="365" placeholder="60" oninput="evaluate()">
+            <div class="field-hint">법정 최소 60일. 미만 시 즉시 위반</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_severance">퇴직금 지급 여부 (выходное пособие)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_severance" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 평균 1개월 이상 지급</option>
+              <option value="advisory">해당 없음 (감원 없음)</option>
+              <option value="critical">아니오 / 미지급</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_protected">보호 대상자 해고 금지 정책 (ст.261)</label>
+            <select class="field-select" id="f_protected" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 정책 수립 및 적용 중</option>
+              <option value="advisory">정책 있으나 담당자 인지 부족</option>
+              <option value="critical">정책 없음</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-termination" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 5: 출산·육아휴직 ===== -->
+  <div class="section" id="sec-maternity">
+    <div class="section-header" onclick="toggleSection('maternity')">
+      <div class="section-header-left">
+        <div class="section-icon icon-maternity">👶</div>
+        <div class="section-meta">
+          <div class="section-title">출산 및 육아휴직 (Декретный отпуск)</div>
+          <div class="section-subtitle">ТК РФ ст.255, 256 &nbsp;|&nbsp; 출산 140일 (최대 194일), 육아휴직 3년</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-maternity"></div>
+      <span class="section-toggle open" id="toggle-maternity">▼</span>
+    </div>
+    <div class="section-body open" id="body-maternity">
+      <div class="info-box">
+        ТК РФ ст.255: 출산휴가(отпуск по беременности и родам) 표준 <strong>140역일</strong> (출산 전 70일 + 후 70일). 난산 156일, 다태아 194일. 급여의 100% 사회보험기금 지급. ст.256: 육아휴직(отпуск по уходу за ребёнком) 최대 <strong>만 3세</strong>까지. 모·부·기타 법정 대리인 사용 가능.
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.255</span>
+            <div class="law-text">출산휴가: <strong>140역일</strong> (표준) / 156일 (난산) / 194일 (다태아). 급여 100% 보전 (СФР 지급)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.256</span>
+            <div class="law-text">육아휴직: 자녀 <strong>만 3세</strong>까지. 1.5세까지 СФР 수당 지급, 이후 무급 (직위 보장)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.261</span>
+            <div class="law-text">육아휴직 중 해고 절대 금지 (청산 제외)</div>
+          </div>
+          <div class="law-note">2025.09.01: 입양 관련 휴가 개정 시행. 최대 지급액 2026: 955,835.61 RUB (140일 기준)</div>
+          <a class="law-link" href="https://sfr.gov.ru/en/" target="_blank">📄 СФР 공식 사이트 (급여율)</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_maternity_days">출산휴가 부여 일수 (дней декрета)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_maternity_days" min="0" max="365" placeholder="140" oninput="evaluate()">
+            <div class="field-hint">법정 최소 140일. 회사 추가 부여 가능</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_parental_leave">육아휴직 제공 여부 (отпуск до 3 лет)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_parental_leave" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 만 3세까지 보장 (모·부 모두)</option>
+              <option value="advisory">일부 보장 (모만 또는 기간 단축)</option>
+              <option value="critical">미제공</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_maternity_benefit">급여 보전 방식</label>
+            <select class="field-select" id="f_maternity_benefit" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">СФР 통해 100% 지급 처리 중</option>
+              <option value="advisory">회사 직접 지급 후 СФР 정산</option>
+              <option value="critical">처리 절차 불명확</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-maternity" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 6: 사회보험 ===== -->
+  <div class="section" id="sec-insurance">
+    <div class="section-header" onclick="toggleSection('insurance')">
+      <div class="section-header-left">
+        <div class="section-icon icon-insurance">🛡️</div>
+        <div class="section-meta">
+          <div class="section-title">사회보험 기여금 (Страховые взносы)</div>
+          <div class="section-subtitle">НК РФ гл.34, ФЗ-125 &nbsp;|&nbsp; 통합기여율 30% (상한 이하), 15.1% (상한 초과)</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-insurance"></div>
+      <span class="section-toggle open" id="toggle-insurance">▼</span>
+    </div>
+    <div class="section-body open" id="body-insurance">
+      <div class="info-box">
+        НК РФ гл.34: 고용주 통합사회기여금(ЕСВ) <strong>30%</strong> (연간 누적 급여 2,979,000 RUB 이하), 초과분 <strong>15.1%</strong>. 구성: 연금 22% + 사회보험 2.9% + 의료보험 5.1%. 중소기업·IT기업 감면 적용 가능. ФЗ-125: 산재보험(0.2%~8.5%) 별도.
+      </div>
+      <div class="warn-box">
+        ⚠️ 기여 상한선은 매년 1월 갱신 필수. 2026년 상한: 2,979,000 RUB (재무부 제안, 전년 대비 +8%). 급여 시스템 미업데이트 시 과다/과소 납부 위험.
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">гл.34 НК</span>
+            <div class="law-text">통합기여율 <strong>30%</strong> (상한 이하) / <strong>15.1%</strong> (상한 초과 2,979,000 RUB)<span class="tag tag-new">2026</span></div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ФЗ-125</span>
+            <div class="law-text">산재·직업병 보험: 업종별 <strong>0.2%~8.5%</strong> (СФР 공고 기준)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">НК РФ</span>
+            <div class="law-text">납부 기한: 급여 지급 다음달 <strong>28일</strong>까지. 미납 시 벌금 + 이자 부과</div>
+          </div>
+          <a class="law-link" href="https://acsour.com/en/news-and-articles/tpost/zd54az25u1-ministry-of-finance-proposes-new-social" target="_blank">📄 2026 기여 상한 상세 (Acsour)</a><br>
+          <a class="law-link" href="https://sfr.gov.ru/en/" target="_blank">📄 СФР 산재보험 요율표</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_usc_rate">적용 기여율 % (ставка взносов)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_usc_rate" min="0" max="50" step="0.1" placeholder="30" oninput="evaluate()">
+            <div class="field-hint">표준 30%. 중소기업 15%, IT기업 7.6% 감면 가능 (자격 조건 별도 확인)</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_usc_ceiling">2026 상한선 급여 시스템 반영 여부<span class="field-required">*</span></label>
+            <select class="field-select" id="f_usc_ceiling" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 2,979,000 RUB 업데이트 완료</option>
+              <option value="advisory">확인 필요 (담당자 검토 중)</option>
+              <option value="critical">아니오 (미업데이트 / 구년도 적용 중)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_accident_ins">산재보험 적용 여부 (ФЗ-125)</label>
+            <select class="field-select" id="f_accident_ins" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 업종별 요율 적용 중</option>
+              <option value="advisory">적용 중이나 요율 미확인</option>
+              <option value="critical">미신고 / 미적용</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-insurance" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 7: 근로계약 ===== -->
+  <div class="section" id="sec-contract">
+    <div class="section-header" onclick="toggleSection('contract')">
+      <div class="section-header-left">
+        <div class="section-icon icon-contract">📄</div>
+        <div class="section-meta">
+          <div class="section-title">근로계약 (Трудовой договор)</div>
+          <div class="section-subtitle">ТК РФ ст.57, 67, 70 &nbsp;|&nbsp; 필수 기재사항, 시용기간 3개월 한도</div>
+        </div>
+      </div>
+      <div class="section-status-badges" id="badges-contract"></div>
+      <span class="section-toggle open" id="toggle-contract">▼</span>
+    </div>
+    <div class="section-body open" id="body-contract">
+      <div class="info-box">
+        ТК РФ ст.57: 근로계약 <strong>필수 기재사항</strong> (성명·직위·근무지·급여·근로시간·사회보험 등). ст.67: 근로 개시 후 <strong>3영업일 내</strong> 서면 계약 체결 의무. ст.70: 시용기간 최대 <strong>3개월</strong> (관리직 6개월, 2주 미만 고용 시 시용 금지).
+      </div>
+      <div class="two-col">
+        <div class="panel panel-law">
+          <div class="panel-title">⚖️ 법정 기준 (Законодательные требования)</div>
+          <div class="law-item">
+            <span class="law-article">ст.57</span>
+            <div class="law-text">필수 기재: 당사자 정보, 근무지, 직무, 개시일, 근로조건, 급여(기본급+수당), 근로시간, 휴가, 사회보험 등 <strong>14개 항목</strong></div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.67</span>
+            <div class="law-text">실제 근로 개시일로부터 <strong>3영업일 내</strong> 서면 체결 (미체결 시 1~5만 RUB 과태료)</div>
+          </div>
+          <div class="law-item">
+            <span class="law-article">ст.70</span>
+            <div class="law-text">시용기간: 일반직 <strong>최대 3개월</strong> / 관리직(임원·총지배인 등) 최대 6개월. 임산부·미성년자 시용 금지</div>
+          </div>
+          <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ ст.57 원문</a><br>
+          <a class="law-link" href="https://awaragroup.com/blog/" target="_blank">📄 Awara Group — 계약 실무 가이드</a>
+        </div>
+        <div class="panel panel-input">
+          <div class="panel-title">📝 현행 제도 입력 (Ваша политика)</div>
+          <div class="field-group">
+            <label class="field-label" for="f_probation_months">시용기간 (개월) (срок испытания)<span class="field-required">*</span></label>
+            <input class="field-input" type="number" id="f_probation_months" min="0" max="12" step="0.5" placeholder="3" oninput="evaluate()">
+            <div class="field-hint">일반직 최대 3개월. 0 입력 시 시용 없음으로 처리</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_contract_mandatory">필수 기재사항 포함 여부 (ст.57)<span class="field-required">*</span></label>
+            <select class="field-select" id="f_contract_mandatory" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">예, 14개 필수 항목 전부 포함</option>
+              <option value="advisory">부분 포함 (일부 항목 누락)</option>
+              <option value="critical">아니오 (대폭 누락 또는 미체결)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="f_contract_timing">계약 체결 시점 (ст.67)</label>
+            <select class="field-select" id="f_contract_timing" onchange="evaluate()">
+              <option value="">-- 선택하세요 --</option>
+              <option value="compliant">근무 개시 3영업일 내 체결</option>
+              <option value="advisory">입사 전 체결 (더 안전)</option>
+              <option value="critical">3영업일 초과 후 체결 또는 미체결</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="gap-section">
+        <div class="gap-section-title">갭 분석 결과 (Результат анализа)</div>
+        <div id="gap-contract" class="gap-result pending">
+          <div class="gap-result-header">⬜ 미입력</div>
+          <div class="gap-result-body">위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 8: 최신 개정법령 ===== -->
+  <div class="section" id="sec-amendments">
+    <div class="section-header" onclick="toggleSection('amendments')">
+      <div class="section-header-left">
+        <div class="section-icon" style="background:#fce7f3;">📜</div>
+        <div class="section-meta">
+          <div class="section-title">최신 개정 법령 (Последние изменения законодательства)</div>
+          <div class="section-subtitle">2024~2026년 주요 개정사항 및 체크포인트</div>
+        </div>
+      </div>
+      <span class="section-toggle open" id="toggle-amendments">▼</span>
+    </div>
+    <div class="section-body open" id="body-amendments">
+      <div class="info-box">
+        아래는 최근 개정되었거나 시행 예정인 러시아 노동법 변경사항입니다. 각 항목의 <strong>체크포인트</strong>를 확인하여 법인 내부 제도에 반영 여부를 점검하십시오.
+      </div>
+      <ul class="amendment-timeline" id="amendmentTimeline">
+        <li class="amendment-item">
+          <div class="amendment-date past">2024.09.01<br><span style="font-size:0.65rem;">시행 완료</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">초과근무 수당 산정 기준 변경 (ст.152 개정)</div>
+            <div class="amendment-desc">초과근무 수당 산정 시 기본급뿐 아니라 <strong>모든 수당·보상·인센티브를 포함</strong>하여 계산해야 함. 기존 기본급만 적용하던 방식은 위반.</div>
+            <div class="amendment-check">체크포인트: 급여 시스템에서 초과근무 산정 기준이 전체 보상 패키지 기반으로 업데이트되었는가?</div>
+          </div>
+        </li>
+        <li class="amendment-item">
+          <div class="amendment-date past">2024.01.30<br><span style="font-size:0.65rem;">시행 완료</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">급여 지연 이자 배상 기준 강화 (ст.236 개정)</div>
+            <div class="amendment-desc">급여·퇴직금 지연 시 배상 이자율이 CBR 기준금리의 <strong>1/150</strong>로 상향 (기존 1/300). 지연 일수별 자동 계산 의무.</div>
+            <div class="amendment-check">체크포인트: 급여 지연 이자 산정 공식이 1/150 기준으로 갱신되었는가?</div>
+          </div>
+        </li>
+        <li class="amendment-item">
+          <div class="amendment-date recent">2025.01.01<br><span style="font-size:0.65rem;">현재 시행 중</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">연방 최저임금(МРОТ) 22,440 RUB (2025년)</div>
+            <div class="amendment-desc">2025년 연방 최저임금 22,440 RUB/월 적용. 모든 근로자 급여가 이 기준 이상인지 확인 필요.</div>
+            <div class="amendment-check">체크포인트: 전 직원 급여가 22,440 RUB 이상이며, 지역별 추가 최저임금 협약도 반영하였는가?</div>
+          </div>
+        </li>
+        <li class="amendment-item">
+          <div class="amendment-date upcoming">2026.01.01<br><span style="font-size:0.65rem;">시행 예정</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">연방 최저임금(МРОТ) 27,093 RUB 인상 (Federal Law No.429-FZ)</div>
+            <div class="amendment-desc">2026년 1월 1일부터 МРОТ가 <strong>27,093 RUB</strong>으로 20.7% 인상. 최저임금 연동 수당·사회보험 기준도 동시 변경.</div>
+            <div class="amendment-check">체크포인트: 2026년 급여 예산에 МРОТ 인상분 반영 완료? 최저임금 연동 항목(병가 수당, 출산급여 하한 등) 업데이트 계획 수립?</div>
+          </div>
+        </li>
+        <li class="amendment-item">
+          <div class="amendment-date upcoming">2026.01.01<br><span style="font-size:0.65rem;">시행 예정</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">사회보험 통합기여금 상한 2,979,000 RUB (재무부 제안)</div>
+            <div class="amendment-desc">통합사회기여금(ЕСВ) 과세표준 상한이 <strong>2,979,000 RUB</strong>으로 인상 (전년 대비 +8%). 상한 초과분은 15.1% 적용.</div>
+            <div class="amendment-check">체크포인트: 급여 시스템 기여금 상한 파라미터가 2,979,000 RUB으로 업데이트되었는가?</div>
+          </div>
+        </li>
+        <li class="amendment-item">
+          <div class="amendment-date upcoming">심의 중<br><span style="font-size:0.65rem;">미확정</span></div>
+          <div class="amendment-content">
+            <div class="amendment-title">초과근무 연간 한도 확대 법안 (120h → 240h)</div>
+            <div class="amendment-desc">정부가 초과근무 연간 한도를 240시간으로 확대하는 법안을 국가두마에 제출. 현재 <strong>심의 중</strong>이며 시행일 미확정.</div>
+            <div class="amendment-check">체크포인트: 법안 통과 여부를 모니터링하고, 통과 시 초과근무 관리 정책 업데이트 준비. 현재는 120시간 한도 유지.</div>
+          </div>
+        </li>
+      </ul>
+      <div style="margin-top:16px;">
+        <a class="law-link" href="https://www.consultant.ru/document/cons_doc_LAW_34683/" target="_blank">📄 ТК РФ 전체 원문 — КонсультантПлюс</a>&nbsp;&nbsp;
+        <a class="law-link" href="https://acsour.com/en/news-and-articles/" target="_blank">📄 러시아 법령 업데이트 뉴스 — Acsour</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 9: 기타 사항 ===== -->
+  <div class="section" id="sec-custom">
+    <div class="section-header" onclick="toggleSection('custom')">
+      <div class="section-header-left">
+        <div class="section-icon" style="background:#e0e7ff;">✏️</div>
+        <div class="section-meta">
+          <div class="section-title">기타 사항 (Дополнительные сведения)</div>
+          <div class="section-subtitle">법인에서 운영 중인 특별 제도·관행을 입력하고 법적 리스크를 검토합니다</div>
+        </div>
+      </div>
+      <span class="section-toggle open" id="toggle-custom">▼</span>
+    </div>
+    <div class="section-body open" id="body-custom">
+      <div class="info-box">
+        위 7개 카테고리에 포함되지 않는 <strong>법인 고유의 특별 제도나 관행</strong>이 있으면 아래에 자유롭게 기술해주세요.<br>
+        예시: 재택근무 정책, 성과급 체계, 비경쟁 조항, 외국인 근로자 고용, 파견/도급 활용, 사내 징계 절차, 개인정보 처리 동의 등<br>
+        <strong>"검토 요청"</strong> 버튼을 클릭하면 입력된 내용을 러시아 노동법 관점에서 검토하여 잠재적 리스크를 안내합니다.
+      </div>
+      <div id="customEntries">
+        <div class="custom-entry" id="customEntry1">
+          <button class="btn-remove-entry" onclick="removeCustomEntry(1)" title="삭제">×</button>
+          <div class="custom-entry-header">
+            <span class="custom-entry-num">1</span>
+            <label class="field-label" for="custom_title_1" style="margin-bottom:0;">제도/관행 명칭</label>
+          </div>
+          <input class="field-input" type="text" id="custom_title_1" placeholder="예: 재택근무 주 2일 시행" style="margin-bottom:10px;">
+          <label class="field-label" for="custom_desc_1">상세 내용</label>
+          <textarea class="custom-textarea" id="custom_desc_1" placeholder="해당 제도의 운영 방식, 대상, 조건 등을 자유롭게 기술해주세요.&#10;&#10;예: 전 직원 대상으로 주 2일 재택근무를 시행하고 있으며, 별도 추가 수당은 없음. 근로계약서에 재택근무 관련 조항은 미포함 상태."></textarea>
+          <div class="custom-review" id="custom_review_1"></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-add-entry" onclick="addCustomEntry()">+ 항목 추가</button>
+        <button class="btn-review-custom" onclick="reviewCustomPolicies()">검토 요청</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUBMIT BAR ===== -->
+  <div class="submit-bar" id="submitBar">
+    <div class="submit-bar-info">
+      <strong>모든 항목 입력을 완료하셨나요?</strong><br>
+      아래 버튼을 클릭하면 입력값이 저장되고, 전체 갭 분석 종합 리포트가 생성됩니다.
+      <span id="submitFieldCount" style="color:#6c757d;"></span>
+    </div>
+    <button class="btn-submit" id="btnSubmit" onclick="generateFinalReport()">저장 및 반영</button>
+  </div>
+
+  <!-- ===== FINAL COMPREHENSIVE REPORT ===== -->
+  <div class="final-report" id="finalReport">
+    <div class="final-report-header">
+      <h2>종합 갭 분석 리포트 (Итоговый отчёт)</h2>
+      <span style="font-size:0.82rem;opacity:0.8;" id="finalReportDate"></span>
+    </div>
+    <div class="final-report-body" id="finalReportBody">
+      <!-- Dynamically generated -->
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>러시아 노동법 컴플라이언스 도구 &nbsp;|&nbsp; 기준: ТК РФ 2026 &nbsp;|&nbsp; МРОТ 27,093 RUB (Federal Law No.429-FZ) &nbsp;|&nbsp; 생성일: 2026-03-30</p>
+    <p style="margin-top:6px;">⚠️ 이 도구는 정보 제공 목적으로만 사용됩니다. 법적 판단은 러시아 현지 법률 전문가의 검토를 받으십시오.</p>
+    <p style="margin-top:6px;">법령 출처: <a href="https://www.consultant.ru/" target="_blank">КонсультантПлюс</a> &nbsp;|&nbsp; <a href="https://www.garant.ru/" target="_blank">Гарант</a> &nbsp;|&nbsp; <a href="https://sfr.gov.ru/en/" target="_blank">СФР</a></p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================================================
+// STATE
+// ===================================================
+const STORAGE_KEY = 'russia_compliance_v2';
+const SECTIONS = ['workhours','salary','leave','termination','maternity','insurance','contract'];
+
+// Total field count (for progress calculation)
+const ALL_FIELDS = [
+  'f_weekly_hours','f_overtime_pay','f_overtime_base',
+  'f_pay_frequency','f_mrot','f_delay_interest',
+  'f_leave_days','f_leave_split','f_leave_carryover',
+  'f_notice_days','f_severance','f_protected',
+  'f_maternity_days','f_parental_leave','f_maternity_benefit',
+  'f_usc_rate','f_usc_ceiling','f_accident_ins',
+  'f_probation_months','f_contract_mandatory','f_contract_timing'
+];
+const TOTAL = ALL_FIELDS.length;
+
+// ===================================================
+// SECTION TOGGLE
+// ===================================================
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const toggle = document.getElementById('toggle-' + id);
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    body.style.display = 'none';
+    toggle.classList.remove('open');
+  } else {
+    body.classList.add('open');
+    body.style.display = 'block';
+    toggle.classList.add('open');
+  }
+}
+
+// ===================================================
+// HELPERS
+// ===================================================
+function val(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  return el.value.trim();
+}
+function numVal(id) {
+  const v = val(id);
+  if (v === '') return null;
+  return parseFloat(v);
+}
+function setGap(id, status, title, body) {
+  const el = document.getElementById('gap-' + id);
+  el.className = 'gap-result ' + status;
+  const icons = { compliant:'✅', advisory:'⚠️', critical:'🚨', pending:'⬜' };
+  const labels = { compliant:'준수 (Соблюдается)', advisory:'개선 권고 (Рекомендация)', critical:'긴급 조치 필요 (Нарушение)', pending:'미입력' };
+  el.innerHTML = `<div class="gap-result-header">${icons[status]} ${labels[status]} — ${title}</div><div class="gap-result-body">${body}</div>`;
+}
+function setBadges(section, statuses) {
+  const el = document.getElementById('badges-' + section);
+  const map = { compliant:'badge-compliant', advisory:'badge-advisory', critical:'badge-critical', pending:'badge-pending' };
+  const icons = { compliant:'✅', advisory:'⚠️', critical:'🚨', pending:'⬜' };
+  el.innerHTML = statuses.map(s => `<span class="status-badge ${map[s]}">${icons[s]}</span>`).join('');
+}
+function worst(...statuses) {
+  if (statuses.includes('critical')) return 'critical';
+  if (statuses.includes('advisory')) return 'advisory';
+  if (statuses.every(s => s === 'compliant')) return 'compliant';
+  return 'pending';
+}
+
+// ===================================================
+// EVALUATE — SECTION BY SECTION
+// ===================================================
+function evaluateWorkhours() {
+  const hours = numVal('f_weekly_hours');
+  const pay = val('f_overtime_pay');
+  const base = val('f_overtime_base');
+  const statuses = [];
+  let msgs = [];
+
+  // Weekly hours
+  let hStatus = 'pending';
+  if (hours !== null) {
+    if (hours <= 40) { hStatus = 'compliant'; }
+    else if (hours <= 44) { hStatus = 'advisory'; msgs.push('주당 근로시간이 40시간을 초과합니다. 단축 근로 협약 등 법적 근거를 확인하고 초과분에 대한 수당 지급 여부를 점검하십시오.'); }
+    else { hStatus = 'critical'; msgs.push('주당 근로시간이 44시간을 초과합니다. ТК РФ ст.91 위반입니다. 즉시 근로시간 단축 또는 법적 근거 확보가 필요합니다.'); }
+  }
+
+  // Overtime pay multiplier
+  let pStatus = 'pending';
+  if (pay) {
+    if (pay === 'compliant') { pStatus = 'compliant'; }
+    else if (pay === 'partial') { pStatus = 'advisory'; msgs.push('초과근무 수당이 최초 2시간 이후에도 1.5배만 적용되고 있습니다. ст.152에 따라 2시간 초과분은 2배 이상이어야 합니다.'); }
+    else if (pay === 'critical') { pStatus = 'critical'; msgs.push('초과근무 수당이 미지급 상태입니다. ст.152 위반으로 노동감독관 점검 시 즉각 적발 대상입니다. 즉시 지급 규정을 수립하고 소급 정산을 검토하십시오.'); }
+    else { pStatus = 'advisory'; msgs.push('수당 배율 기준이 불명확합니다. 내부 정책을 ст.152 기준(1.5배/2배)에 맞춰 명문화하십시오.'); }
+  }
+
+  // Overtime base calculation
+  let bStatus = 'pending';
+  if (base) {
+    if (base === 'compliant' || base === 'na') { bStatus = 'compliant'; }
+    else if (base === 'critical') { bStatus = 'critical'; msgs.push('2024년 9월 1일 개정(ст.152)에 따라 초과근무 산정 기준에 기본급 외 모든 수당·인센티브가 포함되어야 합니다. 현재 기본급만 적용 중이면 소급 정산 의무가 발생할 수 있습니다.'); }
+  }
+
+  statuses.push(hStatus, pStatus, bStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s => s !== 'pending').length;
+
+  if (filled === 0) {
+    setGap('workhours','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('workhours', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = '';
+  if (overall === 'compliant') summary = '근로시간 관련 주요 항목이 러시아 노동법 기준을 충족하고 있습니다.';
+  else if (overall === 'advisory') summary = '일부 항목에서 개선이 권고됩니다.';
+  else if (overall === 'critical') summary = '긴급 조치가 필요한 위반 사항이 발견되었습니다.';
+
+  const bodyHtml = `<p>${summary}</p>${msgs.length ? '<ul>' + msgs.map(m=>`<li>${m}</li>`).join('') + '</ul>' : ''}`;
+  setGap('workhours', overall, '근로시간 분석', bodyHtml);
+  setBadges('workhours', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateSalary() {
+  const freq = val('f_pay_frequency');
+  const mrot = val('f_mrot');
+  const delay = val('f_delay_interest');
+  const statuses = [];
+  let msgs = [];
+
+  let fStatus = 'pending';
+  if (freq) {
+    if (freq === 'compliant' || freq === 'compliant_plus') { fStatus = 'compliant'; }
+    else if (freq === 'critical') { fStatus = 'critical'; msgs.push('급여를 월 1회만 지급하고 있습니다. ТК РФ ст.136 위반입니다. 즉시 월 2회 지급 체계로 전환해야 하며, 지급일을 취업규칙에 명시해야 합니다. 위반 1건당 최대 100,000 RUB 과태료 가능.'); }
+  }
+
+  let mStatus = 'pending';
+  if (mrot) {
+    if (mrot === 'compliant') { mStatus = 'compliant'; }
+    else if (mrot === 'advisory') { mStatus = 'advisory'; msgs.push('일부 직원의 МРОТ 준수 여부가 미확인입니다. 2026년 연방 최저임금 27,093 RUB 기준으로 전 직원 급여를 점검하십시오. 모스크바 지역 협약 최저임금은 더 높을 수 있습니다.'); }
+    else { mStatus = 'critical'; msgs.push('МРОТ 미준수 직원이 존재합니다. 2026년 기준 27,093 RUB(연방) 이상으로 즉시 조정이 필요합니다. 위반 시 노동감독관 점검 및 과태료 부과 대상입니다.'); }
+  }
+
+  let dStatus = 'pending';
+  if (delay) {
+    if (delay === 'compliant') { dStatus = 'compliant'; }
+    else if (delay === 'advisory') { dStatus = 'advisory'; msgs.push('급여 지연 이자(ст.236) 정책이 불완전합니다. 지연 발생 시 CBR 기준금리의 1/300을 일별로 자동 산정하는 절차를 수립하십시오.'); }
+    else { dStatus = 'critical'; msgs.push('급여 지연 이자 정책이 없습니다. ст.236에 따라 지연 시 CBR 금리 1/300 × 지연일수 이자를 지급해야 하며, 미이행 시 법적 배상 청구 대상입니다.'); }
+  }
+
+  statuses.push(fStatus, mStatus, dStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('salary','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('salary', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall === 'compliant' ? '급여 관련 항목이 모두 러시아 노동법 기준을 충족합니다.' : overall === 'advisory' ? '일부 급여 항목에서 개선 조치가 권고됩니다.' : '급여 항목에서 긴급 조치가 필요한 위반이 발견되었습니다.';
+  setGap('salary', overall, '급여 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('salary', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateLeave() {
+  const days = numVal('f_leave_days');
+  const split = val('f_leave_split');
+  const carry = val('f_leave_carryover');
+  const statuses = [];
+  let msgs = [];
+
+  let dStatus = 'pending';
+  if (days !== null) {
+    if (days >= 28) { dStatus = 'compliant'; }
+    else if (days >= 24) { dStatus = 'advisory'; msgs.push(`연차 일수가 ${days}일로 법정 최소 28역일에 미달합니다. 즉시 28일로 상향 조정이 필요합니다.`); }
+    else { dStatus = 'critical'; msgs.push(`연차 일수가 ${days}일로 법정 28역일에 크게 미달합니다. ст.115 위반입니다. 즉각적인 정책 수정과 소급 부여 검토가 필요합니다.`); }
+  }
+
+  let sStatus = 'pending';
+  if (split) {
+    if (split === 'compliant') { sStatus = 'compliant'; }
+    else if (split === 'advisory') { sStatus = 'advisory'; msgs.push('연차 분할 정책이 명확하지 않습니다. ст.125에 따라 최소 1회 14일 이상 연속 사용을 보장한다는 규정을 취업규칙에 명시하십시오.'); }
+    else { sStatus = 'critical'; msgs.push('연차 전면 분할 사용은 ст.125 위반입니다. 반드시 1회 이상 14일 연속 블록을 보장하는 정책으로 수정하십시오.'); }
+  }
+
+  let cStatus = 'pending';
+  if (carry) {
+    if (carry === 'compliant' || carry === 'advisory') { cStatus = carry === 'compliant' ? 'compliant' : 'advisory'; if(carry==='advisory') msgs.push('이월 제한 정책이 있더라도 퇴직 시 미사용 휴가는 반드시 전액 현금 정산(ст.127)해야 합니다. 정산 절차를 명문화하십시오.'); }
+    else { cStatus = 'critical'; msgs.push('미사용 휴가 소멸 처리는 ст.127에 의해 명시적으로 금지됩니다. 퇴직 시 전액 정산 의무가 있으며, 위반 시 개별 근로자의 민사 청구 대상이 됩니다. 즉시 정책을 수정하십시오.'); }
+  }
+
+  statuses.push(dStatus, sStatus, cStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('leave','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('leave', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall==='compliant'?'연차휴가 정책이 러시아 노동법 기준을 충족합니다.':overall==='advisory'?'연차 정책에 개선 권고사항이 있습니다.':'연차 정책에 긴급 조치 사항이 있습니다.';
+  setGap('leave', overall, '연차휴가 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('leave', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateTermination() {
+  const notice = numVal('f_notice_days');
+  const sev = val('f_severance');
+  const prot = val('f_protected');
+  const statuses = [];
+  let msgs = [];
+
+  let nStatus = 'pending';
+  if (notice !== null) {
+    if (notice >= 60) { nStatus = 'compliant'; }
+    else if (notice >= 30) { nStatus = 'advisory'; msgs.push(`감원 예고기간이 ${notice}일입니다. ст.180은 최소 60일을 요구합니다. 30일 부족분에 대한 평균임금 보상도 발생할 수 있습니다.`); }
+    else { nStatus = 'critical'; msgs.push(`감원 예고기간이 ${notice}일로 법정 60일에 크게 미달합니다. ст.180 위반입니다. 즉시 60일 이상으로 정책을 수정해야 합니다.`); }
+  }
+
+  let sStatus = 'pending';
+  if (sev) {
+    if (sev === 'compliant') { sStatus = 'compliant'; }
+    else if (sev === 'advisory') { sStatus = 'compliant'; } // 해당없음 = 감원 없음 = compliant
+    else { sStatus = 'critical'; msgs.push('감원 시 퇴직금(выходное пособие) 미지급은 ст.178 위반입니다. 평균월급 최소 1개월분 + 구직기간 지원금을 지급해야 합니다.'); }
+  }
+
+  let pStatus = 'pending';
+  if (prot) {
+    if (prot === 'compliant') { pStatus = 'compliant'; }
+    else if (prot === 'advisory') { pStatus = 'advisory'; msgs.push('보호 대상자 해고 금지 정책이 있으나 실무 담당자 인지가 부족합니다. HR 팀 교육과 계약 체결 전 보호 대상 여부 확인 프로세스를 강화하십시오.'); }
+    else { pStatus = 'critical'; msgs.push('ст.261 보호 대상자(임산부, 3세 미만 자녀 모 등) 해고 금지 정책이 없습니다. 개별 해고 시 노동법원 구제 신청 및 복직 명령 위험이 있습니다. 즉시 정책 수립이 필요합니다.'); }
+  }
+
+  statuses.push(nStatus, sStatus, pStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('termination','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('termination', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall==='compliant'?'해고·감원 절차가 러시아 노동법 기준을 충족합니다.':overall==='advisory'?'일부 해고 절차에 개선이 권고됩니다.':'해고·감원 절차에 긴급 조치 사항이 있습니다.';
+  setGap('termination', overall, '해고·감원 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('termination', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateMaternity() {
+  const mdays = numVal('f_maternity_days');
+  const parental = val('f_parental_leave');
+  const benefit = val('f_maternity_benefit');
+  const statuses = [];
+  let msgs = [];
+
+  let mStatus = 'pending';
+  if (mdays !== null) {
+    if (mdays >= 140) { mStatus = 'compliant'; }
+    else if (mdays >= 100) { mStatus = 'advisory'; msgs.push(`출산휴가가 ${mdays}일로 법정 최소 140일에 미달합니다. ст.255에 따라 최소 140일을 보장해야 합니다.`); }
+    else { mStatus = 'critical'; msgs.push(`출산휴가가 ${mdays}일로 법정 140일에 크게 미달합니다. ст.255 위반입니다. 즉각 140일로 상향 조정이 필요합니다.`); }
+  }
+
+  let pStatus = 'pending';
+  if (parental) {
+    if (parental === 'compliant') { pStatus = 'compliant'; }
+    else if (parental === 'advisory') { pStatus = 'advisory'; msgs.push('육아휴직이 일부만 보장됩니다. ст.256에 따라 모·부·기타 법정 대리인 모두 만 3세까지 사용할 수 있어야 합니다.'); }
+    else { pStatus = 'critical'; msgs.push('육아휴직 미제공은 ст.256 위반입니다. 즉시 만 3세까지 육아휴직 정책을 수립하고 복직 보장 절차를 마련하십시오.'); }
+  }
+
+  let bStatus = 'pending';
+  if (benefit) {
+    if (benefit === 'compliant' || benefit === 'advisory') { bStatus = 'compliant'; }
+    else { bStatus = 'advisory'; msgs.push('급여 보전 처리 절차가 불명확합니다. СФР 전자신청 절차를 정비하고 지급 지연이 없도록 내부 프로세스를 수립하십시오.'); }
+  }
+
+  statuses.push(mStatus, pStatus, bStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('maternity','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('maternity', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall==='compliant'?'출산·육아휴직 정책이 러시아 노동법 기준을 충족합니다.':overall==='advisory'?'출산·육아 정책에 개선 권고사항이 있습니다.':'출산·육아 정책에 긴급 조치 사항이 있습니다.';
+  setGap('maternity', overall, '출산·육아휴직 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('maternity', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateInsurance() {
+  const rate = numVal('f_usc_rate');
+  const ceiling = val('f_usc_ceiling');
+  const accident = val('f_accident_ins');
+  const statuses = [];
+  let msgs = [];
+
+  let rStatus = 'pending';
+  if (rate !== null) {
+    if (rate >= 30) { rStatus = 'compliant'; }
+    else if (rate >= 15 && rate < 30) {
+      rStatus = 'advisory';
+      msgs.push(`기여율 ${rate}%는 30% 미만입니다. 중소기업(15%) 또는 IT기업(7.6%) 감면 자격이 공식 확인된 경우에만 적용 가능합니다. 감면 요건을 재확인하십시오.`);
+    } else {
+      rStatus = 'critical';
+      msgs.push(`기여율 ${rate}%는 법정 최저 기준 미달입니다. 감면 자격이 없는 경우 30% 이상 납부해야 합니다. 세무 당국 소급 추징 위험이 있습니다.`);
+    }
+  }
+
+  let cStatus = 'pending';
+  if (ceiling) {
+    if (ceiling === 'compliant') { cStatus = 'compliant'; }
+    else if (ceiling === 'advisory') { cStatus = 'advisory'; msgs.push('2026년 기여 상한선(2,979,000 RUB)을 급여 시스템에 즉시 반영해야 합니다. 미반영 시 과다 납부 또는 과소 신고 오류가 발생합니다.'); }
+    else { cStatus = 'critical'; msgs.push('기여 상한선이 업데이트되지 않았습니다. 2026년 상한 2,979,000 RUB를 급여 시스템에 즉시 반영하십시오. 잘못된 기여금 계산으로 세무조사 시 추징 대상이 될 수 있습니다.'); }
+  }
+
+  let aStatus = 'pending';
+  if (accident) {
+    if (accident === 'compliant') { aStatus = 'compliant'; }
+    else if (accident === 'advisory') { aStatus = 'advisory'; msgs.push('산재보험 요율(ФЗ-125)이 미확인입니다. СФР 공고 기준 업종별 요율(0.2%~8.5%)을 확인하고 급여 시스템에 반영하십시오.'); }
+    else { aStatus = 'critical'; msgs.push('산재보험 미신고·미납부는 ФЗ-125 위반입니다. СФР에 즉시 신고하고 누락 기간 소급 납부 및 과태료 처리 절차를 진행하십시오.'); }
+  }
+
+  statuses.push(rStatus, cStatus, aStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('insurance','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('insurance', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall==='compliant'?'사회보험 기여금 항목이 러시아 세법 기준을 충족합니다.':overall==='advisory'?'사회보험 기여금 항목에 개선 권고사항이 있습니다.':'사회보험 기여금에 긴급 조치 사항이 있습니다.';
+  setGap('insurance', overall, '사회보험 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('insurance', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+function evaluateContract() {
+  const prob = numVal('f_probation_months');
+  const mandatory = val('f_contract_mandatory');
+  const timing = val('f_contract_timing');
+  const statuses = [];
+  let msgs = [];
+
+  let pStatus = 'pending';
+  if (prob !== null) {
+    if (prob === 0) { pStatus = 'compliant'; }
+    else if (prob <= 3) { pStatus = 'compliant'; }
+    else if (prob <= 6) { pStatus = 'advisory'; msgs.push(`시용기간 ${prob}개월은 일반직 기준 3개월을 초과합니다. 임원·총지배인 등 관리직(최대 6개월)에만 적용 가능합니다. 대상 직군 요건을 재확인하십시오.`); }
+    else { pStatus = 'critical'; msgs.push(`시용기간 ${prob}개월은 최대 허용 6개월(관리직)을 초과합니다. ст.70 위반입니다. 즉시 수정이 필요합니다.`); }
+  }
+
+  let mStatus = 'pending';
+  if (mandatory) {
+    if (mandatory === 'compliant') { mStatus = 'compliant'; }
+    else if (mandatory === 'advisory') { mStatus = 'advisory'; msgs.push('일부 필수 기재사항이 누락되어 있습니다. ст.57의 14개 필수 항목(근무지, 직무, 개시일, 급여 세부내역, 근로시간, 휴가, 사회보험 등)을 모두 포함하도록 계약서 양식을 개정하십시오.'); }
+    else { mStatus = 'critical'; msgs.push('필수 기재사항 대폭 누락은 ст.57 위반입니다. 계약서가 무효 처리될 수 있으며, 노동감독관 점검 시 기업 및 담당자에 대한 과태료(최대 100,000 RUB)가 부과됩니다. 즉시 전면 개정하십시오.'); }
+  }
+
+  let tStatus = 'pending';
+  if (timing) {
+    if (timing === 'compliant' || timing === 'advisory') { tStatus = 'compliant'; }
+    else { tStatus = 'critical'; msgs.push('근무 개시 3영업일을 초과하여 계약을 체결하거나 미체결한 경우 ст.67 위반입니다. 즉시 미체결 계약을 소급 체결하고 향후 온보딩 프로세스에 계약 체결 완료를 선결 조건으로 설정하십시오.'); }
+  }
+
+  statuses.push(pStatus, mStatus, tStatus);
+  const overall = worst(...statuses);
+  const filled = statuses.filter(s=>s!=='pending').length;
+
+  if (filled === 0) {
+    setGap('contract','pending','미입력','위 항목을 입력하면 자동으로 준수 여부가 분석됩니다.');
+    setBadges('contract', []);
+    return { overall: 'pending', filled: 0, total: 3 };
+  }
+
+  let summary = overall==='compliant'?'근로계약 관련 항목이 러시아 노동법 기준을 충족합니다.':overall==='advisory'?'근로계약 일부 항목에 개선 권고사항이 있습니다.':'근로계약에 긴급 조치 사항이 있습니다.';
+  setGap('contract', overall, '근로계약 분석', `<p>${summary}</p>${msgs.length?'<ul>'+msgs.map(m=>`<li>${m}</li>`).join('')+'</ul>':''}`);
+  setBadges('contract', statuses.filter(s=>s!=='pending'));
+  return { overall, filled, total: 3 };
+}
+
+// ===================================================
+// MASTER EVALUATE
+// ===================================================
+function evaluate() {
+  const results = {
+    workhours:   evaluateWorkhours(),
+    salary:      evaluateSalary(),
+    leave:       evaluateLeave(),
+    termination: evaluateTermination(),
+    maternity:   evaluateMaternity(),
+    insurance:   evaluateInsurance(),
+    contract:    evaluateContract()
+  };
+
+  let green=0, yellow=0, red=0, gray=0, totalFilled=0;
+  for (const k in results) {
+    const r = results[k];
+    totalFilled += r.filled;
+    if (r.overall === 'compliant') green++;
+    else if (r.overall === 'advisory') yellow++;
+    else if (r.overall === 'critical') red++;
+    else gray++;
+  }
+
+  const evaluated = green + yellow + red;
+  const rate = evaluated > 0 ? Math.round((green / evaluated) * 100) : 0;
+  const totalInputFilled = totalFilled;
+
+  document.getElementById('statRate').textContent  = evaluated > 0 ? rate + '%' : '—%';
+  document.getElementById('statGreen').textContent  = green;
+  document.getElementById('statYellow').textContent = yellow;
+  document.getElementById('statRed').textContent    = red;
+
+  // Count individual field completion
+  let fieldsFilled = 0;
+  ALL_FIELDS.forEach(id => {
+    const v = val(id);
+    if (v !== '') fieldsFilled++;
+  });
+  document.getElementById('statGray').textContent = TOTAL - fieldsFilled;
+  document.getElementById('progressPct').textContent = fieldsFilled + ' / ' + TOTAL + ' 항목 입력됨';
+
+  const pct = Math.round((fieldsFilled / TOTAL) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  if (rate >= 80) bar.style.background = '#28a745';
+  else if (rate >= 50) bar.style.background = '#ffc107';
+  else bar.style.background = red > 0 ? '#dc3545' : '#6c757d';
+
+  document.getElementById('lastUpdated').textContent = '마지막 업데이트: ' + new Date().toLocaleString('ko-KR');
+
+  saveToStorage();
+}
+
+// ===================================================
+// LOCALSTORAGE
+// ===================================================
+function saveToStorage() {
+  const data = { fields: {}, customPolicies: getCustomData() };
+  ALL_FIELDS.forEach(id => { data.fields[id] = val(id); });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const fields = data.fields || data;
+    ALL_FIELDS.forEach(id => {
+      if (fields[id] !== undefined && fields[id] !== '') {
+        const el = document.getElementById(id);
+        if (el) el.value = fields[id];
+      }
+    });
+    if (data.customPolicies) restoreCustomData(data.customPolicies);
+    evaluate();
+    showToast('저장된 데이터를 불러왔습니다.');
+  } catch(e) {}
+}
+
+// ===================================================
+// JSON EXPORT / IMPORT
+// ===================================================
+function downloadJSON() {
+  const data = { _meta: { tool: 'Russia Labor Compliance Tool', version: '2026-1.0', exportDate: new Date().toISOString() }, fields: {}, customPolicies: getCustomData() };
+  ALL_FIELDS.forEach(id => { data.fields[id] = val(id); });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'russia_compliance_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON 파일이 다운로드되었습니다.');
+}
+
+function uploadJSON() {
+  document.getElementById('jsonFileInput').click();
+}
+
+function handleJSONUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const fields = data.fields || data;
+      ALL_FIELDS.forEach(id => {
+        if (fields[id] !== undefined) {
+          const el = document.getElementById(id);
+          if (el) el.value = fields[id];
+        }
+      });
+      if (data.customPolicies) restoreCustomData(data.customPolicies);
+      evaluate();
+      showToast('JSON 데이터를 불러왔습니다.');
+    } catch(err) {
+      showToast('JSON 파일 형식 오류입니다.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ===================================================
+// CLEAR
+// ===================================================
+function clearAll() {
+  if (!confirm('모든 입력값을 초기화하시겠습니까?')) return;
+  ALL_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  localStorage.removeItem(STORAGE_KEY);
+  evaluate();
+  showToast('초기화되었습니다.');
+}
+
+// ===================================================
+// TOAST
+// ===================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ===================================================
+// CUSTOM POLICY ENTRIES
+// ===================================================
+let customEntryCount = 1;
+
+function addCustomEntry() {
+  customEntryCount++;
+  const container = document.getElementById('customEntries');
+  const div = document.createElement('div');
+  div.className = 'custom-entry';
+  div.id = 'customEntry' + customEntryCount;
+  div.innerHTML = `
+    <button class="btn-remove-entry" onclick="removeCustomEntry(${customEntryCount})" title="삭제">×</button>
+    <div class="custom-entry-header">
+      <span class="custom-entry-num">${customEntryCount}</span>
+      <label class="field-label" for="custom_title_${customEntryCount}" style="margin-bottom:0;">제도/관행 명칭</label>
+    </div>
+    <input class="field-input" type="text" id="custom_title_${customEntryCount}" placeholder="예: 성과급 분기별 지급" style="margin-bottom:10px;">
+    <label class="field-label" for="custom_desc_${customEntryCount}">상세 내용</label>
+    <textarea class="custom-textarea" id="custom_desc_${customEntryCount}" placeholder="해당 제도의 운영 방식, 대상, 조건 등을 자유롭게 기술해주세요."></textarea>
+    <div class="custom-review" id="custom_review_${customEntryCount}"></div>
+  `;
+  container.appendChild(div);
+  renumberCustomEntries();
+}
+
+function removeCustomEntry(num) {
+  const el = document.getElementById('customEntry' + num);
+  if (el) el.remove();
+  renumberCustomEntries();
+}
+
+function renumberCustomEntries() {
+  const entries = document.querySelectorAll('#customEntries .custom-entry');
+  entries.forEach((entry, i) => {
+    const numEl = entry.querySelector('.custom-entry-num');
+    if (numEl) numEl.textContent = i + 1;
+  });
+}
+
+function reviewCustomPolicies() {
+  const entries = document.querySelectorAll('#customEntries .custom-entry');
+  let hasContent = false;
+
+  // Russia-specific risk keyword mapping
+  const riskPatterns = [
+    { keywords: ['재택','원격','리모트','remote','удалённ'], title: '원격근무', level: 'warn',
+      msg: '러시아 노동법(ТК РФ гл.49.1)은 원격근무에 대해 별도 장을 두고 있습니다. 근로계약서 또는 추가협약에 원격근무 조건(근무 장소, 장비 제공, 보상, 연락 가능 시간)을 명시해야 합니다. 미포함 시 근로감독관 지적 대상입니다.' },
+    { keywords: ['성과급','보너스','인센티브','bonus','премия'], title: '성과급/보너스', level: 'warn',
+      msg: '성과급은 ст.129에 따라 임금의 구성요소로 간주됩니다. 지급 기준·시기·조건을 취업규칙 또는 근로계약에 명시해야 합니다. 2024.09 개정으로 초과근무 수당 산정 시 성과급도 포함해야 합니다.' },
+    { keywords: ['비경쟁','경업금지','non-compete','конкурен'], title: '경업금지 조항', level: 'risk',
+      msg: '러시아 노동법은 퇴직 후 경업금지(non-compete) 조항을 인정하지 않습니다. 근로계약에 포함하더라도 법적 효력이 없으며, 오히려 근로자가 계약 전체의 유효성에 이의를 제기할 수 있는 근거가 됩니다. 즉시 삭제를 권장합니다.' },
+    { keywords: ['파견','도급','아웃소싱','outsourc','аутсорс','аутстафф'], title: '파견/도급', level: 'warn',
+      msg: 'ФЗ-116(2016)에 따라 인력파견(заёмный труд)은 원칙적으로 금지되며, 인가받은 인력파견 사업체만 예외적으로 가능합니다. 도급 구조도 실질적 파견(скрытый труд)으로 판정될 경우 벌금 및 직접고용 전환 명령 위험이 있습니다.' },
+    { keywords: ['외국인','비자','워크퍼밋','work permit','иностран','патент'], title: '외국인 근로자', level: 'warn',
+      msg: '외국인 근로자 고용 시 워크퍼밋(разрешение на работу) 또는 патент 취득 의무가 있으며, 고용주는 관할 이민국(МВД)에 외국인 채용·해고를 3영업일 내 통보해야 합니다(ФЗ-115). 위반 시 기업당 최대 800,000 RUB 과태료.' },
+    { keywords: ['징계','징벌','경고','감봉','해고','выговор','замечан'], title: '징계 절차', level: 'warn',
+      msg: 'ТК РФ ст.192-193에 따라 징계 유형은 견책(замечание), 경고(выговор), 해고 3가지만 허용됩니다. 감봉·벌금형 징계는 불법입니다. 징계 전 반드시 근로자 소명 기회(2영업일)를 부여해야 합니다.' },
+    { keywords: ['개인정보','데이터','GDPR','ФЗ-152','персональн'], title: '개인정보 보호', level: 'warn',
+      msg: 'ФЗ-152(개인정보보호법)에 따라 근로자 개인정보 수집·처리 시 서면 동의(согласие)가 필요하며, 데이터는 러시아 내 서버에 저장해야 합니다(데이터 현지화 의무). 2024.12 개정으로 위반 과태료가 대폭 상향되었습니다.' },
+    { keywords: ['유연근무','탄력근무','시차출퇴근','гибк'], title: '유연근무', level: 'ok',
+      msg: 'ТК РФ ст.102는 유연근무시간제(гибкое рабочее время)를 허용합니다. 다만 총 근로시간이 주 40시간을 초과하지 않아야 하며, 근로계약 또는 취업규칙에 유연근무 조건을 명시해야 합니다.' },
+    { keywords: ['복리후생','식대','교통비','주거','통근','компенсац'], title: '복리후생/수당', level: 'ok',
+      msg: '법정 외 추가 복리후생(식대, 교통비, 주거지원 등)은 사업주 재량이나, 제공 시 취업규칙·단체협약에 명시해야 합니다. 현물 복리후생도 소득세(НДФЛ 13%) 및 사회보험 기여금 과세 대상일 수 있으므로 세무 처리를 확인하십시오.' }
+  ];
+
+  entries.forEach(entry => {
+    const titleInput = entry.querySelector('input[id^="custom_title_"]');
+    const descInput = entry.querySelector('textarea[id^="custom_desc_"]');
+    const reviewEl = entry.querySelector('div[id^="custom_review_"]');
+    if (!titleInput || !descInput || !reviewEl) return;
+
+    const title = titleInput.value.trim();
+    const desc = descInput.value.trim();
+
+    if (!title && !desc) {
+      reviewEl.className = 'custom-review';
+      reviewEl.innerHTML = '';
+      return;
+    }
+
+    hasContent = true;
+    const combined = (title + ' ' + desc).toLowerCase();
+
+    // Find matching risk patterns
+    let matched = [];
+    riskPatterns.forEach(p => {
+      if (p.keywords.some(kw => combined.includes(kw.toLowerCase()))) {
+        matched.push(p);
+      }
+    });
+
+    if (matched.length > 0) {
+      // Use highest risk level
+      let highestLevel = 'ok';
+      if (matched.some(m => m.level === 'risk')) highestLevel = 'risk';
+      else if (matched.some(m => m.level === 'warn')) highestLevel = 'warn';
+
+      let html = matched.map(m => {
+        const icon = m.level === 'risk' ? '🚨' : m.level === 'warn' ? '⚠️' : '✅';
+        return `<p><strong>${icon} ${m.title}</strong></p><p>${m.msg}</p>`;
+      }).join('<hr style="border:none;border-top:1px solid rgba(0,0,0,0.1);margin:10px 0;">');
+
+      reviewEl.className = 'custom-review visible ' + highestLevel;
+      reviewEl.innerHTML = html;
+    } else {
+      reviewEl.className = 'custom-review visible warn';
+      reviewEl.innerHTML = `<p><strong>⚠️ 자동 분류 불가</strong></p><p>입력하신 "${title || '(제목 없음)'}" 제도에 대해 자동으로 매칭되는 법령 키워드를 찾지 못했습니다. 이 제도가 러시아 노동법에 부합하는지 반드시 <strong>현지 법률 전문가(юрист)</strong>의 검토를 받으시기 바랍니다.</p><p style="font-size:0.78rem;color:#6c757d;margin-top:6px;">팁: 제목이나 내용에 구체적 키워드(예: 재택근무, 성과급, 파견, 외국인 등)를 포함하면 자동 검토가 가능합니다.</p>`;
+    }
+  });
+
+  if (!hasContent) {
+    showToast('기타 사항 내용을 먼저 입력해주세요.');
+    return;
+  }
+
+  showToast('기타 사항 검토가 완료되었습니다.');
+}
+
+// Save/Load custom entries
+function getCustomData() {
+  const entries = document.querySelectorAll('#customEntries .custom-entry');
+  const data = [];
+  entries.forEach(entry => {
+    const titleInput = entry.querySelector('input[id^="custom_title_"]');
+    const descInput = entry.querySelector('textarea[id^="custom_desc_"]');
+    if (titleInput && descInput) {
+      data.push({ title: titleInput.value, desc: descInput.value });
+    }
+  });
+  return data;
+}
+
+function restoreCustomData(data) {
+  if (!data || !Array.isArray(data) || data.length === 0) return;
+  // Clear existing entries
+  document.getElementById('customEntries').innerHTML = '';
+  customEntryCount = 0;
+  data.forEach((item, i) => {
+    customEntryCount = i + 1;
+    const container = document.getElementById('customEntries');
+    const div = document.createElement('div');
+    div.className = 'custom-entry';
+    div.id = 'customEntry' + customEntryCount;
+    div.innerHTML = `
+      <button class="btn-remove-entry" onclick="removeCustomEntry(${customEntryCount})" title="삭제">×</button>
+      <div class="custom-entry-header">
+        <span class="custom-entry-num">${customEntryCount}</span>
+        <label class="field-label" for="custom_title_${customEntryCount}" style="margin-bottom:0;">제도/관행 명칭</label>
+      </div>
+      <input class="field-input" type="text" id="custom_title_${customEntryCount}" placeholder="예: 재택근무 주 2일 시행" style="margin-bottom:10px;" value="${escHtml(item.title || '')}">
+      <label class="field-label" for="custom_desc_${customEntryCount}">상세 내용</label>
+      <textarea class="custom-textarea" id="custom_desc_${customEntryCount}" placeholder="해당 제도의 운영 방식, 대상, 조건 등을 자유롭게 기술해주세요.">${escHtml(item.desc || '')}</textarea>
+      <div class="custom-review" id="custom_review_${customEntryCount}"></div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===================================================
+// FINAL REPORT GENERATION
+// ===================================================
+function generateFinalReport() {
+  // Run evaluation first
+  evaluate();
+  saveToStorage();
+
+  // Count filled fields
+  let fieldsFilled = 0;
+  ALL_FIELDS.forEach(id => { if (val(id) !== '') fieldsFilled++; });
+
+  if (fieldsFilled === 0) {
+    showToast('입력된 항목이 없습니다. 먼저 현행 제도를 입력해주세요.');
+    return;
+  }
+
+  // Collect section results
+  const sectionResults = [
+    { key: 'workhours', name: '근로시간', nameRu: 'Рабочее время', law: 'ТК РФ ст.91, 99, 152', result: evaluateWorkhours() },
+    { key: 'salary', name: '급여', nameRu: 'Заработная плата', law: 'ТК РФ ст.133, 136, 236', result: evaluateSalary() },
+    { key: 'leave', name: '연차휴가', nameRu: 'Ежегодный отпуск', law: 'ТК РФ ст.115, 122, 125', result: evaluateLeave() },
+    { key: 'termination', name: '해고·감원', nameRu: 'Увольнение', law: 'ТК РФ ст.178, 180, 261', result: evaluateTermination() },
+    { key: 'maternity', name: '출산·육아', nameRu: 'Декретный отпуск', law: 'ТК РФ ст.255, 256', result: evaluateMaternity() },
+    { key: 'insurance', name: '사회보험', nameRu: 'Страховые взносы', law: 'НК РФ гл.34, ФЗ-125', result: evaluateInsurance() },
+    { key: 'contract', name: '근로계약', nameRu: 'Трудовой договор', law: 'ТК РФ ст.57, 67, 70', result: evaluateContract() }
+  ];
+
+  let green = 0, yellow = 0, red = 0, gray = 0;
+  sectionResults.forEach(s => {
+    if (s.result.overall === 'compliant') green++;
+    else if (s.result.overall === 'advisory') yellow++;
+    else if (s.result.overall === 'critical') red++;
+    else gray++;
+  });
+
+  const evaluated = green + yellow + red;
+  const rate = evaluated > 0 ? Math.round((green / evaluated) * 100) : 0;
+
+  // Build summary grid
+  let html = `
+    <div class="final-summary-grid">
+      <div class="final-stat blue"><div class="final-stat-num">${rate}%</div><div class="final-stat-label">전체 준수율</div></div>
+      <div class="final-stat green"><div class="final-stat-num">${green}</div><div class="final-stat-label">준수 영역</div></div>
+      <div class="final-stat yellow"><div class="final-stat-num">${yellow}</div><div class="final-stat-label">개선 권고 영역</div></div>
+      <div class="final-stat red"><div class="final-stat-num">${red}</div><div class="final-stat-label">긴급 조치 영역</div></div>
+    </div>
+  `;
+
+  // Build comparison table
+  const statusLabels = { compliant: '✅ 준수', advisory: '⚠️ 권고', critical: '🚨 긴급', pending: '⬜ 미입력' };
+  const statusClasses = { compliant: 'badge-compliant', advisory: 'badge-advisory', critical: 'badge-critical', pending: 'badge-pending' };
+
+  html += `<h3 style="font-size:1rem;font-weight:700;color:#1a3a5c;margin-bottom:12px;">영역별 준수 현황</h3>`;
+  html += `<table class="final-table"><thead><tr>
+    <th>영역</th><th>관련 법령</th><th>입력 현황</th><th style="text-align:center;">판정</th><th>주요 갭 요약</th>
+  </tr></thead><tbody>`;
+
+  sectionResults.forEach(s => {
+    const gapEl = document.getElementById('gap-' + s.key);
+    let gapSummary = '';
+    if (gapEl) {
+      const bodyEl = gapEl.querySelector('.gap-result-body');
+      if (bodyEl) {
+        // Extract text from LI elements for concise summary
+        const lis = bodyEl.querySelectorAll('li');
+        if (lis.length > 0) {
+          gapSummary = Array.from(lis).map(li => li.textContent.substring(0, 80) + (li.textContent.length > 80 ? '...' : '')).join('<br>');
+        } else {
+          const p = bodyEl.querySelector('p');
+          if (p) gapSummary = p.textContent;
+        }
+      }
+    }
+    if (!gapSummary && s.result.overall === 'compliant') gapSummary = '법정 기준 충족';
+    if (!gapSummary && s.result.overall === 'pending') gapSummary = '—';
+
+    html += `<tr>
+      <td><strong>${s.name}</strong><br><span style="font-size:0.75rem;color:#6c757d;">${s.nameRu}</span></td>
+      <td style="font-size:0.78rem;">${s.law}</td>
+      <td>${s.result.filled}/${s.result.total} 항목</td>
+      <td class="status-cell"><span class="status-badge ${statusClasses[s.result.overall]}">${statusLabels[s.result.overall]}</span></td>
+      <td style="font-size:0.80rem;">${gapSummary}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+
+  // Build action items (critical first, then advisory)
+  const criticalItems = [];
+  const advisoryItems = [];
+
+  sectionResults.forEach(s => {
+    if (s.result.overall === 'critical' || s.result.overall === 'advisory') {
+      const gapEl = document.getElementById('gap-' + s.key);
+      if (gapEl) {
+        const lis = gapEl.querySelectorAll('.gap-result-body li');
+        lis.forEach(li => {
+          if (s.result.overall === 'critical') {
+            criticalItems.push({ section: s.name, text: li.textContent });
+          } else {
+            advisoryItems.push({ section: s.name, text: li.textContent });
+          }
+        });
+      }
+    }
+  });
+
+  if (criticalItems.length > 0 || advisoryItems.length > 0) {
+    html += `<div class="final-actions"><h3>개선 조치 로드맵 (Action Items)</h3><ol class="action-list">`;
+
+    criticalItems.forEach((item, i) => {
+      html += `<li class="critical-item"><span class="action-icon">🚨</span><div><strong>[긴급 #${i+1}] ${item.section}</strong><br>${item.text}</div></li>`;
+    });
+
+    advisoryItems.forEach((item, i) => {
+      html += `<li class="advisory-item"><span class="action-icon">⚠️</span><div><strong>[권고 #${i+1}] ${item.section}</strong><br>${item.text}</div></li>`;
+    });
+
+    html += `</ol></div>`;
+  } else if (evaluated > 0 && red === 0 && yellow === 0) {
+    html += `<div class="no-gaps-msg">모든 입력 영역이 러시아 노동법 기준을 충족하고 있습니다.</div>`;
+  }
+
+  // Custom policies summary
+  const customData = getCustomData().filter(c => c.title || c.desc);
+  if (customData.length > 0) {
+    html += `<div style="margin-top:24px;padding-top:20px;border-top:2px solid #e2e8f0;">
+      <h3 style="font-size:1rem;font-weight:700;color:#1a3a5c;margin-bottom:12px;">기타 법인 운영 제도 검토 결과</h3>`;
+    const reviewEls = document.querySelectorAll('.custom-review.visible');
+    if (reviewEls.length > 0) {
+      reviewEls.forEach(el => {
+        const cls = el.classList.contains('risk') ? 'critical-item' : el.classList.contains('warn') ? 'advisory-item' : 'advisory-item';
+        html += `<div class="action-list"><li class="${cls}" style="list-style:none;">${el.innerHTML}</li></div>`;
+      });
+    } else {
+      html += `<p style="color:#6c757d;font-size:0.84rem;">기타 사항에 대한 검토가 아직 실행되지 않았습니다. "검토 요청" 버튼을 먼저 클릭해주세요.</p>`;
+    }
+    html += `</div>`;
+  }
+
+  // Render
+  const reportEl = document.getElementById('finalReport');
+  document.getElementById('finalReportBody').innerHTML = html;
+  document.getElementById('finalReportDate').textContent = '생성: ' + new Date().toLocaleString('ko-KR');
+  reportEl.classList.add('visible');
+
+  // Scroll to report
+  reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  showToast('종합 갭 분석 리포트가 생성되었습니다.');
+}
+
+// Update submit bar field count on each evaluate
+const origEvaluate = evaluate;
+evaluate = function() {
+  origEvaluate();
+  let fieldsFilled = 0;
+  ALL_FIELDS.forEach(id => { if (val(id) !== '') fieldsFilled++; });
+  const countEl = document.getElementById('submitFieldCount');
+  if (countEl) countEl.textContent = ` (${fieldsFilled}/${TOTAL} 항목 입력됨)`;
+};
+
+// ===================================================
+// INIT
+// ===================================================
+window.addEventListener('DOMContentLoaded', function() {
+  loadFromStorage();
+  if (document.getElementById('f_weekly_hours').value === '') evaluate();
+});
+</script>
+</body>
+</html>
