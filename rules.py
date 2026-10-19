@@ -288,17 +288,46 @@ def _eval_check(chk: dict, val, category: str, context: dict = None):
 
 
 def evaluate_specifics(data: dict, check_values: dict, context: dict = None) -> list:
-    """국가 특유 제도(country_specifics)의 구조화 검사를 평가."""
+    """국가 특유 제도(country_specifics)의 구조화 검사를 평가.
+
+    item 에 dispute_risk("high" 등)가 있으면 finding 에 그대로 전달하여
+    UI/리포트에서 '분쟁 다발' 항목으로 강조할 수 있게 한다.
+    """
     findings = []
     for item in data.get("country_specifics", []):
         name = item.get("name", "")
+        dispute = item.get("dispute_risk")
         for chk in item.get("checks", []):
             cid = chk.get("id")
             if cid is None or cid not in check_values:
                 continue
             f = _eval_check(chk, check_values[cid], name, context)
             if f:
+                if dispute:
+                    f["dispute_risk"] = dispute
+                    if item.get("dispute_note"):
+                        f["dispute_note"] = item["dispute_note"]
                 findings.append(f)
+    return findings
+
+
+def evaluate_standard_checks(data: dict, check_values: dict, context: dict = None) -> list:
+    """표준 항목 상세 점검(standard_checks)을 평가.
+
+    country_specifics 와 동일한 check 스키마를 쓰되, 각 항목이 평면 리스트로
+    들어오고 자체 'category' 필드(예: 휴게시간·출산휴가·사회보험)를 가진다.
+    기존 6개 정량 핵심 비교(evaluate)로 다루지 않는 공통 카테고리를
+    데이터 주도로 확장하기 위한 엔진이다.
+    """
+    findings = []
+    for chk in data.get("standard_checks", []):
+        cid = chk.get("id")
+        if cid is None or cid not in check_values:
+            continue
+        cat = chk.get("category", "표준 점검")
+        f = _eval_check(chk, check_values[cid], cat, context)
+        if f:
+            findings.append(f)
     return findings
 
 

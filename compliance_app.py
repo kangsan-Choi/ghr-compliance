@@ -199,10 +199,11 @@ def build_html_report(data, base_inputs, specific_inputs, subjective_items, find
     for f in sorted(findings, key=lambda x: order.get(x["level"], 9)):
         c = color.get(f["level"], "#555")
         bg = badge_bg.get(f["level"], "#eee")
+        fire = " <span style='color:#B91C1C;font-weight:700;'>🔥분쟁다발</span>" if f.get("dispute_risk") == "high" else ""
         find_rows += (
             f"<tr data-level='{f['level']}'>"
             f"<td><span class='lv' style='color:{c};background:{bg}'>{rules.LEVEL_LABEL[f['level']]}</span></td>"
-            f"<td>{f['category']}</td><td><b>{f['title']}</b><br><span class='muted'>{f['detail']}</span></td>"
+            f"<td>{f['category']}{fire}</td><td><b>{f['title']}</b><br><span class='muted'>{f['detail']}</span></td>"
             f"<td>{f['legal_basis']}</td><td>{f['recommendation']}</td></tr>"
         )
 
@@ -276,6 +277,7 @@ def build_html_report(data, base_inputs, specific_inputs, subjective_items, find
  <div class="hero">
    <h1>🌐 {data['country']} ({data['city']}) HR 노동법 컴플라이언스 리포트</h1>
    <div class="meta">생성일 {today} · 데이터 기준시점 {data.get('as_of','')} · {hc_txt}</div>
+   <div class="meta">검증: {(data.get('verification') or {}).get('last_verified','미검증')} · 신뢰도 {(data.get('verification') or {}).get('confidence','—')}</div>
    <div class="meter-wrap">
      <div class="meter-top"><span>종합 리스크 지수</span><span><b id="scoreTxt">0</b>/100</span></div>
      <div class="meter"><div id="meterfill" data-score="{score}"></div></div>
@@ -308,7 +310,9 @@ def build_html_report(data, base_inputs, specific_inputs, subjective_items, find
  <h3>정량 입력값</h3><table>{base_rows}</table>
  <h3>국가 핵심 제도별 운영 기준</h3><table>{spec_rows}</table>
 
- <hr><p class="muted">※ 본 리포트는 사전 수집된 법령 데이터(기준시점 {data.get('as_of','')})와 자동 룰 판정에 기반하며, 최종 의사결정 전 현지 노무사/변호사 확인이 필요합니다.</p>
+ <hr>
+ <p class="muted">🔒 <b>취급 주의:</b> 본 리포트는 컴플라이언스 미준수 가능성을 담고 있습니다. 회사·법인을 특정할 수 있는 정보는 입력하지 않는 것을 전제로 작성되었으며, 파일 공유·보관 시 접근 권한에 유의하세요.</p>
+ <p class="muted">※ 본 리포트는 사전 수집된 법령 데이터(기준시점 {data.get('as_of','')})와 자동 룰 판정에 기반하며, 최종 의사결정 전 현지 노무사/변호사 확인이 필요합니다.</p>
 
 <script>
  // 게이지 + 카드 카운트업 애니메이션
@@ -457,6 +461,31 @@ def inject_css():
 
     /* divider 색 */
     hr {{ border-color: var(--brand-line); }}
+
+    /* ── 개인정보 보호 경고 배너 ── */
+    .ghr-warn {{
+        display: flex; gap: 16px; align-items: flex-start;
+        background: #FEF2F2;
+        border: 2px solid #DC2626;
+        border-left: 8px solid #DC2626;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin: 4px 0 20px;
+        box-shadow: 0 4px 14px rgba(220,38,38,0.15);
+        animation: ghrWarnPulse 2.4s ease-in-out 1;
+    }}
+    @keyframes ghrWarnPulse {{
+        0% {{ box-shadow: 0 0 0 0 rgba(220,38,38,0.45); }}
+        70% {{ box-shadow: 0 0 0 14px rgba(220,38,38,0); }}
+        100% {{ box-shadow: 0 4px 14px rgba(220,38,38,0.15); }}
+    }}
+    .ghr-warn-icon {{ font-size: 30px; line-height: 1.1; }}
+    .ghr-warn-title {{
+        font-size: 17px; font-weight: 800; color: #B91C1C;
+        margin-bottom: 6px; letter-spacing: -0.3px;
+    }}
+    .ghr-warn-list {{ margin: 0; padding-left: 18px; color: #7F1D1D; font-size: 13.5px; line-height: 1.6; }}
+    .ghr-warn-list b {{ color: #991B1B; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -466,6 +495,23 @@ def render_hero():
     <div class="ghr-hero">
         <h1>글로벌 HR 노동법 컴플라이언스 점검</h1>
         <p>국가·도시별 법령과 우리 회사 제도를 비교하고, 사업장 규모에 맞춰 자동으로 리스크를 진단합니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_privacy_warning():
+    """최상단 개인정보·기밀 보호 경고 배너 (회사·법인 특정 정보 입력 금지)."""
+    st.markdown("""
+    <div class="ghr-warn">
+        <div class="ghr-warn-icon">🔒</div>
+        <div class="ghr-warn-body">
+            <div class="ghr-warn-title">입력 주의 — 회사·법인을 특정할 수 있는 정보는 입력하지 마세요</div>
+            <ul class="ghr-warn-list">
+                <li><b>회사명·법인명·사업장명·브랜드명, 담당자·임직원 이름, 주소·사업자번호</b> 등 식별 정보를 적지 마세요.</li>
+                <li>이 점검은 “어느 회사가 무엇을 못 지키고 있다”는 민감한 결과를 만듭니다. 식별 정보가 없으면 <b>설령 외부로 유출되어도 특정 회사로 연결되지 않습니다.</b></li>
+                <li>제도 값(시간·일수·금액·예/아니오)만 입력하면 진단에 충분합니다. 메모란에도 회사 식별 표현은 피해주세요.</li>
+            </ul>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -591,6 +637,115 @@ def render_gauge(counts: dict):
     components.html(html, height=210)
 
 
+def render_check_widget(chk: dict, name: str = ""):
+    """단일 구조화 check(number_min/max·boolean·choice·posture) 입력 위젯을 렌더링하고
+    (선택값, 표시문자열)을 반환. country_specifics·standard_checks 공용 헬퍼."""
+    cid, t = chk["id"], chk["type"]
+    lbl, unit = chk.get("label", name), chk.get("unit", "")
+    if t in ("number_min", "number_max"):
+        thr = chk.get("threshold")
+        sign = "최소" if t == "number_min" else "최대"
+        v = st.number_input(
+            f"{lbl} ({unit})" if unit else lbl,
+            min_value=0.0, value=_f(thr, chk.get("default", 0)), step=1.0,
+            key=f"chk_{cid}", help=f"법정 기준: {sign} {thr}{unit}")
+        return v, f"{lbl}={v:g}{unit}"
+    if t == "boolean":
+        v = st.radio(lbl, ["예", "아니오", "해당 없음"], index=2, key=f"chk_{cid}",
+                     horizontal=True, help=chk.get("legal_basis", ""))
+        return v, f"{lbl}={v}"
+    if t == "choice":
+        opts = [o["label"] for o in chk.get("options", [])]
+        v = st.selectbox(lbl, opts, key=f"chk_{cid}", help=chk.get("legal_basis", ""))
+        return v, f"{lbl}={v}"
+    if t == "posture":
+        opts = ["점검 완료 · 문제 없음", "점검했으나 미흡/리스크 있음", "미점검 / 모름", "해당 없음"]
+        v = st.selectbox(lbl + " (자가진단)", opts, index=2, key=f"chk_{cid}",
+                         help=chk.get("legal_basis", ""))
+        return v, f"{lbl}={v}"
+    return None, ""
+
+
+# ──────────────────────────────────────────────────────────────
+# 데이터 신뢰도 (검증 에이전트 메타) + 결정론적 자가점검
+# ──────────────────────────────────────────────────────────────
+_CONF_BADGE = {
+    "high": ("🟢 높음", "#16A34A"),
+    "medium": ("🟡 보통", "#F59E0B"),
+    "low": ("🔴 낮음", "#DC2626"),
+}
+
+
+def _months_between(ymd: str, today: datetime.date) -> int:
+    """'YYYY-MM' 또는 'YYYY-MM-DD' 기준 경과 개월 수(대략). 파싱 실패 시 -1."""
+    try:
+        parts = ymd.split("-")
+        y, m = int(parts[0]), int(parts[1])
+        return (today.year - y) * 12 + (today.month - m)
+    except (ValueError, IndexError, AttributeError):
+        return -1
+
+
+def self_audit(data: dict) -> list:
+    """API/키 없이 데이터 자체의 정합성·신선도를 점검 → 경고 문자열 리스트."""
+    warns = []
+    today = datetime.date.today()
+    # 1) as_of 신선도
+    age = _months_between(data.get("as_of", ""), today)
+    if age >= 12:
+        warns.append(f"법령 기준시점(as_of {data.get('as_of')})이 {age}개월 경과 — 재검증 권장.")
+    elif age >= 6:
+        warns.append(f"법령 기준시점(as_of {data.get('as_of')})이 {age}개월 경과 — 최신성 확인 권장.")
+    # 2) 발효일이 지났는데 '예정' 상태로 남은 타임라인
+    for a in data.get("amendment_timeline", []):
+        eff, status = a.get("effective_date"), a.get("status", "")
+        if eff and "예정" in status:
+            em = _months_between(eff, today)
+            if em is not None and em > 0:
+                warns.append(f"‘{a.get('title','')}’ — 발효일({eff})이 지났으나 상태가 ‘{status}’ → ‘시행 중’으로 정정 필요.")
+    # 3) 출처 링크 누락
+    if not data.get("sources"):
+        warns.append("출처(sources)가 비어 있습니다 — 1차 출처 링크를 보강하세요.")
+    return warns
+
+
+def render_verification(data: dict):
+    """검증 에이전트가 남긴 verification 메타 + 자가점검 결과 표시."""
+    v = data.get("verification") or {}
+    cols = st.columns([1, 1, 2])
+    last = v.get("last_verified")
+    conf = v.get("confidence")
+    badge, color = _CONF_BADGE.get(conf, ("⚪ 미검증", "#9CA3AF"))
+    cols[0].markdown(
+        f"<div style='font-size:12.5px;color:#6b7280;'>마지막 검증일</div>"
+        f"<div style='font-size:16px;font-weight:700;'>{last or '—'}</div>",
+        unsafe_allow_html=True)
+    cols[1].markdown(
+        f"<div style='font-size:12.5px;color:#6b7280;'>데이터 신뢰도</div>"
+        f"<div style='font-size:16px;font-weight:700;color:{color};'>{badge}</div>",
+        unsafe_allow_html=True)
+    note = v.get("notes", "")
+    cols[2].markdown(
+        f"<div style='font-size:12.5px;color:#6b7280;'>검증자</div>"
+        f"<div style='font-size:13.5px;'>{v.get('verified_by','—')}"
+        + (f" · {note}" if note else "") + "</div>",
+        unsafe_allow_html=True)
+
+    issues = v.get("issues_found") or []
+    audit = self_audit(data)
+    if issues or audit:
+        with st.expander(f"⚠️ 데이터 점검 경고 {len(issues) + len(audit)}건", expanded=False):
+            for it in issues:
+                if isinstance(it, dict):
+                    st.markdown(f"- **{it.get('field','')}**: {it.get('problem','')} → {it.get('action','')}")
+                else:
+                    st.markdown(f"- {it}")
+            for w in audit:
+                st.markdown(f"- 🔎 {w}")
+    else:
+        st.caption("자동 자가점검 결과 데이터 정합성 경고가 없습니다.")
+
+
 # ──────────────────────────────────────────────────────────────
 # Streamlit UI
 # ──────────────────────────────────────────────────────────────
@@ -618,6 +773,7 @@ with st.sidebar:
         st.rerun()
 
 render_hero()
+render_privacy_warning()
 
 data = st.session_state["data"]
 
@@ -630,6 +786,9 @@ else:
 
     # ── 본문: 법령 ──
     st.header(f"📜 {data['country']} ({data['city']}) 노동법령 / 판례")
+    with st.container(border=True):
+        st.markdown("**🔎 데이터 신뢰도 / 검증 상태**")
+        render_verification(data)
     render_law_section(data)
 
     # ── 본문: 사업장 규모 ──
@@ -681,9 +840,33 @@ else:
             value=_f(_wage_def, 0), step=100.0, key="in_wage",
             help=f"법정 최저임금: {fmt_amount(mw)} · 0이면 비교 생략")
 
+    # ── 표준 항목 상세 점검 (데이터 주도 · 공통 카테고리 확장) ──
+    std_check_values = {}
+    std_checks = data.get("standard_checks", [])
+    if std_checks:
+        st.subheader("🧩 표준 항목 상세 점검")
+        st.caption("정량 핵심(근로시간·연차·최저임금 등) 외에 휴게시간·휴가·사회보험·수습·근로계약 등 "
+                   "공통 항목을 법정 기준값과 비교합니다. 숫자 기본값은 법정 기준값입니다.")
+        # category 별로 묶어 표시
+        cats = {}
+        for chk in std_checks:
+            cats.setdefault(chk.get("category", "기타"), []).append(chk)
+        cat_names = list(cats.keys())
+        for ci in range(0, len(cat_names), 2):
+            cols = st.columns(2)
+            for col, cat in zip(cols, cat_names[ci:ci + 2]):
+                with col:
+                    with st.container(border=True):
+                        st.markdown(f"**{cat}**")
+                        for chk in cats[cat]:
+                            v, _disp = render_check_widget(chk, cat)
+                            if v is not None:
+                                std_check_values[chk["id"]] = v
+
     # 구조화 점검 (국가 특유 제도)
     st.subheader("이 국가 핵심 제도별 점검")
-    st.caption("✅ 자동판정(숫자/예-아니오/선택) · 🏷️ 자가진단(점검 상태 선택). 숫자 기본값은 법정 기준값입니다.")
+    st.caption("✅ 자동판정(숫자/예-아니오/선택) · 🏷️ 자가진단(점검 상태 선택) · 🔥 해당 국가에서 노사분쟁이 잦은 항목. "
+               "숫자 기본값은 법정 기준값입니다.")
     specific_inputs = {}
     check_values = {}
     for i, item in enumerate(data.get("country_specifics", [])):
@@ -691,39 +874,22 @@ else:
         checks = item.get("checks", [])
         has_auto = any(c.get("type") in ("number_min", "number_max", "boolean", "choice") for c in checks)
         icon = "✅" if has_auto else "🏷️"
-        with st.expander(f"{icon} {name}", expanded=(i == 0)):
+        fire = " 🔥" if item.get("dispute_risk") == "high" else ""
+        with st.expander(f"{icon} {name}{fire}", expanded=(i == 0)):
+            if item.get("dispute_risk") == "high":
+                st.markdown(
+                    "<span class='ghr-chip on'>🔥 분쟁 다발</span> "
+                    + f"<span style='font-size:13px;color:#6b7280;'>{item.get('dispute_note','이 국가에서 직원–회사 법률 분쟁이 잦은 영역입니다.')}</span>",
+                    unsafe_allow_html=True)
             st.caption(item.get("detail", ""))
             if item.get("risk_hint"):
                 st.markdown(f"⚠️ **유의점:** {item['risk_hint']}")
             parts = []
             for chk in checks:
-                cid, t = chk["id"], chk["type"]
-                lbl, unit = chk.get("label", name), chk.get("unit", "")
-                if t in ("number_min", "number_max"):
-                    thr = chk.get("threshold")
-                    sign = "최소" if t == "number_min" else "최대"
-                    v = st.number_input(
-                        f"{lbl} ({unit})" if unit else lbl,
-                        min_value=0.0, value=_f(thr, chk.get("default", 0)), step=1.0,
-                        key=f"chk_{cid}", help=f"법정 기준: {sign} {thr}{unit}")
-                    check_values[cid] = v
-                    parts.append(f"{lbl}={v:g}{unit}")
-                elif t == "boolean":
-                    v = st.radio(lbl, ["예", "아니오", "해당 없음"], index=2, key=f"chk_{cid}",
-                                 horizontal=True, help=chk.get("legal_basis", ""))
-                    check_values[cid] = v
-                    parts.append(f"{lbl}={v}")
-                elif t == "choice":
-                    opts = [o["label"] for o in chk.get("options", [])]
-                    v = st.selectbox(lbl, opts, key=f"chk_{cid}", help=chk.get("legal_basis", ""))
-                    check_values[cid] = v
-                    parts.append(f"{lbl}={v}")
-                elif t == "posture":
-                    opts = ["점검 완료 · 문제 없음", "점검했으나 미흡/리스크 있음", "미점검 / 모름", "해당 없음"]
-                    v = st.selectbox(lbl + " (자가진단)", opts, index=2, key=f"chk_{cid}",
-                                     help=chk.get("legal_basis", ""))
-                    check_values[cid] = v
-                    parts.append(f"{lbl}={v}")
+                v, disp = render_check_widget(chk, name)
+                if v is not None:
+                    check_values[chk["id"]] = v
+                    parts.append(disp)
             memo = st.text_area("추가 메모(선택)", key=f"memo_{i}", placeholder="특이사항·예외 등")
             if memo.strip():
                 parts.append(f"메모: {memo.strip()}")
@@ -795,6 +961,7 @@ else:
             context = {"headcount": headcount}
             st.session_state["findings"] = (
                 rules.evaluate(data, numeric_inputs)
+                + rules.evaluate_standard_checks(data, std_check_values, context)
                 + rules.evaluate_specifics(data, check_values, context)
                 + rules.evaluate_amendment_checks(data, amend_values, context)
             )
@@ -833,7 +1000,8 @@ else:
         order = {"high": 0, "medium": 1, "info": 2, "ok": 3}
         for f in sorted(findings, key=lambda x: order.get(x["level"], 9)):
             with st.container(border=True):
-                st.markdown(f"**{rules.LEVEL_LABEL[f['level']]} · {f['category']}** — {f['title']}")
+                fire = " 🔥분쟁다발" if f.get("dispute_risk") == "high" else ""
+                st.markdown(f"**{rules.LEVEL_LABEL[f['level']]} · {f['category']}{fire}** — {f['title']}")
                 st.caption(f["detail"])
                 st.markdown(f"- 법적 근거: {f['legal_basis']}\n- 권고: **{f['recommendation']}**")
 
