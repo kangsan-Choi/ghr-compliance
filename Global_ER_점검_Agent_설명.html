@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global ER 점검 Agent — 프로젝트 설명</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+  :root{
+    --brand:#F04C23; --brand-dark:#C23A18; --soft:#FFF4F0; --line:#FAD9CF;
+    --ink:#1f2937; --muted:#6b7280; --ok:#16A34A; --warn:#F59E0B; --red:#DC2626; --blue:#2563EB;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Pretendard','Malgun Gothic','Segoe UI',sans-serif; margin:0; color:var(--ink);
+       line-height:1.7; background:#fff;}
+  a{color:var(--brand-dark);}
+  .wrap{max-width:1060px; margin:0 auto; padding:0 22px;}
+
+  /* 상단 내비 */
+  .nav{position:sticky; top:0; z-index:50; background:rgba(255,255,255,.92); backdrop-filter:blur(8px);
+       border-bottom:1px solid var(--line);}
+  .nav .wrap{display:flex; align-items:center; gap:18px; height:56px; overflow-x:auto;}
+  .nav b{color:var(--brand); white-space:nowrap; font-weight:800;}
+  .nav a{color:var(--ink); text-decoration:none; font-size:14px; font-weight:600; white-space:nowrap;}
+  .nav a:hover{color:var(--brand);}
+
+  /* 히어로 */
+  .hero{background:linear-gradient(120deg,#F04C23 0%,#FF7A4D 60%,#FF9A6B 100%); color:#fff;
+        padding:54px 0 48px; position:relative; overflow:hidden;}
+  .hero::after{content:"🌐"; position:absolute; right:30px; top:40px; font-size:160px; opacity:.13;}
+  .badge{display:inline-block; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.4);
+         padding:5px 14px; border-radius:999px; font-size:13px; font-weight:700; margin-bottom:14px;}
+  .hero h1{margin:0; font-size:40px; font-weight:800; letter-spacing:-1px;}
+  .hero .sub{margin-top:12px; font-size:17px; max-width:680px; opacity:.97;}
+  .cta{margin-top:24px; display:flex; gap:12px; flex-wrap:wrap;}
+  .btn{display:inline-block; text-decoration:none; padding:12px 22px; border-radius:12px; font-weight:800;
+       font-size:15px; transition:transform .12s;}
+  .btn:hover{transform:translateY(-2px);}
+  .btn-w{background:#fff; color:var(--brand-dark);}
+  .btn-o{background:rgba(0,0,0,.18); color:#fff; border:1.5px solid rgba(255,255,255,.5);}
+
+  section{padding:46px 0; border-bottom:1px solid #f1f1f1;}
+  h2{font-size:26px; font-weight:800; letter-spacing:-.5px; margin:0 0 6px; padding-left:14px;
+     border-left:6px solid var(--brand);}
+  h2 .en{color:var(--muted); font-size:15px; font-weight:600;}
+  .lead{color:var(--muted); margin:0 0 22px; padding-left:14px;}
+  h3{font-size:18px; margin:26px 0 10px;}
+
+  .grid{display:grid; gap:16px;}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr;}}
+
+  .card{border:1px solid var(--line); border-radius:14px; padding:20px; background:#fff;
+        box-shadow:0 2px 12px rgba(0,0,0,.04);}
+  .card h4{margin:0 0 8px; font-size:16px;}
+  .card p{margin:0; font-size:14px; color:var(--muted);}
+  .card .ic{font-size:24px;}
+
+  .soft{background:var(--soft); border:1px solid var(--line); border-radius:14px; padding:20px 22px;}
+
+  /* 칩 */
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{background:var(--soft); border:1px solid var(--line); color:var(--brand-dark);
+        padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:700;}
+
+  /* 아키텍처 다이어그램 */
+  .phase{border:1.5px dashed var(--line); border-radius:16px; padding:18px; margin-top:14px; position:relative;}
+  .phase .tag{position:absolute; top:-13px; left:18px; background:var(--brand); color:#fff;
+        font-size:12.5px; font-weight:800; padding:3px 12px; border-radius:999px;}
+  .flow{display:flex; align-items:stretch; gap:10px; flex-wrap:wrap;}
+  .node{flex:1; min-width:150px; background:#fff; border:1.5px solid var(--line); border-radius:12px;
+        padding:14px; text-align:center; font-size:13.5px;}
+  .node b{display:block; font-size:14.5px; margin-bottom:3px;}
+  .node small{color:var(--muted); font-size:12px;}
+  .node.brand{background:var(--brand); color:#fff; border-color:var(--brand);}
+  .node.brand small{color:rgba(255,255,255,.85);}
+  .node.dark{background:#1f2937; color:#fff; border-color:#1f2937;}
+  .node.dark small{color:#cbd5e1;}
+  .arrow{display:flex; align-items:center; color:var(--brand); font-size:24px; font-weight:800;}
+  @media(max-width:760px){.arrow{transform:rotate(90deg);}}
+
+  /* 테이블 */
+  table{border-collapse:collapse; width:100%; margin-top:12px; font-size:14px;}
+  th,td{border:1px solid #e5e7eb; padding:10px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--soft); color:var(--brand-dark); white-space:nowrap;}
+  td code{background:#f3f4f6; padding:1px 6px; border-radius:5px; font-size:13px;}
+
+  /* 타임라인 */
+  .tl{position:relative; padding-left:26px;}
+  .tl::before{content:""; position:absolute; left:7px; top:4px; bottom:4px; width:2px; background:var(--line);}
+  .tl .item{position:relative; margin-bottom:20px;}
+  .tl .item::before{content:""; position:absolute; left:-23px; top:5px; width:12px; height:12px;
+        background:var(--brand); border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 2px var(--line);}
+  .tl .item h4{margin:0 0 4px;}
+
+  /* 단계 박스 */
+  .steps{counter-reset:s; display:grid; gap:12px;}
+  .step{display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--line);
+        border-radius:12px; padding:14px 16px;}
+  .step .n{counter-increment:s; flex:0 0 32px; height:32px; background:var(--brand); color:#fff;
+        border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;}
+  .step .n::before{content:counter(s);}
+
+  .note{border-left:5px solid var(--warn); background:#FFFBEB; padding:14px 18px; border-radius:0 10px 10px 0;
+        font-size:14px;}
+  .ok-note{border-left:5px solid var(--ok); background:#F0FDF4; padding:14px 18px; border-radius:0 10px 10px 0;
+        font-size:14px;}
+
+  /* 향후과제 우선순위 배지 */
+  .pri{display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; font-weight:800; color:#fff;}
+  .p-high{background:var(--red);} .p-mid{background:var(--warn);} .p-low{background:var(--blue);}
+
+  footer{padding:30px 0 50px; color:var(--muted); font-size:13px;}
+  .kbd{background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; padding:1px 7px; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<!-- 내비 -->
+<div class="nav"><div class="wrap">
+  <b>🌐 Global ER 점검 Agent</b>
+  <a href="#overview">개요</a>
+  <a href="#arch">아키텍처</a>
+  <a href="#agents">AI 에이전트</a>
+  <a href="#app">웹앱 작동방식</a>
+  <a href="#history">개발과정</a>
+  <a href="#stack">기술스택</a>
+  <a href="#todo">향후 과제</a>
+  <a href="#demo">데모</a>
+</div></div>
+
+<!-- 히어로 -->
+<div class="hero"><div class="wrap">
+  <div class="badge">HR · 글로벌 노무 컴플라이언스 과제</div>
+  <h1>Global ER 점검 Agent</h1>
+  <p class="sub">해외법인 ER(Employee Relations) Risk를 사전 진단하고 HR 제도 개선을 제안하여,
+     법인의 <b>노무 Risk를 최소화</b>하는 웹 기반 점검 도구입니다.</p>
+  <div class="cta">
+    <a class="btn btn-w" href="#demo">▶ 실제 데모 보기</a>
+    <a class="btn btn-o" href="#arch">전체 구조 살펴보기</a>
+  </div>
+</div></div>
+
+<!-- 1. 개요 -->
+<section id="overview"><div class="wrap">
+  <h2>1. 과제 개요 <span class="en">Overview</span></h2>
+  <p class="lead">"법을 몰라서 생기는 리스크"를 담당자가 클릭 몇 번으로 미리 잡아낼 수 있게 합니다.</p>
+
+  <div class="grid g3">
+    <div class="card"><div class="ic">🎯</div><h4>목적</h4>
+      <p>해외법인 ER Risk 사전 진단 및 HR 제도 개선 제안을 통한 <b>법인 노무 Risk 최소화</b>.</p></div>
+    <div class="card"><div class="ic">👥</div><h4>사용자</h4>
+      <p>본사 글로벌 HR 담당자 및 각 해외법인 ER/HR 담당자. 비개발자도 링크 접속만으로 사용.</p></div>
+    <div class="card"><div class="ic">🧭</div><h4>해결하는 문제</h4>
+      <p>국가별로 다른 노동법·개정사항·사업장 규모별 의무를 일일이 추적하기 어려운 현실을 자동 점검으로 대체.</p></div>
+  </div>
+
+  <div class="soft" style="margin-top:18px;">
+    <b>한 줄 요약</b> — 국가·도시별 노동법 기준값과 우리 회사 HR 제도(직원 수 포함)를 비교해
+    🔴위반 / 🟡주의 / 🟢적합 / 🔎수동확인으로 자동 판정하고, 개선 권고와 최종 리포트(HTML)를 제공합니다.
+  </div>
+</div></section>
+
+<!-- 2. 아키텍처 -->
+<section id="arch"><div class="wrap">
+  <h2>2. 전체 아키텍처 <span class="en">Architecture</span></h2>
+  <p class="lead">이 프로젝트는 <b>① 데이터를 만드는 단계</b>와 <b>② 사용자에게 서비스하는 단계</b>가 분리되어 있습니다.</p>
+
+  <div class="phase">
+    <span class="tag">① 개발 단계 — AI 멀티에이전트로 "법령 데이터" 구축</span>
+    <div class="flow">
+      <div class="node brand"><b>Orchestrator</b><small>전체 지휘</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>법령 조사</b><small>labor-law-researcher</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>HR제도 구조화</b><small>hr-policy-structurer</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>갭 분석</b><small>compliance-gap-analyzer</small></div>
+      <div class="arrow">→</div>
+      <div class="node dark"><b>JSON 데이터</b><small>data/ 폴더에 저장</small></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 0;">
+      ※ 이 에이전트들은 <b>Claude Code(AI 개발도구) 안에서 작동</b>하며, 조사·정리 결과를
+      <code>data/*.json</code>(8개국 법령)과 룰로 만들어 둡니다. <b>운영 중인 웹앱에 상주하는 서버가 아닙니다.</b></p>
+  </div>
+
+  <div style="text-align:center;font-size:26px;color:var(--brand);margin:6px 0;">⇩ 산출물을 저장 ⇩</div>
+
+  <div class="phase">
+    <span class="tag">② 운영 단계 — Streamlit 웹앱으로 서비스</span>
+    <div class="flow">
+      <div class="node dark"><b>data/ + rules.py</b><small>사전 저장 데이터 · 룰 엔진</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>compliance_app.py</b><small>화면 구성 · 입력 · 판정</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>GitHub</b><small>코드 저장소</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Streamlit Cloud</b><small>자동 배포</small></div>
+      <div class="arrow">→</div>
+      <div class="node brand"><b>웹 링크</b><small>담당자 접속</small></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 0;">
+      ※ 운영 중에는 <b>인터넷·LLM·API 호출이 전혀 없습니다.</b> 미리 저장한 데이터와 룰로만
+      <b>결정론적(항상 같은 입력 → 같은 결과)</b>으로 판정하므로 빠르고, API 키도 필요 없습니다.</p>
+  </div>
+
+  <div class="ok-note" style="margin-top:18px;">
+    <b>"rules.py를 서버처럼 저장해 꺼내 쓰는가?"</b> — 정확히는, 별도의 데이터베이스/서버는 없습니다.
+    <code>rules.py</code>는 앱이 불러오는 <b>판정 로직 모듈</b>, <code>data/*.json</code>은 <b>사전 수집한 법령 백데이터</b>이며,
+    Streamlit Cloud가 GitHub 저장소를 통째로 가져와 실행하는 구조입니다.
+  </div>
+</div></section>
+
+<!-- 3. 에이전트 -->
+<section id="agents"><div class="wrap">
+  <h2>3. AI 에이전트 구성 <span class="en">Multi-Agent Pipeline</span></h2>
+  <p class="lead">초기 HTML 도구와 법령 데이터를 만들기 위해 설계한 7개 에이전트입니다. 실제로 작동하며, 개발(데이터 갱신) 단계에서 호출됩니다.</p>
+  <table>
+    <tr><th>에이전트</th><th>역할</th><th>작동 위치/시점</th></tr>
+    <tr><td><b>compliance-orchestrator</b><br>(오케스트레이터)</td>
+        <td>전체 파이프라인을 정해진 순서로 지휘하고, 하위 에이전트 결과를 모아 대시보드/리포트를 생성</td>
+        <td rowspan="6">Claude Code 내부<br>(개발·데이터 구축 시점)</td></tr>
+    <tr><td><b>labor-law-researcher</b></td>
+        <td>국가별 최신 노동법·개정사항·최저임금·근로시간 등을 웹에서 조사하고 출처와 함께 정리</td></tr>
+    <tr><td><b>hr-policy-structurer</b></td>
+        <td>회사 HR 제도(근로시간·휴가·급여·해고·복리후생)를 표준 JSON으로 구조화 (개인정보는 제외)</td></tr>
+    <tr><td><b>compliance-gap-analyzer</b></td>
+        <td>법정 기준 vs 현행 제도를 항목별 비교해 🔴긴급/🟡권고/🟢준수로 갭을 판정</td></tr>
+    <tr><td><b>gap-analysis-reporter</b></td>
+        <td>갭 분석 결과를 경영진용 구조화 리포트(요약·긴급·권고·참고)로 작성</td></tr>
+    <tr><td><b>law-amendment-monitor</b></td>
+        <td>법령 스냅샷을 비교해 최근 3개월 내 개정을 감지하고 재분석을 촉발 ("새로고침")</td></tr>
+  </table>
+  <div class="note" style="margin-top:16px;">
+    <b>중요 구분</b> — 이 에이전트들은 <b>"데이터를 만드는 도구"</b>입니다. 완성된 웹앱은 이들이 만든
+    결과(<code>data/*.json</code>)를 <b>꺼내 쓰기만</b> 하며, 사용자가 앱을 쓸 때 에이전트가 매번 돌지는 않습니다.
+    덕분에 빠르고 안정적이며, 법령이 바뀌면 개발 단계에서 에이전트로 데이터만 갱신해 다시 배포합니다.
+  </div>
+</div></section>
+
+<!-- 4. 웹앱 작동방식 -->
+<section id="app"><div class="wrap">
+  <h2>4. 현재 웹앱 작동 방식 <span class="en">How the App Works</span></h2>
+  <p class="lead">사용자가 보는 화면 뒤에서 무슨 일이 일어나는지의 흐름입니다.</p>
+
+  <div class="steps">
+    <div class="step"><div class="n"></div><div><b>국가·도시 선택</b> → 해당 <code>data/*.json</code>의 법정 기준(근로시간·연차·최저임금·해고예고 등)과 개정 타임라인을 불러옵니다.</div></div>
+    <div class="step"><div class="n"></div><div><b>사업장 직원 수 입력</b> → 직원 수에 따라 달라지는 규제(예: 취업규칙·고충처리·여성위원회 등)의 적용 여부를 자동 판정합니다.</div></div>
+    <div class="step"><div class="n"></div><div><b>우리 회사 제도 입력</b> → 정규/최대 근로시간, 연차, 해고예고, 임금 등 실제 값을 입력(기본값은 법정 기준).</div></div>
+    <div class="step"><div class="n"></div><div><b>일괄 Risk 분석</b> → <code>rules.py</code>가 법정 기준과 입력값을 비교해 🔴/🟡/🟢/🔎로 판정.</div></div>
+    <div class="step"><div class="n"></div><div><b>결과 + 리포트</b> → 종합 리스크 게이지와 항목별 권고를 보여주고, <b>최종 HTML 리포트</b>를 내려받습니다(인쇄·PDF·필터 지원).</div></div>
+  </div>
+
+  <h3>핵심 구성 파일</h3>
+  <table>
+    <tr><th>파일/폴더</th><th>역할</th></tr>
+    <tr><td><code>compliance_app.py</code></td><td>웹 화면 구성·입력 위젯·결과 표시 (메인 앱)</td></tr>
+    <tr><td><code>rules.py</code></td><td>법정 기준과 입력을 비교하는 <b>결정론적 룰 판정 엔진</b> (직원 수 조건 포함)</td></tr>
+    <tr><td><code>data/*.json</code></td><td>8개국 법령 <b>백데이터</b> (미국 휴스턴·중국 베이징·일본 도쿄·러시아 모스크바·네덜란드·스페인·인도네시아·인도)</td></tr>
+    <tr><td><code>.streamlit/config.toml</code></td><td>오렌지 테마 등 디자인 설정</td></tr>
+    <tr><td><code>requirements.txt</code></td><td>배포 서버가 설치할 패키지 목록(streamlit, markdown)</td></tr>
+  </table>
+
+  <h3>핵심 기능</h3>
+  <div class="chips">
+    <span class="chip">8개국 법령 데이터</span>
+    <span class="chip">정량 항목 자동 판정</span>
+    <span class="chip">직원 수 규모별 규제 자동 적용</span>
+    <span class="chip">최근 3개년 개정 타임라인</span>
+    <span class="chip">판례·행정해석</span>
+    <span class="chip">종합 리스크 게이지</span>
+    <span class="chip">HTML 리포트 다운로드</span>
+    <span class="chip">주관식 질문용 LLM 프롬프트 생성</span>
+    <span class="chip">API 키 불필요</span>
+  </div>
+</div></section>
+
+<!-- 5. 개발과정 -->
+<section id="history"><div class="wrap">
+  <h2>5. 개발 과정 <span class="en">Evolution</span></h2>
+  <p class="lead">정적 HTML 도구에서 시작해, 데이터와 로직을 분리한 배포형 웹앱으로 발전했습니다.</p>
+  <div class="tl">
+    <div class="item"><h4>1세대 · 국가별 정적 HTML 도구</h4>
+      <p style="color:var(--muted);margin:0;">국가마다 개별 HTML 파일로 점검 도구/리포트를 제작 (현재 <code>archive_html_초기버전/</code>에 보관).
+      직관적이지만 국가가 늘 때마다 파일이 늘고, 법령 갱신·관리가 번거로움.</p></div>
+    <div class="item"><h4>2세대 · Python · Streamlit 통합 웹앱 <span class="pri p-high">현재</span></h4>
+      <p style="color:var(--muted);margin:0;">화면(<code>compliance_app.py</code>) · 로직(<code>rules.py</code>) · 데이터(<code>data/</code>)를 분리.
+      8개국을 하나의 앱에서 점검하고, 직원 수 규모별 규제·리스크 게이지·리포트 다운로드를 추가.</p></div>
+    <div class="item"><h4>3세대 · 클라우드 배포 + 링크 공유 <span class="pri p-high">현재</span></h4>
+      <p style="color:var(--muted);margin:0;">GitHub에 저장 → Streamlit Community Cloud가 자동 배포.
+      해외 담당자가 <b>설치 없이 링크</b>로 접속. 수정은 "GitHub에 올리기(Push)"만 하면 자동 반영.</p></div>
+  </div>
+</div></section>
+
+<!-- 6. 기술스택 -->
+<section id="stack"><div class="wrap">
+  <h2>6. 기술 스택 <span class="en">Tech Stack</span></h2>
+  <div class="grid g2">
+    <div class="card"><h4>운영(서비스)</h4>
+      <div class="chips" style="margin-top:8px;">
+        <span class="chip">Python</span><span class="chip">Streamlit</span>
+        <span class="chip">결정론적 룰 엔진</span><span class="chip">JSON 데이터</span>
+        <span class="chip">GitHub</span><span class="chip">Streamlit Community Cloud</span>
+      </div>
+      <p style="margin-top:12px;">런타임에 외부 호출·비밀키 없음 → 빠르고 안전.</p></div>
+    <div class="card"><h4>개발(데이터 구축)</h4>
+      <div class="chips" style="margin-top:8px;">
+        <span class="chip">Claude Code</span><span class="chip">멀티 에이전트</span>
+        <span class="chip">웹 리서치</span><span class="chip">HTML/CSS/JS</span>
+      </div>
+      <p style="margin-top:12px;">법령 조사·구조화·갭분석·리포트 자동화로 데이터 제작.</p></div>
+  </div>
+</div></section>
+
+<!-- 7. 향후과제 -->
+<section id="todo"><div class="wrap">
+  <h2>7. 추가 해결이 필요한 부분 <span class="en">Roadmap &amp; Open Issues</span></h2>
+  <p class="lead">현재 버전은 "사전 저장 데이터 + 룰 판정"에 최적화되어 있습니다. 다음은 솔직한 한계와 개선 방향입니다.</p>
+  <table>
+    <tr><th>구분</th><th>현재 한계</th><th>개선 방향</th><th>우선순위</th></tr>
+    <tr><td>법령 최신성</td>
+        <td>데이터가 특정 시점(2026-06) 기준으로 고정. 개정 시 수동 갱신 필요.</td>
+        <td><code>law-amendment-monitor</code>를 정기 실행해 변경 감지 → 데이터 자동 갱신·재배포 연계</td>
+        <td><span class="pri p-high">높음</span></td></tr>
+    <tr><td>국가 커버리지</td>
+        <td>현재 8개국(도시 단위).</td>
+        <td>법인 소재 국가로 확대. 에이전트 파이프라인으로 국가 추가가 비교적 쉬움</td>
+        <td><span class="pri p-high">높음</span></td></tr>
+    <tr><td>회사 데이터 저장</td>
+        <td>입력값이 세션 기반(새로고침 시 초기화), 법인별 이력 저장 없음.</td>
+        <td>법인별 프로필 저장/불러오기, 점검 이력 관리 기능</td>
+        <td><span class="pri p-mid">중간</span></td></tr>
+    <tr><td>주관식 자동화</td>
+        <td>주관식 질문은 프롬프트를 만들어 <b>수동 복붙</b>으로 LLM 질의.</td>
+        <td>(보안 검토 후) LLM API 연동으로 앱 내 자동 답변 — 비밀키는 Secrets로 관리</td>
+        <td><span class="pri p-mid">중간</span></td></tr>
+    <tr><td>접근 제어</td>
+        <td>링크를 아는 사람은 접속 가능.</td>
+        <td>필요 시 뷰어 이메일 제한/사내 SSO 연계</td>
+        <td><span class="pri p-low">낮음</span></td></tr>
+    <tr><td>법적 정확성</td>
+        <td>자동 판정은 참고용. 해석 여지가 있는 항목 존재.</td>
+        <td>현지 노무사/변호사 검수 절차 병행, 출처 링크 상시 노출(이미 일부 적용)</td>
+        <td><span class="pri p-high">높음</span></td></tr>
+  </table>
+</div></section>
+
+<!-- 8. 데모 -->
+<section id="demo"><div class="wrap">
+  <h2>8. 데모 &amp; 사용법 <span class="en">Live Demo</span></h2>
+  <p class="lead">아래 링크로 실제 작동하는 앱을 바로 사용할 수 있습니다(설치 불필요).</p>
+
+  <div class="soft" style="text-align:center;">
+    <p style="margin:0 0 14px; font-weight:700;">▶ 실제 데모 링크</p>
+    <a class="btn btn-w" style="background:var(--brand);color:#fff;font-size:17px;"
+       id="demoLink" href="https://ghr-compliance-nvje9xuqyx3x2qyyencmzg.streamlit.app/" target="_blank" rel="noopener">
+       Global ER 점검 Agent 열기</a>
+    <p style="margin:14px 0 0; font-size:13px; color:var(--muted);">
+      ※ 링크: <a href="https://ghr-compliance-nvje9xuqyx3x2qyyencmzg.streamlit.app/" target="_blank" rel="noopener">https://ghr-compliance-nvje9xuqyx3x2qyyencmzg.streamlit.app/</a><br>
+      설치 없이 누구나 접속 가능합니다. (한동안 미사용 시 잠자기 → 첫 접속 시 약 30초 후 깨어남)</p>
+  </div>
+
+  <h3>사용 순서</h3>
+  <div class="steps">
+    <div class="step"><div class="n"></div><div>좌측 사이드바에서 <b>국가 선택</b> → "노동법령·판례 불러오기" 클릭</div></div>
+    <div class="step"><div class="n"></div><div><b>사업장 직원 수</b> 입력 → 규모별 규제 적용 여부 자동 확인</div></div>
+    <div class="step"><div class="n"></div><div><b>우리 회사 제도</b> 값 입력(기본값은 법정 기준)</div></div>
+    <div class="step"><div class="n"></div><div>사이드바에서 <b>일괄 Risk 분석</b> 실행</div></div>
+    <div class="step"><div class="n"></div><div>결과 확인 후 <b>최종 리포트(HTML)</b> 다운로드</div></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="note">
+    ⚠️ <b>면책</b> — 본 도구의 진단 결과는 사전 수집된 법령 데이터와 자동 룰 판정에 기반한 <b>참고 자료</b>입니다.
+    최종 의사결정 전 반드시 <b>현지 노무사/변호사</b>의 확인을 받으시기 바랍니다.
+  </div>
+  <p style="margin-top:18px;">© Global ER 점검 Agent · 글로벌 HR 노무 컴플라이언스 과제 · 문서 자동 생성</p>
+</div></footer>
+
+<script>
+  // 내비 active 표시 (스크롤 위치에 따라)
+  const secs = [...document.querySelectorAll('section, footer')];
+  const links = [...document.querySelectorAll('.nav a')];
+  const byId = id => links.find(a => a.getAttribute('href') === '#' + id);
+  const obs = new IntersectionObserver((ents) => {
+    ents.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.style.color = '');
+        const l = byId(e.target.id);
+        if (l) l.style.color = 'var(--brand)';
+      }
+    });
+  }, {rootMargin: '-45% 0px -50% 0px'});
+  secs.forEach(s => { if (s.id) obs.observe(s); });
+</script>
+</body>
+</html>
