@@ -18,6 +18,7 @@ API 키 없이 사전 수집된 법령 데이터와 룰 기반 판정으로 동�
 | `data/` | 국가별 법령 데이터(JSON) |
 | `.streamlit/config.toml` | 디자인 테마(오렌지) 설정 |
 | `requirements.txt` | 앱이 필요로 하는 파이썬 패키지 목록 |
+| `build_firebase.py` · `firebase.json` | Firebase Hosting 배포용 정적 빌드(아래 참고) |
 | `demo_app.py` | Streamlit 학습용 데모(배포와 무관) |
 | `archive_html_초기버전/` | 초기 HTML 버전(참고용 보관) |
 
@@ -30,6 +31,19 @@ streamlit run compliance_app.py
 ## 웹에 배포(누구나 링크로 접속)
 [Streamlit Community Cloud](https://share.streamlit.io) 에 GitHub 저장소를 연결하고
 메인 파일을 `compliance_app.py` 로 지정하면 공개 주소가 생성됩니다.
+
+### Firebase Hosting 배포 (서버 없이, 잠들지 않음)
+[stlite](https://github.com/whitphx/stlite)로 앱을 브라우저 안에서 실행하는 정적 사이트로 만들어 올립니다.
+Streamlit Cloud처럼 일정 시간 미사용 시 잠드는 일이 없고, Firebase 무료(Spark) 요금제로 충분합니다.
+첫 접속 시 파이썬 런타임을 내려받느라 10~20초 정도 걸립니다.
+
+```powershell
+python build_firebase.py              # public/ 폴더 생성 (data 수정 후에도 다시 실행)
+npm install -g firebase-tools         # 최초 1회
+firebase login                        # 최초 1회
+firebase use --add                    # 최초 1회: Firebase 프로젝트 선택
+firebase deploy --only hosting
+```
 
 ---
 ※ 본 앱의 진단 결과는 참고용이며, 최종 의사결정 전 현지 노무사/변호사 확인이 필요합니다.

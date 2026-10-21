@@ -19,3 +19,7 @@ Thumbs.db
 
 # Claude Code 내부 설정·메모(앱과 무관, 공개 불필요)
 .claude/
+
+# Firebase 빌드 산출물(build_firebase.py 로 생성) / 로컬 캐시
+public/
+.firebase/
