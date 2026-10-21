@@ -1,8 +1,9 @@
 /**
- * Global ER Compliance — 프론트엔드 (빌드 도구 없는 순수 ES 모듈)
+ * Global ER Compliance — 프론트엔드 (빌드 도구 없는 일반 스크립트)
  * ─────────────────────────────────────────
- * 흐름: 홈(관할 선택) → 국가 작업공간 [01 법령 브리핑 · 02 제도 점검 · 03 진단 결과]
- * 입력이 바뀌면 rules.js 로 즉시 재판정하고, 우측 요약·행별 상태·결과 탭을 갱신한다.
+ * 흐름: 홈(관할 선택) → 국가 작업공간
+ *   [개요] · [HR 카테고리 7개: 법정 기준 → 최근 개정·판례 → 우리 회사 점검 → 판정] · [종합 결과·리포트]
+ * 모든 항목의 기본값은 '미응답'. 답하는 즉시 rules.js 로 재판정하고 좌측 요약·진행률·행별 상태를 갱신한다.
  * 입력값은 서버로 보내지 않고 브라우저 메모리에만 둔다(새로고침 시 초기화).
  *
  * 법령 데이터는 data.js(window.GHR_DATA)에서 읽는다 — 파일을 더블클릭해 열어도(file://) 동작하도록
@@ -25,6 +26,7 @@ const COUNTRIES = [
 ];
 const REGION_LABEL = { asia: "Asia", europe: "Europe", americas: "Americas" };
 const REGION_KO = { all: "전체", asia: "아시아", europe: "유럽", americas: "미주" };
+const DOMAIN = Object.fromEntries(R.DOMAINS.map((d, i) => [d.key, { ...d, no: String(i + 1).padStart(2, "0") }]));
 
 const TIMELINE_STATUS = {
   "시행 중": ["st-live", "시행 중"],
@@ -34,22 +36,18 @@ const TIMELINE_STATUS = {
   "정정 필요": ["st-void", "정정"],
 };
 const CONF = { high: ["높음", ""], medium: ["보통", "medium"], low: ["낮음", "low"] };
-const LEVEL_ORDER = { high: 0, medium: 1, info: 2, ok: 3 };
-const LEVEL_SHORT = { high: "위반 소지", medium: "주의", ok: "적합", info: "확인 필요" };
 const POSTURE = [
   ["점검 완료 · 문제 없음", "문제 없음", "good"],
   ["점검했으나 미흡/리스크 있음", "미흡", "warn"],
-  ["미점검 / 모름", "미점검", ""],
+  ["미점검 / 모름", "모름", ""],
   ["해당 없음", "해당 없음", ""],
 ];
 const BOOL = [["예", "예", "good"], ["아니오", "아니오", "bad"], ["해당 없음", "해당 없음", ""]];
-const NUMERIC_CATEGORY = {
-  std_weekly: "정규 근로시간", max_weekly: "최대 근로시간", annual_leave: "연차휴가",
-  notice_days: "해고 예고", monthly_wage: "최저임금",
-};
+const ROW_FILTERS = [["all", "전체"], ["todo", "미응답"], ["risk", "위반·주의"], ["amend", "최근 개정"], ["dispute", "분쟁 다발"]];
 
 const ICON = {
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
   lock: '<rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
   download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
   ext: '<path d="M14 5h5v5M19 5l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
@@ -60,27 +58,30 @@ const ICON = {
   alert: '<path d="M12 4 2.8 19.5h18.4L12 4Z"/><path d="M12 10v4.2M12 17.2v.1"/>',
   refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>',
   shield: '<path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6L12 3Z"/><path d="m9 12 2 2 4-4"/>',
+  grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  report: '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20V3.5Z"/><path d="M14 3.5V8h4M10 12h5M10 15.5h5"/>',
+  pin: '<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
 };
 const icon = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const num = (v, fb) => (typeof v === "number" && isFinite(v) ? v : fb);
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const isBlank = (v) => v === null || v === undefined || v === "";
 
 // ── 상태 ──────────────────────────────────────────────────────
 const S = {
-  all: {},            // slug → data
-  inputs: {},         // slug → 입력값(국가 전환 시 유지)
+  all: {},          // slug → data
+  inputs: {},       // slug → { headcount, answers, memos, questions, replies }
   slug: null,
-  tab: "brief",
+  view: "overview", // overview | <domain key> | result
   homeFilter: "all",
+  rowFilter: "all",
   resultFilter: "all",
-  findings: [],
+  ev: null,         // 최근 판정 결과 (R.evaluateAll)
 };
 const app = $("#app");
 
-// ── 데이터 ────────────────────────────────────────────────────
 function loadAll() {
   const bundle = window.GHR_DATA;
   if (!bundle) throw new Error("data.js 를 찾지 못했습니다. python tools/sync_web_data.py 를 실행하세요.");
@@ -89,78 +90,17 @@ function loadAll() {
     S.all[c.slug] = bundle[c.file];
   }
 }
-
-function defaultCheckValue(chk, isAmend) {
-  if (chk.type === "number_min" || chk.type === "number_max") return num(chk.threshold, num(chk.default, 0));
-  if (chk.type === "boolean") return isAmend ? "아니오" : "해당 없음";
-  if (chk.type === "choice") return (chk.options || [])[0]?.label ?? "";
-  if (chk.type === "posture") return "미점검 / 모름";
-  return null;
-}
-
-function defaultInputs(data) {
-  const std = data.standards || {};
-  const mw = std.min_wage || {};
-  const inp = {
-    headcount: 50,
-    numeric: {
-      std_weekly: num(std.standard_weekly_hours, 40),
-      max_weekly: num(std.max_weekly_hours_incl_overtime || std.standard_weekly_hours || 52, 52),
-      annual_leave: num(std.annual_leave_min_days, 0),
-      notice_days: num(std.termination_notice_min_days, 0),
-      monthly_wage: mw.period === "월" && typeof mw.amount === "number" ? mw.amount : 0,
-    },
-    std: {}, spec: {}, amend: {}, memos: {}, questions: "", answers: {},
-  };
-  for (const c of data.standard_checks || []) inp.std[c.id] = defaultCheckValue(c, false);
-  for (const it of data.country_specifics || []) for (const c of it.checks || []) inp.spec[c.id] = defaultCheckValue(c, false);
-  for (const c of data.amendment_checks || []) inp.amend[c.id] = defaultCheckValue(c, true);
-  return inp;
-}
-
+const newInputs = () => ({ headcount: 50, answers: {}, memos: {}, questions: "", replies: {} });
 const cur = () => ({ meta: COUNTRIES.find((c) => c.slug === S.slug), data: S.all[S.slug], inp: S.inputs[S.slug] });
-
-function numericForRules(inp) {
-  return { ...inp.numeric, monthly_wage: inp.numeric.monthly_wage ? inp.numeric.monthly_wage : null };
-}
-
-function computeFindings(data, inp) {
-  const ctx = { headcount: inp.headcount };
-  return R.evaluate(data, numericForRules(inp))
-    .concat(R.evaluateStandardChecks(data, inp.std, ctx))
-    .concat(R.evaluateSpecifics(data, inp.spec, ctx))
-    .concat(R.evaluateAmendmentChecks(data, inp.amend, ctx));
-}
-
-/** 리포트·프롬프트용 입력 요약(스트림릿 앱과 동일 형식). */
-function inputSummaries(data, inp) {
-  const mw = data.standards.min_wage || {};
-  const n = inp.numeric;
-  const base = {
-    "정규 주당 근로시간": `${R.fmtG(n.std_weekly)} 시간`,
-    "최대 주당 근로시간": `${R.fmtG(n.max_weekly)} 시간`,
-    "연차 부여일수": `${R.fmtG(n.annual_leave)} 일`,
-    "해고 예고기간": `${R.fmtG(n.notice_days)} 일`,
-    "월 기본급": n.monthly_wage ? `${R.fmtComma0(n.monthly_wage)} ${mw.currency || ""}` : "(미입력)",
-  };
-  const specific = {};
-  (data.country_specifics || []).forEach((item, i) => {
-    const name = item.name || `제도 ${i + 1}`;
-    const parts = (item.checks || []).map((c) => {
-      const v = inp.spec[c.id];
-      const lbl = c.label || name;
-      return typeof v === "number" ? `${lbl}=${R.fmtG(v)}${c.unit || ""}` : `${lbl}=${v}`;
-    });
-    const memo = (inp.memos[i] || "").trim();
-    if (memo) parts.push(`메모: ${memo}`);
-    specific[name] = parts.join(" · ");
-  });
-  return { base, specific };
-}
-
 const questionsOf = (inp) => inp.questions.split("\n").map((q) => q.trim()).filter(Boolean);
 
-// ── 자가점검(데이터 신선도·정합성) — compliance_app.self_audit 포팅 ──
+function evaluate() {
+  const { data, inp } = cur();
+  S.ev = R.evaluateAll(data, inp.answers, { headcount: inp.headcount });
+  return S.ev;
+}
+
+// ── 자가점검(데이터 신선도·정합성) ──────────────────────────────
 function monthsBetween(ymd, today) {
   const [y, m] = String(ymd || "").split("-").map((x) => parseInt(x, 10));
   if (!isFinite(y) || !isFinite(m)) return -1;
@@ -181,35 +121,19 @@ function selfAudit(data) {
   return warns;
 }
 
-/** 데이터 전체에서 인원 규모(applies_if: headcount) 조건 항목 수집 — collect_size_rules 포팅. */
-function sizeRules(data) {
-  const found = [];
-  const walk = (node, hint = "") => {
-    if (Array.isArray(node)) { node.forEach((x) => walk(x, hint)); return; }
-    if (node && typeof node === "object") {
-      const c = node.applies_if;
-      if (c && typeof c === "object" && c.field === "headcount") {
-        found.push({ label: node.label || hint || "규모 조건 항목", op: c.op || ">=", value: c.value, basis: node.based_on || node.legal_basis || "" });
-      }
-      for (const v of Object.values(node)) walk(v, node.name || node.label || hint);
-    }
-  };
-  walk(data);
-  return found;
-}
-const opHolds = (a, op, b) => ({ ">=": a >= b, "<=": a <= b, ">": a > b, "<": a < b, "==": a === b }[op]);
-
 // ── 공통 조각 ─────────────────────────────────────────────────
-const wageShort = (mw) => (typeof mw?.amount === "number"
-  ? `${mw.amount.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${mw.currency || ""}<small>/${esc(mw.period || "")}</small>` : "—");
 const host = (url) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; } };
+const amountTxt = (mw) => (typeof mw?.amount === "number" ? mw.amount.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "—");
 const confBadge = (v) => {
   const [txt, cls] = CONF[v?.confidence] || ["미검증", "none"];
   return `<span class="conf"><span class="dot ${cls}"></span>신뢰도 ${txt}</span>`;
 };
-const totalChecks = (d) => (d.standard_checks || []).length + (d.amendment_checks || []).length
-  + (d.country_specifics || []).reduce((n, it) => n + (it.checks || []).length, 0) + 5;
-
+const statusPill = (status) => {
+  if (!status) return "";
+  const [cls, label] = TIMELINE_STATUS[status] || ["st-void", status];
+  return `<span class="pill sm ${cls}">${esc(label)}</span>`;
+};
+const domTag = (key) => (DOMAIN[key] ? `<span class="dom-tag">${DOMAIN[key].name}</span>` : "");
 function setTopbar(html) { $("#topbar-slot").innerHTML = html; }
 
 // ══════════════════════════════════════════════════════════════
@@ -219,7 +143,7 @@ function renderHome() {
   const datas = COUNTRIES.map((c) => S.all[c.slug]);
   const asOf = datas.map((d) => d.as_of || "").sort().pop();
   const verified = datas.map((d) => d.verification?.last_verified || "").sort().pop();
-  const checks = datas.reduce((n, d) => n + totalChecks(d), 0);
+  const checks = datas.reduce((n, d) => n + R.checkList(d).length, 0);
   setTopbar(`<span class="chip-meta"><span class="dot"></span>데이터 기준 ${esc(asOf)} · 검증 ${esc(verified)}</span>`);
   document.title = "Global ER Compliance";
 
@@ -228,8 +152,8 @@ function renderHome() {
     <div class="wrap fade-in">
       <div class="eyebrow">Global Employee Relations · Compliance Review</div>
       <h1>해외 사업장의 노동법 리스크를<br/><em>한 화면에서</em> 진단합니다.</h1>
-      <p class="lead">국가·도시별 법정 기준과 최근 개정, 분쟁이 잦은 제도를 우리 회사 운영 기준과 나란히 놓고 비교합니다.
-        입력하는 즉시 판정되며, 결과는 보고용 리포트로 내려받을 수 있습니다.</p>
+      <p class="lead">채용부터 퇴직까지 7개 HR 영역으로 나눠, 각국 법정 기준·최근 개정·분쟁이 잦은 제도를 우리 회사 운영 기준과 나란히 비교합니다.
+        답하는 즉시 판정되며, 결과는 보고용 리포트로 내려받을 수 있습니다.</p>
       <div class="hero-stats">
         <div class="hero-stat"><b>${COUNTRIES.length}</b><span>관할(국가·도시)</span></div>
         <div class="hero-stat"><b>${checks}</b><span>자동 판정 점검 항목</span></div>
@@ -239,9 +163,7 @@ function renderHome() {
   </section>
 
   <div class="wrap">
-    <section class="section" style="padding-top:36px">
-      ${privacyNotice(false)}
-    </section>
+    <section class="section" style="padding-top:36px">${privacyNotice(false)}</section>
 
     <section class="section" style="padding-top:44px">
       <div class="section-head">
@@ -256,10 +178,10 @@ function renderHome() {
     </section>
 
     <section class="section" style="padding-bottom:64px">
-      <div class="features">
-        <div class="feature"><div class="num">01</div><h3>법령 브리핑</h3><p>핵심 법정 기준, 최근 3개년 개정 타임라인(확정 여부 포함), 주요 판례와 1차 출처를 한 번에 확인합니다.</p></div>
-        <div class="feature"><div class="num">02</div><h3>제도 점검</h3><p>사업장 규모에 따라 달라지는 의무까지 반영해, 우리 회사 운영 기준을 항목별로 입력하면 즉시 판정됩니다.</p></div>
-        <div class="feature"><div class="num">03</div><h3>진단 · 리포트</h3><p>위반 소지와 주의 항목을 우선순위로 정리하고, 근거와 권고가 담긴 HTML 리포트를 내려받습니다.</p></div>
+      <div class="section-head"><div><div class="eyebrow">Framework</div><h2>7개 HR 영역으로 점검합니다</h2></div></div>
+      <div class="framework">
+        ${R.DOMAINS.map((d, i) => `<div class="fw-item"><span class="num">${String(i + 1).padStart(2, "0")}</span><h3>${d.name}</h3><p>${d.desc}</p></div>`).join("")}
+        <div class="fw-item fw-note"><span class="num">＋</span><h3>최근 개정 · 분쟁 다발</h3><p>영역마다 최근 3개년 개정과 노사분쟁이 잦은 제도를 따로 표시합니다.</p></div>
       </div>
     </section>
   </div>`;
@@ -268,6 +190,7 @@ function renderHome() {
 function countryCard(c) {
   const d = S.all[c.slug];
   const std = d.standards || {};
+  const mw = std.min_wage || {};
   const v = d.verification || {};
   return `
   <a class="c-card fade-in" href="#/${c.slug}">
@@ -275,9 +198,9 @@ function countryCard(c) {
     <div class="c-name">${esc(d.country)}</div>
     <div class="c-city">${esc(d.city)}${c.sub ? ` · ${esc(c.sub)}` : ""}</div>
     <div class="c-facts">
-      <div class="c-fact"><span>최저임금</span><b>${typeof std.min_wage?.amount === "number" ? `${std.min_wage.amount.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${esc(std.min_wage.currency)}/${esc(std.min_wage.period)}` : "—"}</b></div>
+      <div class="c-fact"><span>최저임금</span><b>${typeof mw.amount === "number" ? `${amountTxt(mw)} ${esc(mw.currency)}/${esc(mw.period)}` : "—"}</b></div>
       <div class="c-fact"><span>법정 주 근로시간</span><b>${esc(std.standard_weekly_hours ?? "—")}시간</b></div>
-      <div class="c-fact"><span>법정 최소 연차</span><b>${std.annual_leave_min_days ? `${esc(std.annual_leave_min_days)}일` : "의무 없음"}</b></div>
+      <div class="c-fact"><span>점검 항목</span><b>${R.checkList(d).length}개</b></div>
     </div>
     <div class="c-foot">${confBadge(v)}<span>${esc(v.last_verified || "")}</span><span class="c-go">${icon("arrow")}</span></div>
   </a>`;
@@ -325,124 +248,96 @@ function renderCountry() {
         <span class="band-chip"><span class="k">데이터 신뢰도</span>${esc((CONF[v.confidence] || ["미검증"])[0])}</span>
         ${issueCount ? `<button class="band-chip" type="button" data-goto="verify">${icon("alert")}<span>데이터 점검 메모 ${issueCount}건</span></button>` : ""}
       </div>
-      <div class="tabs" role="tablist">
-        ${tabBtn("brief", "01", "법령 브리핑")}
-        ${tabBtn("check", "02", "제도 점검")}
-        ${tabBtn("result", "03", "진단 결과", '<span class="n" id="tab-n">0</span>')}
-      </div>
     </div>
   </section>
   <div class="wrap">
-    <div class="workspace">
-      <div id="pane" class="fade-in"></div>
-      <aside class="aside" aria-label="실시간 리스크 요약">${asideHTML()}</aside>
+    <div class="ws">
+      <aside class="side" aria-label="점검 내비게이션">
+        <div class="panel side-risk">
+          <div class="eyebrow">Risk Index</div>
+          <div class="side-score"><b id="score">–</b><span>/ 100</span></div>
+          <p class="side-sub" id="score-sub">답한 항목이 판정되면 계산됩니다</p>
+          <div class="prog"><i id="prog-bar"></i></div>
+          <div class="side-prog"><span>응답 진행률</span><b id="prog-txt">0 / 0</b></div>
+          <div class="side-counts" id="side-counts"></div>
+          <div class="side-hc"><label>상시 직원 수</label>${stepperHTML("headcount", "headcount", inp.headcount, "명", { placeholder: "" })}</div>
+          <button class="btn btn-primary btn-block" type="button" data-action="report">${icon("download")}최종 리포트 다운로드</button>
+        </div>
+        <nav class="navlist" id="navlist">${navHTML()}</nav>
+        <button class="btn btn-ghost btn-sm side-reset" type="button" data-action="reset">${icon("refresh")}이 관할 응답 초기화</button>
+      </aside>
+      <div id="pane" class="pane"></div>
     </div>
   </div>
   <div class="mbar">
-    <div class="score"><span id="m-score">0</span><small> /100</small></div>
+    <div class="score"><span id="m-score">–</span><small> /100</small></div>
     <div class="counts" id="m-counts"></div>
     <button class="btn btn-primary btn-sm" type="button" data-action="report">${icon("download")}리포트</button>
   </div>`;
-  refreshLive();
+  evaluate();
   renderPane();
 }
 
-const tabBtn = (id, no, label, extra = "") =>
-  `<button class="tab" role="tab" type="button" data-tab="${id}" aria-selected="${S.tab === id}"><span class="step">${no}</span>${label}${extra}</button>`;
-
-function asideHTML() {
-  const C = 2 * Math.PI * 46;
-  return `
-  <div class="panel panel-pad">
-    <div class="eyebrow">Risk Index</div>
-    <div class="risk-head" style="margin-top:12px">
-      <div class="ring">
-        <svg viewBox="0 0 104 104"><circle class="track" cx="52" cy="52" r="46"/><circle class="val" id="ring-val" cx="52" cy="52" r="46" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}"/></svg>
-        <div class="center"><div><b id="score">0</b><span>/ 100</span></div></div>
-      </div>
-      <div class="risk-meta"><h3>종합 리스크 지수</h3><p>위반 소지 1.0 · 주의 0.5 가중 평균. 입력을 바꾸면 즉시 다시 계산됩니다.</p></div>
-    </div>
-    <div class="lvl-rows">
-      ${["high", "medium", "info", "ok"].map((l) => `
-        <div class="lvl-row lv-${l}"><span class="lvl-name"><span class="sw"></span>${R.LEVEL_LABEL[l]}</span>
-        <span class="bar"><i id="bar-${l}" style="background:var(--c)"></i></span><b id="cnt-${l}">0</b></div>`).join("")}
-    </div>
-    <div class="aside-actions">
-      <button class="btn btn-primary btn-block" type="button" data-action="report">${icon("download")}최종 리포트 다운로드</button>
-      <button class="btn btn-block" type="button" data-tab="result">진단 결과 보기${icon("arrow")}</button>
-    </div>
-    <p class="aside-note">${icon("shield")}입력값은 서버로 전송되지 않습니다.</p>
-  </div>
-  <button class="btn btn-ghost btn-sm" type="button" data-action="reset" style="justify-self:start">${icon("refresh")}이 관할 입력 초기화</button>`;
+function navHTML() {
+  const item = (view, label, lead, extra = "") =>
+    `<a class="nav-item" href="#/${S.slug}${view === "overview" ? "" : "/" + view}" data-view="${view}" aria-current="${S.view === view ? "page" : "false"}">
+      <span class="nav-lead">${lead}</span><span class="nav-label">${label}</span>${extra}</a>`;
+  return item("overview", "개요", icon("grid"))
+    + `<div class="nav-sep">HR 영역</div>`
+    + R.DOMAINS.map((d) => item(d.key, d.name, `<span class="nav-no">${DOMAIN[d.key].no}</span>`,
+      `<span class="nav-meta" data-nav="${d.key}"></span>`)).join("")
+    + `<div class="nav-sep"></div>`
+    + item("result", "종합 결과 · 리포트", icon("report"), `<span class="nav-meta" data-nav="result"></span>`);
 }
 
 function renderPane() {
   const pane = $("#pane");
   if (!pane) return;
-  $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === S.tab)));
+  $$(".nav-item").forEach((a) => a.setAttribute("aria-current", a.dataset.view === S.view ? "page" : "false"));
   pane.classList.remove("fade-in"); void pane.offsetWidth; pane.classList.add("fade-in");
-  pane.innerHTML = S.tab === "brief" ? briefHTML() : S.tab === "check" ? checkHTML() : resultHTML();
-  if (S.tab === "check") refreshLive();
+  pane.innerHTML = S.view === "overview" ? overviewHTML() : S.view === "result" ? resultHTML() : domainHTML(S.view);
+  refreshLive();
+  $(`.nav-item[aria-current="page"]`)?.scrollIntoView({ block: "nearest", inline: "center" });
 }
 
-// ── 01 법령 브리핑 ────────────────────────────────────────────
-function briefHTML() {
+// ── 개요 ──────────────────────────────────────────────────────
+function overviewHTML() {
   const { data } = cur();
   const std = data.standards || {};
   const mw = std.min_wage || {};
   const v = data.verification || {};
   const audit = selfAudit(data);
   const stat = (k, val, unit, s = "") => `<div class="stat"><div class="k">${k}</div><div class="v">${val}${unit ? `<small>${unit}</small>` : ""}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  const tl = [...(data.amendment_timeline || [])].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   return `
   <section class="block">
-    <div class="block-head"><span class="no">01</span><h2>핵심 법정 기준</h2></div>
+    <div class="block-head"><h2 class="serif-h">카테고리별 현황</h2><p>영역을 눌러 점검을 시작하세요. 답한 항목만 판정됩니다.</p></div>
+    <div class="dom-grid" id="dom-grid">${R.DOMAINS.map((d) => domCardHTML(d.key)).join("")}</div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2 class="serif-h">핵심 법정 기준</h2></div>
     <div class="stats">
       ${stat("법정 주 근로시간", esc(std.standard_weekly_hours ?? "—"), "시간")}
       ${stat("주 최대 (연장 포함)", std.max_weekly_hours_incl_overtime ? esc(std.max_weekly_hours_incl_overtime) : "—", std.max_weekly_hours_incl_overtime ? "시간" : "", std.max_weekly_hours_incl_overtime ? "" : "상한 없음 · 협정 방식")}
-      ${stat("최저임금", wageShort(mw), "", esc(mw.locality || ""))}
+      ${stat("최저임금", amountTxt(mw), `${esc(mw.currency || "")}/${esc(mw.period || "")}`, esc(mw.locality || ""))}
       ${stat("법정 최소 연차", std.annual_leave_min_days ? esc(std.annual_leave_min_days) : "—", std.annual_leave_min_days ? "일" : "", std.annual_leave_min_days ? "" : "법정 의무 없음")}
       ${stat("해고 예고", std.termination_notice_min_days ? esc(std.termination_notice_min_days) : "—", std.termination_notice_min_days ? "일" : "", std.termination_notice_min_days ? "" : "없음 · 특수(at-will 등)")}
     </div>
   </section>
 
   <section class="block">
-    <div class="block-head"><span class="no">02</span><h2>세부 기준</h2></div>
-    <dl class="deflist">
-      ${[["연장근로 가산", std.overtime_premium], ["최저임금 비고", mw.note], ["병가", std.sick_leave], ["퇴직금 · 해고수당", std.severance],
-        ["수습기간", std.probation], ["사회보험", std.social_insurance]]
-        .filter(([, x]) => x).map(([k, x]) => `<div><dt>${k}</dt><dd>${esc(x)}</dd></div>`).join("")}
-    </dl>
+    <div class="block-head"><h2 class="serif-h">사업장 규모별 적용 의무</h2><p>좌측 ‘상시 직원 수’ 기준으로 자동 판정합니다</p></div>
+    <div class="group"><div class="size-list" id="size-list"></div></div>
   </section>
 
   <section class="block">
-    <div class="block-head"><span class="no">03</span><h2>최근 개정 타임라인</h2><p>확정 여부 포함</p></div>
-    <ol class="timeline">
-      ${(data.amendment_timeline || []).map((a) => {
-        const [cls, label] = TIMELINE_STATUS[a.status] || ["st-void", a.status || "—"];
-        return `<li class="tl ${cls}"><div class="tl-date">${esc(a.date)}</div><div class="tl-body">
-          <h4>${esc(a.title)} <span class="pill sm ${cls}">${esc(label)}</span></h4>
-          <p>${esc(a.impact)}</p>${a.effective_date ? `<div class="eff">발효 ${esc(a.effective_date)}</div>` : ""}</div></li>`;
-      }).join("")}
-    </ol>
-  </section>
-
-  <section class="block">
-    <div class="block-head"><span class="no">04</span><h2>주요 판례 · 행정해석</h2></div>
-    <div class="cards-2">
-      ${(data.precedents || []).map((p) => `<article class="case"><h4>${esc(p.title)}</h4><dl>
-        <div><dt>쟁점</dt><dd>${esc(p.issue)}</dd></div><div><dt>시사점</dt><dd>${esc(p.implication)}</dd></div></dl></article>`).join("")}
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="block-head"><span class="no">05</span><h2>1차 출처</h2></div>
-    <ul class="sources">
-      ${(data.sources || []).map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span>${esc(s.title)}</span><span class="host">${esc(host(s.url))}${icon("ext")}</span></a></li>`).join("")}
-    </ul>
+    <div class="block-head"><h2 class="serif-h">최근 개정 동향</h2><p>확정 여부 포함 · 최신순</p></div>
+    <ol class="timeline">${tl.map(timelineItemHTML).join("")}</ol>
   </section>
 
   <section class="block" id="verify">
-    <div class="block-head"><span class="no">06</span><h2>데이터 검증 기록</h2></div>
+    <div class="block-head"><h2 class="serif-h">데이터 검증 기록</h2></div>
     <div class="verify">
       <div class="verify-top">
         <div><div class="k">최종 검증일</div><div class="v">${esc(v.last_verified || "—")}</div></div>
@@ -454,126 +349,220 @@ function briefHTML() {
         <ul>${(v.issues_found || []).map((it) => typeof it === "object"
           ? `<li><b>${esc(it.field)}</b> — ${esc(it.problem)} → ${esc(it.action)}</li>` : `<li>${esc(it)}</li>`).join("")}
           ${audit.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
+      <details class="issues"><summary>${icon("ext")}1차 출처 ${(data.sources || []).length}건</summary>
+        <ul class="src-list">${(data.sources || []).map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a> <span class="muted">${esc(host(s.url))}</span></li>`).join("")}</ul></details>
     </div>
   </section>`;
 }
 
-// ── 02 제도 점검 ──────────────────────────────────────────────
-function stepper(group, key, value, unit, step = 1, wide = false) {
+function domCardHTML(key) {
+  const d = DOMAIN[key];
+  return `<a class="dom-card" href="#/${S.slug}/${key}" data-domcard="${key}">
+    <div class="dom-card-top"><span class="dom-no">${d.no}</span><span class="dom-state" data-domstate="${key}"></span></div>
+    <h3>${d.name}</h3><p>${d.desc}</p>
+    <div class="prog sm"><i data-domprog="${key}"></i></div>
+    <div class="dom-card-foot"><span data-domtxt="${key}"></span><span class="c-go">${icon("arrow")}</span></div>
+  </a>`;
+}
+
+function timelineItemHTML(a) {
+  const [cls] = TIMELINE_STATUS[a.status] || ["st-void"];
+  return `<li class="tl ${cls}"><div class="tl-date">${esc(a.date)}</div><div class="tl-body">
+    <h4>${esc(a.title)} ${statusPill(a.status)} ${S.view === "overview" ? domTag(a.domain) : ""}</h4>
+    <p>${esc(a.impact)}</p>${a.effective_date ? `<div class="eff">발효 ${esc(a.effective_date)}</div>` : ""}</div></li>`;
+}
+
+// ── HR 카테고리 ───────────────────────────────────────────────
+function stepperHTML(group, key, value, unit, { step = 1, placeholder = "", wide = false } = {}) {
   return `<span class="stepper ${wide ? "wide" : ""}">
     <button type="button" data-step="-${step}" data-group="${group}" data-key="${esc(key)}" aria-label="감소">−</button>
-    <input type="number" inputmode="decimal" min="0" step="any" value="${value}" data-group="${group}" data-key="${esc(key)}" aria-label="값" />
+    <input type="number" inputmode="decimal" min="0" step="any" value="${isBlank(value) ? "" : value}" placeholder="${esc(placeholder)}" data-group="${group}" data-key="${esc(key)}" aria-label="값" />
     <button type="button" data-step="${step}" data-group="${group}" data-key="${esc(key)}" aria-label="증가">+</button>
     ${unit ? `<span class="unit">${esc(unit)}</span>` : ""}</span>`;
 }
 
-function segmented(group, key, value, options) {
+function segmentedHTML(key, value, options) {
   return `<span class="seg" role="radiogroup">${options.map(([val, label, tone]) =>
-    `<button type="button" role="radio" aria-checked="${val === value}" data-tone="${tone}" data-group="${group}" data-key="${esc(key)}" data-val="${esc(val)}">${esc(label)}</button>`).join("")}</span>`;
+    `<button type="button" role="radio" aria-checked="${val === value}" data-tone="${tone}" data-group="ans" data-key="${esc(key)}" data-val="${esc(val)}">${esc(label)}</button>`).join("")}</span>`;
 }
 
-function control(group, chk, value) {
-  if (chk.type === "number_min" || chk.type === "number_max") return stepper(group, chk.id, value, chk.unit || "");
-  if (chk.type === "boolean") return segmented(group, chk.id, value, BOOL);
-  if (chk.type === "posture") return segmented(group, chk.id, value, POSTURE);
-  if (chk.type === "choice") {
-    return `<span class="select"><select data-group="${group}" data-key="${esc(chk.id)}">${(chk.options || []).map((o) =>
+function controlHTML(entry, value) {
+  const c = entry.chk;
+  if (c.type === "core") {
+    const ph = c.legal === null || c.legal === undefined ? "입력" : `법정 ${c.legal}`;
+    return stepperHTML("ans", entry.key, value, c.unit, { step: c.step || 1, placeholder: ph, wide: c.id === "monthly_wage" });
+  }
+  if (c.type === "number_min" || c.type === "number_max") return stepperHTML("ans", entry.key, value, c.unit || "", { placeholder: `법정 ${c.threshold}` });
+  if (c.type === "boolean") return segmentedHTML(entry.key, value, BOOL);
+  if (c.type === "posture") return segmentedHTML(entry.key, value, POSTURE);
+  if (c.type === "choice") {
+    return `<span class="select"><select data-group="ans" data-key="${esc(entry.key)}"><option value="">선택</option>${(c.options || []).map((o) =>
       `<option ${o.label === value ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></span>`;
   }
   return "";
 }
 
-function checkSub(chk) {
+function subHTML(entry) {
+  const c = entry.chk;
+  const std = cur().data.standards || {};
   const parts = [];
-  if (chk.type === "number_min" || chk.type === "number_max") parts.push(`법정 ${chk.type === "number_min" ? "최소" : "최대"} ${esc(chk.threshold)}${esc(chk.unit || "")}`);
-  if (chk.applies_if?.field === "headcount") parts.push(`직원 ${esc(chk.applies_if.op)} ${esc(chk.applies_if.value)}명 적용`);
-  if (chk.legal_basis) parts.push(esc(chk.legal_basis));
+  if (c.type === "core") {
+    if (c.id === "std_weekly") parts.push(`법정 표준 ${esc(c.legal)}시간`);
+    if (c.id === "max_weekly") parts.push(`법정 최대 ${esc(c.legal ?? "상한 없음 · 협정 방식")}`);
+    if (c.id === "annual_leave") parts.push(c.legal ? `법정 최소 ${esc(c.legal)}일` : "법정 연차 의무 없음");
+    if (c.id === "notice_days") parts.push(c.legal ? `법정 ${esc(c.legal)}일` : "법정 예고기간 없음 · 특수");
+    if (c.id === "monthly_wage") parts.push(`법정 최저임금 ${esc(fmtAmount(std.min_wage))}`);
+  }
+  if (c.type === "number_min" || c.type === "number_max") parts.push(`법정 ${c.type === "number_min" ? "최소" : "최대"} ${esc(c.threshold)}${esc(c.unit || "")}`);
+  if (c.applies_if?.field === "headcount") parts.push(`<span class="hc-rule">직원 ${esc(c.applies_if.op)} ${esc(c.applies_if.value)}명 적용</span>`);
+  if (c.legal_basis) parts.push(esc(c.legal_basis));
   return parts.join(" · ");
 }
 
-const row = (statusKey, label, sub, ctrl) => `
-  <div class="row"><div><div class="row-label">${label}</div>${sub ? `<div class="row-sub">${sub}</div>` : ""}</div>
-  <div class="row-ctrl">${ctrl}<span class="row-status" data-status="${esc(statusKey)}"></span></div></div>`;
+function rowHTML(entry) {
+  const { inp } = cur();
+  const c = entry.chk;
+  const badges = [
+    entry.source === "amend" ? `<span class="pill sm st-fixed">${icon("pin")}최근 개정</span>${statusPill(c.status)}` : "",
+    entry.item?.dispute_risk === "high" && entry.source !== "spec" ? `<span class="pill sm pill-fire">${icon("flame")}분쟁 다발</span>` : "",
+  ].join("");
+  return `<div class="row" data-row="${esc(entry.key)}" data-amend="${entry.source === "amend"}" data-dispute="${entry.item?.dispute_risk === "high"}">
+    <div><div class="row-label">${esc(c.label)} ${badges}</div>
+      ${entry.source === "amend" && c.based_on ? `<div class="row-sub">근거 개정: ${esc(c.based_on)}</div>` : ""}
+      <div class="row-sub">${subHTML(entry)}</div></div>
+    <div class="row-ctrl">${controlHTML(entry, inp.answers[entry.key])}<span class="row-status" data-status="${esc(entry.key)}"></span></div></div>`;
+}
 
-function checkHTML() {
+function domainHTML(key) {
   const { data, inp } = cur();
+  const d = DOMAIN[key];
+  const idx = R.DOMAINS.findIndex((x) => x.key === key);
+  const prev = R.DOMAINS[idx - 1];
+  const next = R.DOMAINS[idx + 1];
+  const list = R.checkList(data).filter((e) => e.domain === key);
   const std = data.standards || {};
-  const mw = std.min_wage || {};
-  const n = inp.numeric;
+  const brief = data.domain_briefs?.[key];
 
-  const cats = {};
-  for (const c of data.standard_checks || []) (cats[c.category || "기타"] ||= []).push(c);
+  const fields = R.STANDARD_FIELDS.filter(([f, dom]) => dom === key && std[f] !== undefined && std[f] !== null && std[f] !== "");
+  const fieldVal = (f, unit) => {
+    if (f === "min_wage") return `${esc(fmtAmount(std.min_wage))}${std.min_wage?.note ? `<div class="muted" style="margin-top:4px">${esc(std.min_wage.note)}</div>` : ""}`;
+    return esc(std[f]) + (unit && typeof std[f] === "number" ? unit : "");
+  };
+  const timeline = (data.amendment_timeline || []).filter((a) => a.domain === key).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const precedents = (data.precedents || []).filter((p) => p.domain === key);
 
+  const core = list.filter((e) => e.source === "core");
+  const stdByCat = {};
+  for (const e of list.filter((x) => x.source === "std")) (stdByCat[e.chk.category || "기타"] ||= []).push(e);
+  const specItems = [];
+  for (const e of list.filter((x) => x.source === "spec")) {
+    let g = specItems.find((s) => s.index === e.itemIndex);
+    if (!g) specItems.push(g = { index: e.itemIndex, item: e.item, entries: [] });
+    g.entries.push(e);
+  }
+  const amend = list.filter((e) => e.source === "amend");
+
+  return `
+  <header class="dom-head">
+    <div class="eyebrow">HR Category ${d.no}</div>
+    <h2>${d.name}</h2>
+    <p>${d.desc}</p>
+    <div class="dom-head-bar">
+      <div class="dom-prog"><div class="prog"><i data-domprog="${key}"></i></div><span data-domtxt="${key}"></span></div>
+      <div class="seg" role="radiogroup" aria-label="항목 필터">
+        ${ROW_FILTERS.map(([k, l]) => `<button type="button" role="radio" data-rowfilter="${k}" aria-checked="${S.rowFilter === k}">${l}</button>`).join("")}
+      </div>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="block-head"><span class="no">A</span><h2>법정 기준</h2></div>
+    <div class="law-card">
+      ${brief ? `<p class="lead-note">${esc(brief)}</p>` : ""}
+      ${fields.length ? `<dl class="deflist flat">${fields.map(([f, , label, unit]) => `<div><dt>${label}</dt><dd>${fieldVal(f, unit)}</dd></div>`).join("")}</dl>` : ""}
+      ${!brief && !fields.length ? `<p class="muted" style="margin:0">이 영역의 요약 정보가 아직 없습니다.</p>` : ""}
+    </div>
+  </section>
+
+  ${timeline.length || precedents.length ? `
+  <section class="block">
+    <div class="block-head"><span class="no">B</span><h2>최근 개정 · 판례</h2></div>
+    ${timeline.length ? `<ol class="timeline">${timeline.map(timelineItemHTML).join("")}</ol>` : ""}
+    ${precedents.length ? `<div class="cards-2" style="margin-top:${timeline.length ? 8 : 0}px">${precedents.map((p) => `<article class="case"><h4>${esc(p.title)}</h4><dl>
+      <div><dt>쟁점</dt><dd>${esc(p.issue)}</dd></div><div><dt>시사점</dt><dd>${esc(p.implication)}</dd></div></dl></article>`).join("")}</div>` : ""}
+  </section>` : ""}
+
+  <section class="block">
+    <div class="block-head"><span class="no">C</span><h2>우리 회사 점검</h2><p>${list.length}개 항목 · 모르는 항목은 비워 두세요</p></div>
+    <div style="margin-bottom:14px">${privacyNotice(true)}</div>
+    <div id="rows">
+    ${core.length ? `<div class="group"><div class="group-head"><h3>핵심 수치</h3><span class="muted">법정 기준값과 직접 비교</span></div>${core.map(rowHTML).join("")}</div>` : ""}
+    ${Object.entries(stdByCat).map(([cat, es]) => `<div class="group"><div class="group-head"><h3>${esc(cat)}</h3></div>${es.map(rowHTML).join("")}</div>`).join("")}
+    ${specItems.map((g) => specHTML(g)).join("")}
+    ${amend.length ? `<div class="group"><div class="group-head"><h3>최근 개정 대응</h3><span class="muted">최근 3개년 개정·판례 반영 여부</span></div>${amend.map(rowHTML).join("")}</div>` : ""}
+    <div class="empty filter-empty" hidden>조건에 맞는 항목이 없습니다.</div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><span class="no">D</span><h2>이 영역 판정</h2></div>
+    <div class="findings" id="dom-findings"></div>
+  </section>
+
+  <nav class="pager">
+    ${prev ? `<a class="btn" href="#/${S.slug}/${prev.key}">${icon("back")}${DOMAIN[prev.key].no} ${prev.name}</a>` : `<a class="btn" href="#/${S.slug}">${icon("back")}개요</a>`}
+    ${next ? `<a class="btn btn-primary" href="#/${S.slug}/${next.key}">${DOMAIN[next.key].no} ${next.name}${icon("arrow")}</a>` : `<a class="btn btn-primary" href="#/${S.slug}/result">종합 결과 보기${icon("arrow")}</a>`}
+  </nav>`;
+}
+
+function specHTML(g) {
+  const { inp } = cur();
+  const item = g.item;
+  const fire = item.dispute_risk === "high";
+  return `<details class="spec" data-spec="${g.index}" data-dispute="${fire}" open>
+    <summary><span class="t">${esc(item.name)}</span>
+      ${fire ? `<span class="pill sm pill-fire">${icon("flame")}분쟁 다발</span>` : ""}
+      <span class="pill sm" style="--c:var(--ink-3);--bg:var(--sunken)">국가 특유 제도</span><span class="chev"></span></summary>
+    <div class="spec-intro">
+      ${item.detail ? `<p>${esc(item.detail)}</p>` : ""}
+      ${fire ? `<div class="dispute">${icon("flame")}<div><b>분쟁 다발</b> — ${esc(item.dispute_note || "이 국가에서 직원–회사 법률 분쟁이 잦은 영역입니다.")}</div></div>` : ""}
+      ${item.risk_hint ? `<div class="hint">${icon("alert")}<div><b>유의점</b> — ${esc(item.risk_hint)}</div></div>` : ""}
+    </div>
+    ${g.entries.map(rowHTML).join("")}
+    <div class="memo"><label for="memo-${g.index}">메모 (선택)</label>
+      <textarea class="field" id="memo-${g.index}" rows="1" data-group="memo" data-key="${g.index}" placeholder="특이사항·예외 등 — 회사 식별 정보 제외">${esc(inp.memos[g.index] || "")}</textarea></div>
+  </details>`;
+}
+
+// ── 종합 결과 ─────────────────────────────────────────────────
+function resultHTML() {
+  const { inp } = cur();
   const qs = questionsOf(inp);
   return `
-  <div style="margin-bottom:28px">${privacyNotice(true)}</div>
+  <header class="dom-head">
+    <div class="eyebrow">Summary</div>
+    <h2>종합 결과 · 리포트</h2>
+    <p>응답한 항목의 판정을 영역별로 모았습니다. 리스크 지수는 판정된 항목(위반·주의·적합)만으로 계산합니다.</p>
+  </header>
 
   <section class="block">
-    <div class="block-head"><span class="no">01</span><h2>사업장 규모</h2><p>직원 수에 따라 달라지는 의무를 자동 반영합니다</p></div>
-    <div class="group"><div class="size-grid">
-      <div class="size-input"><label>상시 직원 수</label>${stepper("headcount", "headcount", inp.headcount, "명")}
-        <div class="muted">여러 사업장은 각각 점검하세요.</div></div>
-      <div class="size-list" id="size-list"></div>
-    </div></div>
+    <div class="result-summary" id="r-cards"></div>
+    <div class="group"><div class="group-head"><h3>영역별 진행 · 판정</h3><span class="grow"></span>
+      <button class="btn btn-primary btn-sm" type="button" data-action="report">${icon("download")}리포트 다운로드</button></div>
+      <div id="r-table"></div></div>
   </section>
 
   <section class="block">
-    <div class="block-head"><span class="no">02</span><h2>핵심 정량 항목</h2><p>기본값은 법정 기준값입니다 — 우리 회사 실제 값으로 조정하세요</p></div>
-    <div class="group">
-      ${row("n:std_weekly", "정규 주당 근로시간", `법정 표준 ${esc(std.standard_weekly_hours)}시간`, stepper("numeric", "std_weekly", n.std_weekly, "시간"))}
-      ${row("n:max_weekly", "최대 주당 근로시간 (연장 포함)", `법정 최대 ${esc(std.max_weekly_hours_incl_overtime || "상한 없음 · 협정 방식")}`, stepper("numeric", "max_weekly", n.max_weekly, "시간"))}
-      ${row("n:annual_leave", "연차 부여일수 (연)", `법정 최소 ${esc(std.annual_leave_min_days)}일`, stepper("numeric", "annual_leave", n.annual_leave, "일"))}
-      ${row("n:notice_days", "해고 예고기간", `법정 ${esc(std.termination_notice_min_days || "없음 · 특수")}${std.termination_notice_min_days ? "일" : ""}`, stepper("numeric", "notice_days", n.notice_days, "일"))}
-      ${row("n:monthly_wage", "월 기본급", `법정 최저임금 ${esc(fmtAmount(mw))} · 0이면 비교 생략`, stepper("numeric", "monthly_wage", n.monthly_wage, mw.currency || "", 100, true))}
-    </div>
+    <div class="block-head"><h2 class="serif-h">판정 상세</h2><span class="grow"></span>
+      <div class="seg" role="radiogroup" aria-label="결과 필터">
+        ${[["all", "전체"], ["high", "위반 소지"], ["medium", "주의"], ["ok", "적합"], ["info", "참고"], ["dispute", "분쟁 다발"]]
+          .map(([k, l]) => `<button type="button" role="radio" aria-checked="${S.resultFilter === k}" data-filter="${k}">${l}</button>`).join("")}
+      </div></div>
+    <div id="r-findings"></div>
   </section>
 
-  ${Object.keys(cats).length ? `
   <section class="block">
-    <div class="block-head"><span class="no">03</span><h2>표준 항목 상세 점검</h2><p>휴게·휴가·사회보험·수습·근로계약 등 공통 항목</p></div>
-    ${Object.entries(cats).map(([cat, list]) => `
-      <div class="group"><div class="group-head"><h3>${esc(cat)}</h3></div>
-        ${list.map((c) => row("std:" + c.id, esc(c.label), checkSub(c), control("std", c, inp.std[c.id]))).join("")}
-      </div>`).join("")}
-  </section>` : ""}
-
-  <section class="block">
-    <div class="block-head"><span class="no">04</span><h2>이 국가 핵심 제도</h2><p>분쟁이 잦은 항목은 별도로 표시됩니다</p></div>
-    ${(data.country_specifics || []).map((item, i) => {
-      const auto = (item.checks || []).some((c) => ["number_min", "number_max", "boolean", "choice"].includes(c.type));
-      const fire = item.dispute_risk === "high";
-      return `<details class="spec" ${i === 0 ? "open" : ""}>
-        <summary><span class="t">${esc(item.name)}</span>
-          ${fire ? `<span class="pill sm pill-fire">${icon("flame")}분쟁 다발</span>` : ""}
-          <span class="pill sm" style="--c:var(--ink-3);--bg:var(--sunken)">${auto ? "자동 판정" : "자가 진단"}</span>
-          <span class="row-status" data-status="spec-item:${i}"></span><span class="chev"></span></summary>
-        <div class="spec-intro">
-          ${item.detail ? `<p>${esc(item.detail)}</p>` : ""}
-          ${fire ? `<div class="dispute">${icon("flame")}<div><b>분쟁 다발</b> — ${esc(item.dispute_note || "이 국가에서 직원–회사 법률 분쟁이 잦은 영역입니다.")}</div></div>` : ""}
-          ${item.risk_hint ? `<div class="hint">${icon("alert")}<div><b>유의점</b> — ${esc(item.risk_hint)}</div></div>` : ""}
-        </div>
-        ${(item.checks || []).map((c) => row("spec:" + c.id, esc(c.label), checkSub(c), control("spec", c, inp.spec[c.id]))).join("")}
-        <div class="memo"><label for="memo-${i}">추가 메모 (선택)</label>
-          <textarea class="field" id="memo-${i}" rows="1" data-group="memo" data-key="${i}" placeholder="특이사항·예외 등 — 회사 식별 정보 제외">${esc(inp.memos[i] || "")}</textarea></div>
-      </details>`;
-    }).join("")}
-  </section>
-
-  ${(data.amendment_checks || []).length ? `
-  <section class="block">
-    <div class="block-head"><span class="no">05</span><h2>최근 3개년 개정 대응</h2><p>기본값은 ‘아니오(미반영)’ — 이미 반영한 항목만 바꾸세요</p></div>
-    <div class="group">
-      ${data.amendment_checks.map((c) => {
-        const [cls, label] = TIMELINE_STATUS[c.status] || ["st-void", c.status || ""];
-        return row("amend:" + c.id, `${esc(c.label)} ${label ? `<span class="pill sm ${cls}">${esc(label)}</span>` : ""}`,
-          `근거 개정: ${esc(c.based_on || "")}${c.applies_if?.field === "headcount" ? ` · 직원 ${esc(c.applies_if.op)} ${esc(c.applies_if.value)}명 적용` : ""}`,
-          control("amend", c, inp.amend[c.id]));
-      }).join("")}
-    </div>
-  </section>` : ""}
-
-  <section class="block">
-    <div class="block-head"><span class="no">06</span><h2>주관식 질문</h2><p>한 줄에 하나 — 질문마다 AI에 붙여넣을 프롬프트를 만들어 드립니다</p></div>
+    <div class="block-head"><h2 class="serif-h">추가 검토 질문</h2><p>한 줄에 하나 — 질문마다 AI에 붙여넣을 프롬프트를 만들어 드립니다</p></div>
     <div class="group">
       <div style="padding:16px 20px">
         <textarea class="field" rows="3" data-group="questions" data-key="q" placeholder="예) 포괄임금제가 이 나라에서 문제가 되나요?&#10;주 4일제 도입 시 법적으로 걸리는 부분은?">${esc(inp.questions)}</textarea>
@@ -589,54 +578,18 @@ function qItemHTML(q, i) {
     <h4><span class="grow">Q${i + 1}. ${esc(q)}</span>
       <button class="btn btn-sm" type="button" data-action="copy" data-q="${i}">${icon("copy")}프롬프트 복사</button></h4>
     <div class="prompt" id="prompt-${i}"></div>
-    <textarea class="field" rows="2" data-group="answer" data-key="${esc(q)}" placeholder="AI 답변을 붙여넣으면 최종 리포트에 포함됩니다 (선택)">${esc(inp.answers[q] || "")}</textarea>
+    <textarea class="field" rows="2" data-group="reply" data-key="${esc(q)}" placeholder="AI 답변을 붙여넣으면 최종 리포트에 포함됩니다 (선택)">${esc(inp.replies[q] || "")}</textarea>
   </div>`;
-}
-
-// ── 03 진단 결과 ──────────────────────────────────────────────
-function resultHTML() {
-  const counts = R.summarize(S.findings);
-  const list = S.findings
-    .filter((f) => S.resultFilter === "all" || (S.resultFilter === "dispute" ? f.dispute_risk === "high" : f.level === S.resultFilter))
-    .sort((a, b) => (LEVEL_ORDER[a.level] ?? 9) - (LEVEL_ORDER[b.level] ?? 9));
-  const disputes = S.findings.filter((f) => f.dispute_risk === "high").length;
-  const { inp } = cur();
-  const qs = questionsOf(inp);
-  return `
-  <section class="block">
-    <div class="block-head"><span class="no">03</span><h2>리스크 진단 결과</h2><span class="grow"></span>
-      <button class="btn btn-sm" type="button" data-tab="check">입력 수정</button></div>
-    <div class="result-summary">
-      ${["high", "medium", "info", "ok"].map((l) => `<button type="button" class="r-card lv-${l}" data-filter="${l}" aria-pressed="${S.resultFilter === l}">
-        <div class="k"><span class="sw"></span>${R.LEVEL_LABEL[l]}</div><div class="v">${counts[l]}</div></button>`).join("")}
-    </div>
-    <div class="filter-bar">
-      <div class="seg" role="radiogroup" aria-label="결과 필터">
-        ${[["all", `전체 ${S.findings.length}`], ["high", "위반 소지"], ["medium", "주의"], ["info", "수동확인"], ["ok", "적합"], ["dispute", `분쟁 다발 ${disputes}`]]
-          .map(([k, l]) => `<button type="button" role="radio" aria-checked="${S.resultFilter === k}" data-filter="${k}">${l}</button>`).join("")}
-      </div>
-      <span class="grow"></span>
-      <button class="btn btn-primary btn-sm" type="button" data-action="report">${icon("download")}리포트 다운로드</button>
-    </div>
-    <div class="findings">
-      ${list.length ? list.map(findingHTML).join("") : `<div class="empty">해당 조건의 항목이 없습니다.</div>`}
-    </div>
-  </section>
-  ${qs.length ? `
-  <section class="block">
-    <div class="block-head"><span class="no">+</span><h2>주관식 질문</h2><p>룰 자동 판정 대상이 아닙니다 — 생성된 프롬프트로 건별 질의하세요</p></div>
-    <div class="group">${qs.map((q, i) => `<div class="row"><div class="row-label">Q${i + 1}. ${esc(q)}</div>
-      <div class="row-ctrl">${(inp.answers[q] || "").trim() ? '<span class="status-txt lv-ok">답변 입력됨</span>' : '<span class="status-txt lv-info">답변 미입력</span>'}</div></div>`).join("")}</div>
-  </section>` : ""}`;
 }
 
 function findingHTML(f) {
   return `<article class="finding lv-${f.level}">
     <div class="finding-top"><span class="pill sm">${R.LEVEL_LABEL[f.level]}</span><span class="finding-cat">${esc(f.category)}</span>
+      ${f.source === "amend" ? `<span class="pill sm st-fixed">${icon("pin")}최근 개정</span>` : ""}
       ${f.dispute_risk === "high" ? `<span class="pill sm pill-fire">${icon("flame")}분쟁 다발</span>` : ""}</div>
     <h4>${esc(f.title)}</h4>
     ${f.detail ? `<p class="detail">${esc(f.detail)}</p>` : ""}
-    ${f.dispute_note ? `<p class="detail" style="margin-top:6px;color:var(--high)">${esc(f.dispute_note)}</p>` : ""}
+    ${f.dispute_note && f.level !== "ok" ? `<p class="detail" style="margin-top:6px;color:var(--high)">${esc(f.dispute_note)}</p>` : ""}
     <div class="finding-meta">
       <div><div class="k">법적 근거</div><div class="v">${esc(f.legal_basis || "—")}</div></div>
       <div><div class="k">권고</div><div class="v rec">${esc(f.recommendation || "—")}</div></div>
@@ -644,77 +597,130 @@ function findingHTML(f) {
 }
 
 // ── 실시간 갱신 ───────────────────────────────────────────────
+const LEVEL_SHORT = { high: "위반 소지", medium: "주의", ok: "적합", info: "참고" };
+const sortFindings = (fs) => [...fs].sort((a, b) => R.LEVEL_ORDER[a.level] - R.LEVEL_ORDER[b.level]);
+
+function domainStats(ev, key) {
+  const fs = ev.shown.filter((f) => f.domain === key);
+  return { ...R.summarize(fs), ...ev.progress[key] };
+}
+
 function refreshLive() {
   const { data, inp } = cur();
   if (!data) return;
-  S.findings = computeFindings(data, inp);
-  const counts = R.summarize(S.findings);
-  const total = Math.max(1, S.findings.length);
+  const ev = evaluate();
+  const counts = R.summarize(ev.shown);
   const score = R.riskScore(counts);
+  const judged = counts.high + counts.medium + counts.ok;
 
-  const ring = $("#ring-val");
-  if (ring) {
-    const C = 2 * Math.PI * 46;
-    ring.style.strokeDashoffset = String(C * (1 - score / 100));
-    $("#score").textContent = score;
-    for (const l of ["high", "medium", "info", "ok"]) {
-      $(`#bar-${l}`).style.width = `${(100 * counts[l]) / total}%`;
-      $(`#cnt-${l}`).textContent = counts[l];
-    }
-  }
-  const tn = $("#tab-n"); if (tn) tn.textContent = counts.high + counts.medium;
-  const ms = $("#m-score"); if (ms) ms.textContent = score;
+  // 좌측 요약 · 모바일 바
+  const setTxt = (sel, t) => { const el = $(sel); if (el) el.textContent = t; };
+  setTxt("#score", score ?? "–");
+  setTxt("#m-score", score ?? "–");
+  setTxt("#score-sub", judged ? `판정 ${judged}개 항목 기준` : "답한 항목이 판정되면 계산됩니다");
+  setTxt("#prog-txt", `${ev.answered} / ${ev.total}`);
+  const pb = $("#prog-bar"); if (pb) pb.style.width = `${(100 * ev.answered) / Math.max(1, ev.total)}%`;
+  const sc = $("#side-counts");
+  if (sc) sc.innerHTML = ["high", "medium", "ok", "info"].map((l) => `<span class="lv-${l}"><span class="sw"></span>${LEVEL_SHORT[l]} <b>${counts[l]}</b></span>`).join("");
   const mc = $("#m-counts");
-  if (mc) mc.innerHTML = ["high", "medium", "ok"].map((l) => `<span class="lv-${l}">${LEVEL_SHORT[l]} ${counts[l]}</span>`).join("");
+  if (mc) mc.innerHTML = `<span style="--c:var(--ink-3)">응답 ${ev.answered}/${ev.total}</span>` + ["high", "medium"].map((l) => `<span class="lv-${l}">${LEVEL_SHORT[l]} ${counts[l]}</span>`).join("");
 
-  if (S.tab === "check") refreshRowStatuses(data, inp);
-  if (S.tab === "result") { /* 결과 탭은 입력이 없으므로 탭 진입 시 렌더 */ }
-}
+  // 내비게이션 · 개요 카드 · 영역 진행률
+  for (const d of R.DOMAINS) {
+    const st = domainStats(ev, d.key);
+    const risk = st.high ? `<span class="nb lv-high">${st.high}</span>` : st.medium ? `<span class="nb lv-medium">${st.medium}</span>` : "";
+    const done = st.total && st.answered === st.total;
+    $$(`[data-nav="${d.key}"]`).forEach((el) => { el.innerHTML = `${risk}<span class="nav-frac ${done ? "done" : ""}">${st.answered}/${st.total}</span>`; });
+    $$(`[data-domprog="${d.key}"]`).forEach((el) => { el.style.width = `${(100 * st.answered) / Math.max(1, st.total)}%`; });
+    $$(`[data-domtxt="${d.key}"]`).forEach((el) => { el.textContent = `응답 ${st.answered} / ${st.total}`; });
+    $$(`[data-domstate="${d.key}"]`).forEach((el) => {
+      el.innerHTML = st.high + st.medium + st.ok + st.info === 0 ? `<span class="muted">미착수</span>`
+        : [["high", st.high], ["medium", st.medium], ["ok", st.ok]].filter(([, n]) => n).map(([l, n]) => `<span class="status-txt lv-${l}">${LEVEL_SHORT[l]} ${n}</span>`).join("") || `<span class="muted">참고만</span>`;
+    });
+  }
+  $$('[data-nav="result"]').forEach((el) => { el.innerHTML = counts.high ? `<span class="nb lv-high">${counts.high}</span>` : ""; });
 
-function statusHTML(level) {
-  return level ? `<span class="status-txt lv-${level}">${LEVEL_SHORT[level]}</span>` : "";
-}
-
-function refreshRowStatuses(data, inp) {
-  const ctx = { headcount: inp.headcount };
-  const core = R.evaluate(data, numericForRules(inp));
-  const levels = {};
-  for (const [k, cat] of Object.entries(NUMERIC_CATEGORY)) levels["n:" + k] = core.find((f) => f.category === cat)?.level;
-  for (const c of data.standard_checks || []) levels["std:" + c.id] = R.evalCheck(c, inp.std[c.id], "", ctx)?.level;
-  (data.country_specifics || []).forEach((item, i) => {
-    let worst = null;
-    for (const c of item.checks || []) {
-      const l = R.evalCheck(c, inp.spec[c.id], "", ctx)?.level;
-      levels["spec:" + c.id] = l;
-      if (l && (worst === null || LEVEL_ORDER[l] < LEVEL_ORDER[worst])) worst = l;
+  // 행별 상태
+  for (const el of $$("[data-status]")) {
+    const f = ev.byKey[el.dataset.status];
+    const row = el.closest(".row");
+    if (row) {
+      row.dataset.state = f ? f.level : "todo";
+      row.classList.toggle("na", !!(f && f.auto));
     }
-    levels["spec-item:" + i] = worst;
-  });
-  for (const c of data.amendment_checks || []) levels["amend:" + c.id] = R.evalCheck(c, inp.amend[c.id], "", ctx)?.level;
-  $$("[data-status]").forEach((el) => { el.innerHTML = statusHTML(levels[el.dataset.status]); });
+    el.innerHTML = f ? `<span class="status-txt lv-${f.level}">${f.auto ? "미해당" : LEVEL_SHORT[f.level]}</span>` : `<span class="status-txt todo">미응답</span>`;
+  }
+  applyRowFilter();
 
+  // 규모별 적용 의무
   const sl = $("#size-list");
   if (sl) {
-    const rules = sizeRules(data);
-    sl.innerHTML = rules.length ? rules.map((r) => {
-      const on = opHolds(inp.headcount, r.op, Number(r.value));
-      return `<div class="size-item"><span class="tag ${on ? "on" : "off"}">${on ? "적용 대상" : "미해당"}</span>
-        <span>${esc(r.label)}${r.basis ? `<span class="basis">${esc(r.basis)}</span>` : ""}</span><span class="thr">직원 ${esc(r.op)} ${esc(r.value)}명</span></div>`;
-    }).join("") : `<div class="size-item" style="grid-template-columns:1fr"><span class="muted">이 관할에는 직원 수에 따라 달라지는 규제가 별도로 등록되어 있지 않습니다. 일반 기준으로 점검됩니다.</span></div>`;
+    const rules = ev.list.filter((e) => e.chk.applies_if?.field === "headcount");
+    sl.innerHTML = rules.length ? rules.map((e) => {
+      const on = R.checkApplies(e.chk, { headcount: inp.headcount });
+      return `<a class="size-item" href="#/${S.slug}/${e.domain}"><span class="tag ${on ? "on" : "off"}">${on ? "적용 대상" : "미해당"}</span>
+        <span>${esc(e.chk.label)}<span class="basis">${DOMAIN[e.domain].name} · ${esc(e.chk.legal_basis || "")}</span></span><span class="thr">직원 ${esc(e.chk.applies_if.op)} ${esc(e.chk.applies_if.value)}명</span></a>`;
+    }).join("") : `<div class="size-item" style="grid-template-columns:1fr"><span class="muted">이 관할에는 직원 수에 따라 달라지는 의무가 별도로 등록되어 있지 않습니다.</span></div>`;
   }
 
-  const { base, specific } = inputSummaries(data, inp);
-  questionsOf(inp).forEach((q, i) => { const p = $(`#prompt-${i}`); if (p) p.textContent = buildPrompt(data, q, base, specific); });
+  // 영역 판정 목록
+  const df = $("#dom-findings");
+  if (df) {
+    const fs = sortFindings(ev.shown.filter((f) => f.domain === S.view));
+    df.innerHTML = fs.length ? fs.map(findingHTML).join("") : `<div class="empty">아직 답한 항목이 없습니다. 위에서 우리 회사 현황을 선택하면 바로 판정됩니다.</div>`;
+  }
+
+  // 종합 결과
+  if (S.view === "result") renderResultParts(ev, counts);
+  if ($("#q-list")) questionsOf(inp).forEach((q, i) => { const p = $(`#prompt-${i}`); if (p) p.textContent = buildPrompt(data, q, ev, inp.answers, inp.headcount); });
+}
+
+function renderResultParts(ev, counts) {
+  const rc = $("#r-cards");
+  if (rc) rc.innerHTML = ["high", "medium", "ok", "info"].map((l) => `<button type="button" class="r-card lv-${l}" data-filter="${l}" aria-pressed="${S.resultFilter === l}">
+    <div class="k"><span class="sw"></span>${R.LEVEL_LABEL[l]}</div><div class="v">${counts[l]}</div></button>`).join("");
+  const rt = $("#r-table");
+  if (rt) {
+    rt.innerHTML = R.DOMAINS.map((d) => {
+      const st = domainStats(ev, d.key);
+      return `<a class="r-row" href="#/${S.slug}/${d.key}"><span class="nav-no">${DOMAIN[d.key].no}</span><span class="r-name">${d.name}</span>
+        <span class="prog sm"><i style="width:${(100 * st.answered) / Math.max(1, st.total)}%"></i></span><span class="r-frac">${st.answered}/${st.total}</span>
+        <span class="r-counts">${[["high", st.high], ["medium", st.medium], ["ok", st.ok]].map(([l, n]) => `<span class="lv-${l}" style="color:var(--c)">${n || "·"}</span>`).join("")}</span></a>`;
+    }).join("") + `<div class="r-legend"><span class="lv-high" style="color:var(--c)">위반</span> · <span class="lv-medium" style="color:var(--c)">주의</span> · <span class="lv-ok" style="color:var(--c)">적합</span></div>`;
+  }
+  const rf = $("#r-findings");
+  if (rf) {
+    const fs = ev.shown.filter((f) => S.resultFilter === "all" || (S.resultFilter === "dispute" ? f.dispute_risk === "high" : f.level === S.resultFilter));
+    rf.innerHTML = fs.length ? R.DOMAINS.map((d) => {
+      const g = sortFindings(fs.filter((f) => f.domain === d.key));
+      return g.length ? `<div class="r-group"><h3 class="r-group-h"><span class="nav-no">${DOMAIN[d.key].no}</span>${d.name}<span class="muted">${g.length}건</span></h3><div class="findings">${g.map(findingHTML).join("")}</div></div>` : "";
+    }).join("") : `<div class="empty">${ev.answered ? "해당 조건의 항목이 없습니다." : "아직 답한 항목이 없습니다. 좌측 영역에서 점검을 시작하세요."}</div>`;
+  }
+}
+
+function applyRowFilter() {
+  const rows = $$("#rows .row");
+  if (!rows.length) return;
+  const f = S.rowFilter;
+  let shown = 0;
+  for (const r of rows) {
+    const st = r.dataset.state;
+    const ok = f === "all" || (f === "todo" && st === "todo") || (f === "risk" && (st === "high" || st === "medium"))
+      || (f === "amend" && r.dataset.amend === "true") || (f === "dispute" && (r.dataset.dispute === "true" || r.closest('details[data-dispute="true"]')));
+    r.hidden = !ok;
+    if (ok) shown++;
+  }
+  for (const g of $$("#rows .group, #rows details.spec")) g.hidden = !$$(".row", g).some((r) => !r.hidden);
+  const em = $("#rows .filter-empty"); if (em) em.hidden = shown > 0;
 }
 
 // ── 이벤트 ────────────────────────────────────────────────────
 function setValue(group, key, value) {
   const { inp } = cur();
-  if (group === "headcount") inp.headcount = Math.max(1, value);
-  else if (group === "numeric") inp.numeric[key] = value;
-  else if (group === "std" || group === "spec" || group === "amend") inp[group][key] = value;
+  if (group === "headcount") inp.headcount = Math.max(1, value ?? 1);
+  else if (group === "ans") { if (isBlank(value)) delete inp.answers[key]; else inp.answers[key] = value; }
   else if (group === "memo") inp.memos[key] = value;
-  else if (group === "answer") inp.answers[key] = value;
+  else if (group === "reply") inp.replies[key] = value;
   else if (group === "questions") {
     inp.questions = value;
     const list = $("#q-list");
@@ -723,29 +729,48 @@ function setValue(group, key, value) {
   refreshLive();
 }
 
+function stepStart(group, key) {
+  if (group === "headcount") return cur().inp.headcount;
+  const e = S.ev.list.find((x) => x.key === key);
+  const c = e?.chk || {};
+  const base = c.type === "core" ? c.legal : c.threshold;
+  return typeof base === "number" ? base : 0;
+}
+
 app.addEventListener("click", (e) => {
   const t = e.target.closest("button, [data-region]");
   if (!t) return;
   if (t.dataset.region) { S.homeFilter = t.dataset.region; renderHome(); return; }
-  if (t.dataset.tab) { go(S.slug, t.dataset.tab); return; }
-  if (t.dataset.goto === "verify") { go(S.slug, "brief"); setTimeout(() => $("#verify")?.scrollIntoView({ behavior: "smooth" }), 60); return; }
-  if (t.dataset.filter) { S.resultFilter = S.resultFilter === t.dataset.filter && t.classList.contains("r-card") ? "all" : t.dataset.filter; renderPane(); return; }
+  if (t.dataset.goto === "verify") { go(S.slug, "overview"); setTimeout(() => $("#verify")?.scrollIntoView({ behavior: "smooth" }), 80); return; }
+  if (t.dataset.rowfilter) {
+    S.rowFilter = t.dataset.rowfilter;
+    $$("[data-rowfilter]").forEach((b) => b.setAttribute("aria-checked", String(b === t)));
+    applyRowFilter(); return;
+  }
+  if (t.dataset.filter) {
+    S.resultFilter = S.resultFilter === t.dataset.filter && t.classList.contains("r-card") ? "all" : t.dataset.filter;
+    $$("[data-filter]").forEach((b) => b.matches(".seg button") && b.setAttribute("aria-checked", String(b.dataset.filter === S.resultFilter)));
+    refreshLive(); return;
+  }
   if (t.dataset.step) {
     const input = t.parentElement.querySelector("input");
-    const v = Math.max(0, Math.round(((parseFloat(input.value) || 0) + parseFloat(t.dataset.step)) * 100) / 100);
+    const curV = parseFloat(input.value);
+    const base = isFinite(curV) ? curV + parseFloat(t.dataset.step) : stepStart(t.dataset.group, t.dataset.key);
+    const v = Math.max(t.dataset.group === "headcount" ? 1 : 0, Math.round(base * 100) / 100);
     input.value = v;
-    setValue(t.dataset.group, t.dataset.key, t.dataset.group === "headcount" ? Math.max(1, v) : v);
+    setValue(t.dataset.group, t.dataset.key, v);
     return;
   }
   if (t.dataset.val !== undefined && t.dataset.group) {
-    $$("button", t.parentElement).forEach((b) => b.setAttribute("aria-checked", String(b === t)));
-    setValue(t.dataset.group, t.dataset.key, t.dataset.val);
+    const turnOff = t.getAttribute("aria-checked") === "true";
+    $$("button", t.parentElement).forEach((b) => b.setAttribute("aria-checked", String(!turnOff && b === t)));
+    setValue(t.dataset.group, t.dataset.key, turnOff ? null : t.dataset.val);
     return;
   }
   if (t.dataset.action === "report") { downloadReport(); return; }
   if (t.dataset.action === "reset") {
-    if (confirm("이 관할의 입력값을 모두 법정 기준 기본값으로 되돌릴까요?")) {
-      S.inputs[S.slug] = defaultInputs(cur().data); S.resultFilter = "all"; renderPane(); refreshLive(); toast("입력값을 초기화했습니다.");
+    if (confirm("이 관할의 응답을 모두 지우고 미응답 상태로 되돌릴까요?")) {
+      S.inputs[S.slug] = newInputs(); S.rowFilter = "all"; S.resultFilter = "all"; renderCountry(); toast("응답을 초기화했습니다.");
     }
     return;
   }
@@ -760,8 +785,7 @@ app.addEventListener("input", (e) => {
   if (!t.dataset.group) return;
   if (t.type === "number") {
     const v = parseFloat(t.value);
-    if (!isFinite(v)) return;
-    setValue(t.dataset.group, t.dataset.key, Math.max(0, v));
+    setValue(t.dataset.group, t.dataset.key, isFinite(v) ? Math.max(0, v) : null);
   } else if (t.tagName === "TEXTAREA") {
     setValue(t.dataset.group, t.dataset.key, t.value);
     t.style.height = "auto"; t.style.height = `${t.scrollHeight + 2}px`;
@@ -769,29 +793,29 @@ app.addEventListener("input", (e) => {
 });
 app.addEventListener("change", (e) => {
   const t = e.target;
-  if (t.tagName === "SELECT" && t.dataset.group) setValue(t.dataset.group, t.dataset.key, t.value);
-  if (t.type === "number" && !isFinite(parseFloat(t.value))) { t.value = 0; setValue(t.dataset.group, t.dataset.key, 0); }
+  if (t.tagName === "SELECT" && t.dataset.group) setValue(t.dataset.group, t.dataset.key, t.value || null);
+  if (t.dataset.group === "headcount" && !isFinite(parseFloat(t.value))) { t.value = cur().inp.headcount; }
 });
-document.addEventListener("change", (e) => { if (e.target.id === "switch") go(e.target.value, S.tab); });
+document.addEventListener("change", (e) => { if (e.target.id === "switch") go(e.target.value, S.view); });
 
 function downloadReport() {
   const { data, inp } = cur();
-  const { base, specific } = inputSummaries(data, inp);
-  const subj = questionsOf(inp).map((q) => [q, inp.answers[q] || ""]);
-  const html = buildReport({ data, findings: S.findings, baseInputs: base, specificInputs: specific, subjItems: subj, headcount: inp.headcount });
+  const ev = evaluate();
+  const subj = questionsOf(inp).map((q) => [q, inp.replies[q] || ""]);
+  const html = buildReport({ data, ev, answers: inp.answers, headcount: inp.headcount, subjItems: subj });
   const today = new Date().toISOString().slice(0, 10);
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
   a.download = `compliance_report_${data.country}_${today}.html`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  toast("리포트를 내려받았습니다.");
+  toast(ev.answered ? "리포트를 내려받았습니다." : "아직 응답이 없어 법령 요약 위주의 리포트입니다.");
 }
 
 let toastTimer;
 function toast(msg) {
   const el = $("#toast"); el.textContent = msg; el.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
 }
 
 // ── 테마 ──────────────────────────────────────────────────────
@@ -806,24 +830,25 @@ $("#theme-btn").addEventListener("click", () => {
   paintThemeBtn();
 });
 
-// ── 라우팅: #/ · #/jp · #/jp/check · #/jp/result ─────────────
-function go(slug, tab = "brief") { location.hash = slug ? `#/${slug}${tab === "brief" ? "" : "/" + tab}` : "#/"; }
+// ── 라우팅: #/ · #/jp · #/jp/<영역> · #/jp/result ─────────────
+const VIEWS = ["overview", ...R.DOMAIN_KEYS, "result"];
+function go(slug, view = "overview") { location.hash = slug ? `#/${slug}${view === "overview" ? "" : "/" + view}` : "#/"; }
 
 function route() {
-  const [, slug, tab] = location.hash.replace(/^#/, "").split("/");
+  const [, slug, view] = location.hash.replace(/^#/, "").split("/");
   const meta = COUNTRIES.find((c) => c.slug === slug);
   if (!meta) { S.slug = null; renderHome(); window.scrollTo(0, 0); return; }
-  const newTab = ["brief", "check", "result"].includes(tab) ? tab : "brief";
-  if (!S.inputs[slug]) S.inputs[slug] = defaultInputs(S.all[slug]);
+  const newView = VIEWS.includes(view) ? view : "overview";
+  if (!S.inputs[slug]) S.inputs[slug] = newInputs();
+  if (S.view !== newView) S.rowFilter = "all";
+  S.view = newView;
   if (S.slug !== slug || !$("#pane")) {
-    S.slug = slug; S.tab = newTab; S.resultFilter = "all";
+    S.slug = slug; S.resultFilter = "all";
     renderCountry(); window.scrollTo(0, 0);
   } else {
-    S.tab = newTab;
-    refreshLive();
     renderPane();
     const band = $(".band");
-    if (band && window.scrollY > band.offsetHeight) window.scrollTo({ top: band.offsetHeight - 120, behavior: "smooth" });
+    if (band && window.scrollY > band.offsetHeight) window.scrollTo({ top: band.offsetHeight - 70, behavior: "smooth" });
   }
 }
 
