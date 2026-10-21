@@ -779,7 +779,8 @@ data = st.session_state["data"]
 
 if not data:
     st.info("⬅️ 왼쪽 사이드바에서 **국가를 선택**하고 **‘노동법령·판례 불러오기’**를 누르면 시작됩니다.")
-    st.caption("API 키 불필요 · 사전 수집된 8개국 법령 데이터(기준시점 2026-06) 기반 · 룰 자동 판정")
+    _as_of = max(load_data(f).get("as_of", "") for f in COUNTRY_CITY_FILES.values())
+    st.caption(f"API 키 불필요 · 사전 수집된 {len(COUNTRY_CITY_FILES)}개국 법령 데이터(기준시점 {_as_of}) 기반 · 룰 자동 판정")
 else:
     std = data["standards"]
     mw = std.get("min_wage", {})
