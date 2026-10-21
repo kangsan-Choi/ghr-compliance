@@ -24,8 +24,8 @@ HEADCOUNTS = [1, 10, 50, 100, 101, 300, 1000]
 
 NODE_RUNNER = r"""
 import fs from 'node:fs';
-import { pathToFileURL } from 'node:url';
-const R = await import(pathToFileURL(process.argv[2]).href);
+import { createRequire } from 'node:module';
+const R = createRequire(import.meta.url)(process.argv[2]);
 const cases = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 const out = cases.map(c => {
   const ctx = { headcount: c.headcount };

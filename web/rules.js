@@ -9,6 +9,9 @@
  *
  * 레벨: high(위반/미달 가능성 큼) / medium(주의) / ok(적합) / info(수동 확인)
  */
+(function (root) {
+"use strict";
+
 
 // ── 파이썬 동작 재현 헬퍼 ─────────────────────────────────────
 
@@ -26,7 +29,7 @@ function py(x) {
 }
 
 /** 파이썬 format(x, 'g') */
-export function fmtG(x) {
+function fmtG(x) {
   if (!isFinite(x)) return String(x);
   if (x === 0) return "0";
   const exp = Math.floor(Math.log10(Math.abs(Number(x.toPrecision(6)))));
@@ -40,13 +43,13 @@ export function fmtG(x) {
 }
 
 /** 파이썬 round(x) — 0.5 는 짝수 쪽으로(banker's rounding). */
-export function pyRound(x) {
+function pyRound(x) {
   const r = Math.round(x);
   return Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r;
 }
 
 /** 파이썬 format(x, ',.0f') */
-export function fmtComma0(x) {
+function fmtComma0(x) {
   return pyRound(x).toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
@@ -60,7 +63,7 @@ function _num(x) {
 // ── 핵심 정량 비교 ────────────────────────────────────────────
 
 /** 법정 기준(data) vs 우리 제도(inputs) 비교 → findings 리스트. */
-export function evaluate(data, inputs) {
+function evaluate(data, inputs) {
   const std = get(data, "standards", {});
   const findings = [];
 
@@ -247,7 +250,7 @@ export function evaluate(data, inputs) {
 // ── 구조화 점검(check) ────────────────────────────────────────
 
 /** check 의 applies_if 조건(인원 규모 등)을 평가. 조건 없으면 항상 true. */
-export function checkApplies(chk, context) {
+function checkApplies(chk, context) {
   const cond = get(chk, "applies_if");
   if (!cond) return true;
   const cur = _num(get(context || {}, get(cond, "field")));
@@ -263,7 +266,7 @@ export function checkApplies(chk, context) {
 }
 
 /** 단일 구조화 검사(check)를 평가하여 finding 반환. 평가 불가 시 null. */
-export function evalCheck(chk, val, category, context = null) {
+function evalCheck(chk, val, category, context = null) {
   if (!checkApplies(chk, context)) {
     const cond = get(chk, "applies_if", {});
     return {
@@ -355,7 +358,7 @@ export function evalCheck(chk, val, category, context = null) {
 }
 
 /** 국가 특유 제도(country_specifics)의 구조화 검사를 평가. dispute_risk 는 finding 에 전달. */
-export function evaluateSpecifics(data, checkValues, context = null) {
+function evaluateSpecifics(data, checkValues, context = null) {
   const findings = [];
   for (const item of get(data, "country_specifics", []) || []) {
     const name = get(item, "name", "");
@@ -377,7 +380,7 @@ export function evaluateSpecifics(data, checkValues, context = null) {
 }
 
 /** 표준 항목 상세 점검(standard_checks)을 평가. */
-export function evaluateStandardChecks(data, checkValues, context = null) {
+function evaluateStandardChecks(data, checkValues, context = null) {
   const findings = [];
   for (const chk of get(data, "standard_checks", []) || []) {
     const cid = get(chk, "id");
@@ -389,7 +392,7 @@ export function evaluateStandardChecks(data, checkValues, context = null) {
 }
 
 /** 최근 3개년 개정 대응 점검(amendment_checks)을 평가. category 는 '📌 <근거 개정>'. */
-export function evaluateAmendmentChecks(data, checkValues, context = null) {
+function evaluateAmendmentChecks(data, checkValues, context = null) {
   const findings = [];
   for (const chk of get(data, "amendment_checks", []) || []) {
     const cid = get(chk, "id");
@@ -401,21 +404,29 @@ export function evaluateAmendmentChecks(data, checkValues, context = null) {
 }
 
 /** 레벨별 개수 집계. */
-export function summarize(findings) {
+function summarize(findings) {
   const counts = { high: 0, medium: 0, ok: 0, info: 0 };
   for (const f of findings) counts[f.level] = (counts[f.level] || 0) + 1;
   return counts;
 }
 
 /** 종합 리스크 지수(0~100): high 1.0, medium 0.5 가중. 앱·리포트 공통. */
-export function riskScore(counts) {
+function riskScore(counts) {
   const total = Math.max(1, counts.high + counts.medium + counts.ok + counts.info);
   return pyRound((100 * (counts.high * 1.0 + counts.medium * 0.5)) / total);
 }
 
-export const LEVEL_LABEL = {
+const LEVEL_LABEL = {
   high: "위반 소지",
   medium: "주의",
   ok: "적합",
   info: "수동확인",
 };
+
+const GHRRules = {
+  fmtG, pyRound, fmtComma0, evaluate, checkApplies, evalCheck,
+  evaluateSpecifics, evaluateStandardChecks, evaluateAmendmentChecks, summarize, riskScore, LEVEL_LABEL,
+};
+if (typeof module !== "undefined" && module.exports) module.exports = GHRRules;
+else root.GHRRules = GHRRules;
+})(typeof window !== "undefined" ? window : globalThis);

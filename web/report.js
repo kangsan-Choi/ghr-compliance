@@ -2,20 +2,22 @@
  * 최종 리포트(독립 HTML) · 주관식 AI 프롬프트 생성
  * compliance_app.build_html_report / build_llm_prompt 를 새 디자인으로 포팅.
  */
-import { summarize, riskScore, LEVEL_LABEL } from "./rules.js";
+(function () {
+"use strict";
+const { summarize, riskScore, LEVEL_LABEL } = window.GHRRules;
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pyStr = (x) => (x === null || x === undefined ? "None" : String(x));
 
 /** 파이썬 fmt_amount: "2,540 CNY / 월 (베이징)" */
-export function fmtAmount(mw) {
+function fmtAmount(mw) {
   const a = mw?.amount;
   if (typeof a !== "number") return "-";
   return `${a.toLocaleString("en-US", { maximumFractionDigits: 20 })} ${mw.currency ?? ""} / ${mw.period ?? ""} (${mw.locality ?? ""})`;
 }
 
 /** 질문 1건에 대한 AI 프롬프트(법령 컨텍스트 번들). */
-export function buildPrompt(data, question, baseInputs, specificInputs) {
+function buildPrompt(data, question, baseInputs, specificInputs) {
   const std = data.standards || {};
   const mw = std.min_wage || {};
   const specifics = (data.country_specifics || []).map((s) => s.name || "").join("; ");
@@ -47,7 +49,7 @@ ${question.trim()}
 }
 
 /** 다운로드용 독립 HTML 리포트. */
-export function buildReport({ data, findings, baseInputs, specificInputs, subjItems, headcount }) {
+function buildReport({ data, findings, baseInputs, specificInputs, subjItems, headcount }) {
   const today = new Date().toISOString().slice(0, 10);
   const std = data.standards || {};
   const v = data.verification || {};
@@ -188,3 +190,6 @@ export function buildReport({ data, findings, baseInputs, specificInputs, subjIt
 </script>
 </body></html>`;
 }
+
+window.GHRReport = { buildReport, buildPrompt, fmtAmount };
+})();

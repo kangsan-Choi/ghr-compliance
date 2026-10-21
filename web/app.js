@@ -4,11 +4,14 @@
  * 흐름: 홈(관할 선택) → 국가 작업공간 [01 법령 브리핑 · 02 제도 점검 · 03 진단 결과]
  * 입력이 바뀌면 rules.js 로 즉시 재판정하고, 우측 요약·행별 상태·결과 탭을 갱신한다.
  * 입력값은 서버로 보내지 않고 브라우저 메모리에만 둔다(새로고침 시 초기화).
+ *
+ * 법령 데이터는 data.js(window.GHR_DATA)에서 읽는다 — 파일을 더블클릭해 열어도(file://) 동작하도록
+ * 모듈·fetch 를 쓰지 않는다. data/*.json 을 고치면 python tools/sync_web_data.py 로 data.js 를 갱신.
  */
-import * as R from "./rules.js";
-import { buildReport, buildPrompt, fmtAmount } from "./report.js";
-
-const DATA_BASE = document.querySelector('meta[name="ghr-data"]')?.content || "data/";
+(function () {
+"use strict";
+const R = window.GHRRules;
+const { buildReport, buildPrompt, fmtAmount } = window.GHRReport;
 
 const COUNTRIES = [
   { slug: "us", file: "us_houston.json", code: "US", region: "americas", sub: "텍사스" },
@@ -78,13 +81,13 @@ const S = {
 const app = $("#app");
 
 // ── 데이터 ────────────────────────────────────────────────────
-async function loadAll() {
-  const list = await Promise.all(COUNTRIES.map(async (c) => {
-    const res = await fetch(DATA_BASE + c.file, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`${c.file}: HTTP ${res.status}`);
-    return [c.slug, await res.json()];
-  }));
-  for (const [slug, data] of list) S.all[slug] = data;
+function loadAll() {
+  const bundle = window.GHR_DATA;
+  if (!bundle) throw new Error("data.js 를 찾지 못했습니다. python tools/sync_web_data.py 를 실행하세요.");
+  for (const c of COUNTRIES) {
+    if (!bundle[c.file]) throw new Error(`data.js 에 ${c.file} 이 없습니다. python tools/sync_web_data.py 를 실행하세요.`);
+    S.all[c.slug] = bundle[c.file];
+  }
 }
 
 function defaultCheckValue(chk, isAmend) {
@@ -827,12 +830,12 @@ function route() {
 // ── 시작 ──────────────────────────────────────────────────────
 paintThemeBtn();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintThemeBtn);
-app.innerHTML = `<div class="wrap muted" style="padding:120px 16px;text-align:center">법령 데이터를 불러오는 중…</div>`;
-loadAll().then(() => {
+try {
+  loadAll();
   window.addEventListener("hashchange", route);
   route();
-}).catch((err) => {
+} catch (err) {
   app.innerHTML = `<div class="wrap" style="padding:100px 16px"><div class="notice"><div class="notice-icon">${icon("alert")}</div><div>
-    <h4>법령 데이터를 불러오지 못했습니다</h4>
-    <ul><li>${esc(err.message)}</li><li>파일을 더블클릭해 연 경우 브라우저가 데이터 읽기를 막습니다. 저장소 폴더에서 <b>python -m http.server</b> 실행 후 <b>http://localhost:8000/web/</b> 로 여세요.</li></ul></div></div></div>`;
-});
+    <h4>법령 데이터를 불러오지 못했습니다</h4><ul><li>${esc(err.message)}</li></ul></div></div></div>`;
+}
+})();

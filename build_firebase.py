@@ -79,14 +79,11 @@ def clean_out():
 
 
 def build_web():
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import sync_web_data
+    sync_web_data.sync()  # data/*.json → web/data.js 최신화
     clean_out()
     shutil.copytree(os.path.join(ROOT, "web"), OUT, dirs_exist_ok=True)
-    shutil.copytree(os.path.join(ROOT, "data"), os.path.join(OUT, "data"))
-    index = os.path.join(OUT, "index.html")
-    with open(index, encoding="utf-8") as f:
-        html = f.read()
-    with open(index, "w", encoding="utf-8") as f:
-        f.write(html.replace('<meta name="ghr-data" content="../data/" />', '<meta name="ghr-data" content="data/" />'))
     print(f"빌드 완료(새 프론트엔드): {OUT}")
 
 

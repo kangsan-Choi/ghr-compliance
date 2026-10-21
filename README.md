@@ -25,11 +25,8 @@ API 키 없이 사전 수집된 법령 데이터와 룰 기반 판정으로 동�
 | `archive_html_초기버전/` | 초기 HTML 버전(참고용 보관) |
 
 ## 내 PC에서 실행
-**새 프론트엔드**
-```powershell
-python -m http.server 8000
-```
-브라우저에서 http://localhost:8000/web/ 로 접속. (파일을 더블클릭해 열면 데이터 읽기가 막힙니다)
+**새 프론트엔드**: `web/index.html` 을 더블클릭해 열면 됩니다(서버 불필요).
+`data/*.json` 을 고친 뒤에는 `python tools/sync_web_data.py` 로 `web/data.js` 를 갱신하세요.
 
 **Streamlit 앱**
 ```powershell
