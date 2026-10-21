@@ -34,16 +34,13 @@ python tools/validate_data.py     # 구조 검사 (오류 0건이어야 함)
 python tools/sync_web_data.py     # 앱에 반영
 ```
 
-## 배포
-`python build_firebase.py` 로 만든 `public/` 폴더는 정적 사이트라 어떤 호스팅에도 올릴 수 있습니다.
-Firebase Hosting 예:
-```powershell
-npm install -g firebase-tools         # 최초 1회
-firebase login                        # 최초 1회
-firebase use --add                    # 최초 1회: Firebase 프로젝트 선택
-python build_firebase.py
-firebase deploy --only hosting
-```
+## 배포 (GitHub Pages)
+`main` 브랜치에 올리면(push) GitHub Actions(`.github/workflows/pages.yml`)가 데이터 검사 후 `web/` 폴더를 자동 배포합니다.
+- 주소: https://kangsan-choi.github.io/ghr-compliance/
+- 최초 1회: 저장소 Settings → Pages → Source 를 **GitHub Actions** 로 선택
+- 배포 진행 상황: 저장소 상단 **Actions** 탭 (초록 체크 = 완료)
+
+`build_firebase.py` 로 만든 `public/` 폴더는 Firebase·Netlify·Cloudflare Pages 등 다른 정적 호스팅에도 그대로 올릴 수 있습니다.
 
 ---
 ※ 진단 결과는 참고용이며, 최종 의사결정 전 현지 노무사/변호사 확인이 필요합니다.
