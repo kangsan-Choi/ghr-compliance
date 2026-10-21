@@ -1,12 +1,14 @@
 """
 Firebase Hosting 배포용 정적 빌드 스크립트
 
-Streamlit 앱을 stlite(브라우저 안에서 파이썬 실행)로 감싸 public/ 폴더에 정적 파일로 만든다.
-서버가 없어 Firebase 무료(Spark) 요금제로 호스팅 가능.
+기본: 새 프론트엔드(web/) + 법령 데이터(data/)를 public/ 에 복사한다(서버·파이썬 런타임 불필요).
+--stlite: 기존 Streamlit 앱을 stlite(브라우저 안에서 파이썬 실행)로 감싸 public/ 에 만든다.
+어느 쪽이든 정적 파일이라 Firebase 무료(Spark) 요금제로 호스팅 가능.
 
 사용법:
-    python build_firebase.py          # public/ 생성
-    firebase deploy --only hosting    # 배포 (firebase login 후)
+    python build_firebase.py            # 새 프론트엔드 → public/
+    python build_firebase.py --stlite   # Streamlit 앱(stlite) → public/
+    firebase deploy --only hosting      # 배포 (firebase login 후)
 
 data/*.json 이나 앱 코드를 고친 뒤에는 다시 빌드해야 반영된다.
 """
@@ -15,6 +17,7 @@ import glob
 import json
 import os
 import shutil
+import sys
 import tomllib
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -67,12 +70,28 @@ def flatten_streamlit_config() -> dict:
     return flat
 
 
-def build():
+def clean_out():
     # 폴더 자체가 아닌 내용만 비움 (탐색기·로컬 서버가 폴더를 잡고 있어도 실패하지 않도록)
     os.makedirs(OUT, exist_ok=True)
     for name in os.listdir(OUT):
         path = os.path.join(OUT, name)
         shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
+
+
+def build_web():
+    clean_out()
+    shutil.copytree(os.path.join(ROOT, "web"), OUT, dirs_exist_ok=True)
+    shutil.copytree(os.path.join(ROOT, "data"), os.path.join(OUT, "data"))
+    index = os.path.join(OUT, "index.html")
+    with open(index, encoding="utf-8") as f:
+        html = f.read()
+    with open(index, "w", encoding="utf-8") as f:
+        f.write(html.replace('<meta name="ghr-data" content="../data/" />', '<meta name="ghr-data" content="data/" />'))
+    print(f"빌드 완료(새 프론트엔드): {OUT}")
+
+
+def build_stlite():
+    clean_out()
     os.makedirs(os.path.join(OUT, "app"))
 
     for rel in APP_FILES:
@@ -90,8 +109,8 @@ def build():
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"빌드 완료: {OUT}  (앱 파일 {len(APP_FILES)}개)")
+    print(f"빌드 완료(stlite): {OUT}  (앱 파일 {len(APP_FILES)}개)")
 
 
 if __name__ == "__main__":
-    build()
+    build_stlite() if "--stlite" in sys.argv else build_web()

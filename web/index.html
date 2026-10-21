@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Global ER Compliance</title>
+  <meta name="description" content="해외 사업장 노동법 컴플라이언스 점검 — 국가·도시별 법령과 사내 제도를 비교해 리스크를 진단합니다." />
+  <!-- 데이터 폴더 위치: 저장소에서 바로 열 때 ../data/, 배포 빌드(build_firebase.py)에서 data/ 로 바뀜 -->
+  <meta name="ghr-data" content="../data/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1F36'/%3E%3Crect y='28' width='32' height='4' fill='%23B4532A'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' font-weight='700' fill='%23F3EFE6' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    try { var t = localStorage.getItem("ghr-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="#/">
+        <span class="brand-mark">G</span>
+        <span class="brand-name">Global ER Compliance<span>해외 사업장 노동법 점검</span></span>
+      </a>
+      <div class="topbar-spacer"></div>
+      <div id="topbar-slot" style="display:flex;align-items:center;gap:10px"></div>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="화면 테마 전환"></button>
+    </div>
+  </header>
+
+  <main id="app" aria-live="polite"></main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>진단 결과는 참고용이며, 최종 의사결정 전 현지 노무사·변호사 확인이 필요합니다.</span>
+      <span>API 키 없이 사전 수집·검증된 법령 데이터와 룰 엔진으로 동작</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
